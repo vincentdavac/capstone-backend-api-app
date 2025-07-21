@@ -7,7 +7,7 @@ use App\Http\Resources\VegetableResource;
 use App\Models\Vegetable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use \App\Traits\HttpResponses;
+use App\Traits\HttpResponses;
 
 class VegetableController extends Controller
 {
