@@ -17,18 +17,20 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+//base url for API localhost http://127.0.0.1:8000/api
+
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 // Homepage CRUD (public access for now)
-Route::apiResource('/homepage-sliders', HomepageSliderController::class);
-Route::apiResource('/homepage-abouts', HomepageAboutController::class);
-Route::apiResource('/homepage-prototypes', HomepagePrototypeController::class);
-Route::apiResource('/homepage-faqs', HomepageFaqController::class);
-Route::apiResource('/homepage-teams', HomepageTeamController::class);
-Route::apiResource('/homepage-feedbacks', HomepageFeedbackController::class);
-Route::apiResource('/homepage-footers', HomepageFooterController::class);
+Route::apiResource('/slider', HomepageSliderController::class);
+Route::apiResource('/homepage-about', HomepageAboutController::class);
+Route::apiResource('/homepage-prototype', HomepagePrototypeController::class);
+Route::apiResource('/homepage-faq', HomepageFaqController::class);
+Route::apiResource('/homepage-team', HomepageTeamController::class);
+Route::apiResource('/homepage-feedback', HomepageFeedbackController::class);
+Route::apiResource('/homepage-footer', HomepageFooterController::class);
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {

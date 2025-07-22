@@ -4,43 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepageSlider;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreHomepageSlider;
+use App\Http\Resources\HomepageSliderResource;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\HttpResponses;
 
 class HomepageSliderController extends Controller
 {
+
+    use HttpResponses;
+
     public function index()
     {
-        return HomepageSlider::all();
+        return HomepageSliderResource::collection(HomepageSlider::all());
     }
 
-    public function store(Request $request)
+    public function store(StoreHomepageSlider $request)
     {
-        $validated = $request->validate([
-            'image' => 'string|required',
-            'image_url' => 'nullable|string',
-            'title' => 'required|string',
-            'description' => 'nullable|string',
-            'is_active' => 'required|boolean',
-        ]);
+        $validated = $request->validated();
+        $slider = HomepageSlider::create($validated);
 
-        return HomepageSlider::create($validated);
+        return new HomepageSliderResource($slider);
     }
 
-    public function show($id)
+    public function show(HomepageSlider $slider)
     {
-        return HomepageSlider::findOrFail($id);
+        return new HomepageSliderResource($slider);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request,  HomepageSlider $slider)
     {
-        $slider = HomepageSlider::findOrFail($id);
         $slider->update($request->all());
-        return $slider;
+        return new HomepageSliderResource($slider);
     }
 
-    public function destroy($id)
+    public function destroy(HomepageSlider $slider)
     {
-        $slider = HomepageSlider::findOrFail($id);
         $slider->delete();
-        return response()->json(['message' => 'Deleted']);
+        return $this->success('', 'Slider deleted successfully', 200);
     }
 }
