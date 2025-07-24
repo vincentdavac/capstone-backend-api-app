@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('homepage_prototypes', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 255);
-            $table->string('caption', 255)->nullable();
-            $table->string('image', 255);
-            $table->string('image_link', 255)->nullable();
+            $table->longText('title');
+            $table->longText('caption')->nullable();
+            $table->longText('image')->nullable();
+            $table->longText('image_url')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps(); // created_at & updated_at
         });

@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('homepage_footers', function (Blueprint $table) {
             $table->id();
-            $table->string('email', 255)->nullable();
-            $table->string('phone', 255)->nullable();
-            $table->string('location', 255)->nullable();
-            $table->string('facebook_link', 255)->nullable();
-            $table->string('twitter_link', 255)->nullable();
-            $table->string('linkedin_link', 255)->nullable();
-            $table->string('instagram_link', 255)->nullable();
-            $table->text('short_description')->nullable();
+            $table->longText('email')->nullable();
+            $table->longText('phone')->nullable();
+            $table->longText('location')->nullable();
+            $table->longText('facebook_link')->nullable();
+            $table->longText('twitter_link')->nullable();
+            $table->longText('linkedin_link')->nullable();
+            $table->longText('instagram_link')->nullable();
+            $table->longText('short_description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps(); // created_at & updated_at
         });

@@ -13,18 +13,18 @@ return new class extends Migration
     {
         Schema::create('homepage_abouts', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 255);
-            $table->string('caption', 255);
-            $table->string('image', 255);
-            $table->string('image_link')->nullable();
-            $table->string('side_title', 255);
-            $table->string('side_description', 255);
-            $table->string('first_card_title', 255);
-            $table->string('first_card_description', 255);
-            $table->string('second_card_title', 255);
-            $table->string('second_card_description', 255);
-            $table->string('third_card_title', 255);
-            $table->string('third_card_description', 255);
+            $table->longText('title');
+            $table->longText('caption');
+            $table->longText('image')->nullable();
+            $table->longText('image_url')->nullable();
+            $table->longText('side_title');
+            $table->longText('side_description');
+            $table->longText('first_card_title');
+            $table->longText('first_card_description');
+            $table->longText('second_card_title');
+            $table->longText('second_card_description');
+            $table->longText('third_card_title');
+            $table->longText('third_card_description');
             $table->timestamps();
         });
     }

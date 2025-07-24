@@ -8,9 +8,9 @@ class HomepageTeam extends Model
 {
     protected $fillable = [
         'name',
-        'position',
+        'role',
         'image',
-        'image_link',
+        'image_url',
         'facebook_link',
         'twitter_link',
         'linkedin_link',

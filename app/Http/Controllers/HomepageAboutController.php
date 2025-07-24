@@ -4,77 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepageAbout;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreHomepageAbout;
+use App\Http\Resources\HomepageAboutResource;
+use App\Traits\HttpResponses;
 
 class HomepageAboutController extends Controller
 {
+    use HttpResponses;
+
     public function index()
     {
-        return HomepageAbout::all();
+        return HomepageAboutResource::collection(HomepageAbout::all());
     }
 
-    public function create()
+    public function store(StoreHomepageAbout $request)
     {
-        //
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'caption' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'side_title' => 'required|string|max:255',
-            'side_description' => 'required|string|max:255',
-            'first_card_title' => 'required|string|max:255',
-            'first_card_description' => 'required|string|max:255',
-            'second_card_title' => 'required|string|max:255',
-            'second_card_description' => 'required|string|max:255',
-            'third_card_title' => 'required|string|max:255',
-            'third_card_description' => 'required|string|max:255',
-        ]);
-
+        $validated = $request->validated();
         $about = HomepageAbout::create($validated);
 
-        return response()->json(['message' => 'Homepage About created successfully', 'data' => $about], 201);
+        return new HomepageAboutResource($about);
     }
 
     public function show(HomepageAbout $homepageAbout)
     {
-        return response()->json($homepageAbout);
-    }
-
-    public function edit(HomepageAbout $homepageAbout)
-    {
-        //
+        return new HomepageAboutResource($homepageAbout);
     }
 
     public function update(Request $request, HomepageAbout $homepageAbout)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'caption' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'side_title' => 'required|string|max:255',
-            'side_description' => 'required|string|max:255',
-            'first_card_title' => 'required|string|max:255',
-            'first_card_description' => 'required|string|max:255',
-            'second_card_title' => 'required|string|max:255',
-            'second_card_description' => 'required|string|max:255',
-            'third_card_title' => 'required|string|max:255',
-            'third_card_description' => 'required|string|max:255',
-        ]);
+        $homepageAbout->update($request->all());
 
-        $homepageAbout->update($validated);
-
-        return response()->json(['message' => 'Homepage About updated successfully', 'data' => $homepageAbout]);
+        return new HomepageAboutResource($homepageAbout);
     }
 
     public function destroy(HomepageAbout $homepageAbout)
     {
         $homepageAbout->delete();
 
-        return response()->json(['message' => 'Homepage About deleted successfully']);
+        return $this->success('', 'Homepage About deleted successfully', 200);
     }
 }

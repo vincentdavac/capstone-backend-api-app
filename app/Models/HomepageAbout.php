@@ -10,7 +10,7 @@ class HomepageAbout extends Model
         'title',
         'caption',
         'image',
-        'image_link',
+        'image_url',
         'side_title',
         'side_description',
         'first_card_title',

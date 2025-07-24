@@ -10,7 +10,7 @@ class HomepagePrototype extends Model
         'title',
         'caption',
         'image',
-        'image_link',
+        'image_url',
         'is_active',
     ];
 }

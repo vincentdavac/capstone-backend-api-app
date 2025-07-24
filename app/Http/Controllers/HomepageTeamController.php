@@ -4,62 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepageTeam;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreHomepageTeam;
+use App\Http\Resources\HomepageTeamResource;
+use App\Traits\HttpResponses;
 
 class HomepageTeamController extends Controller
 {
+    use HttpResponses;
+
     public function index()
     {
-        return HomepageTeam::all();
+        return HomepageTeamResource::collection(HomepageTeam::all());
     }
 
-    public function store(Request $request)
+    public function store(StoreHomepageTeam $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'position' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'facebook_link' => 'nullable|string|max:255',
-            'twitter_link' => 'nullable|string|max:255',
-            'linkedin_link' => 'nullable|string|max:255',
-            'instagram_link' => 'nullable|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
+        $validated = $request->validated();
+        $team = HomepageTeam::create($validated);
 
-        return HomepageTeam::create($validated);
+        return new HomepageTeamResource($team);
     }
 
-    public function show($id)
+    public function show(HomepageTeam $homepageTeam)
     {
-        return HomepageTeam::findOrFail($id);
+        return new HomepageTeamResource($homepageTeam);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, HomepageTeam $homepageTeam)
     {
-        $team = HomepageTeam::findOrFail($id);
+        $homepageTeam->update($request->all());
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'position' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'facebook_link' => 'nullable|string|max:255',
-            'twitter_link' => 'nullable|string|max:255',
-            'linkedin_link' => 'nullable|string|max:255',
-            'instagram_link' => 'nullable|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
-
-        $team->update($validated);
-
-        return $team;
+        return new HomepageTeamResource($homepageTeam);
     }
 
-    public function destroy($id)
+    public function destroy(HomepageTeam $homepageTeam)
     {
-        $team = HomepageTeam::findOrFail($id);
-        $team->delete();
+        $homepageTeam->delete();
 
-        return response()->json(['message' => 'Team member deleted']);
+        return $this->success('', 'Team member deleted successfully', 200);
     }
 }

@@ -4,54 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepagePrototype;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreHomepagePrototype;
+use App\Http\Resources\HomepagePrototypeResource;
+use App\Traits\HttpResponses;
 
 class HomepagePrototypeController extends Controller
 {
+    use HttpResponses;
+
     public function index()
     {
-        return HomepagePrototype::all();
+        return HomepagePrototypeResource::collection(HomepagePrototype::all());
     }
 
-    public function store(Request $request)
+    public function store(StoreHomepagePrototype $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'caption' => 'nullable|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
+        $validated = $request->validated();
+        $prototype = HomepagePrototype::create($validated);
 
-        return HomepagePrototype::create($validated);
+        return new HomepagePrototypeResource($prototype);
     }
 
-    public function show($id)
+    public function show(HomepagePrototype $homepagePrototype)
     {
-        return HomepagePrototype::findOrFail($id);
+        return new HomepagePrototypeResource($homepagePrototype);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, HomepagePrototype $homepagePrototype)
     {
-        $prototype = HomepagePrototype::findOrFail($id);
+        $homepagePrototype->update($request->all());
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'caption' => 'nullable|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
-
-        $prototype->update($validated);
-
-        return $prototype;
+        return new HomepagePrototypeResource($homepagePrototype);
     }
 
-    public function destroy($id)
+    public function destroy(HomepagePrototype $homepagePrototype)
     {
-        $prototype = HomepagePrototype::findOrFail($id);
-        $prototype->delete();
+        $homepagePrototype->delete();
 
-        return response()->json(['message' => 'Prototype deleted']);
+        return $this->success('', 'Prototype deleted successfully', 200);
     }
 }

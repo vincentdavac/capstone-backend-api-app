@@ -4,58 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepageFeedback;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreHomepageFeedback;
+use App\Http\Resources\HomepageFeedbackResource;
+use App\Traits\HttpResponses;
 
 class HomepageFeedbackController extends Controller
 {
+    use HttpResponses;
+
     public function index()
     {
-        return HomepageFeedback::all();
+        return HomepageFeedbackResource::collection(HomepageFeedback::all());
     }
 
-    public function store(Request $request)
+    public function store(StoreHomepageFeedback $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'role' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'rate' => 'required|integer|min:1|max:5',
-            'feedback' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
+        $validated = $request->validated();
+        $feedback = HomepageFeedback::create($validated);
 
-        return HomepageFeedback::create($validated);
+        return new HomepageFeedbackResource($feedback);
     }
 
-    public function show($id)
+    public function show(HomepageFeedback $homepageFeedback)
     {
-        return HomepageFeedback::findOrFail($id);
+        return new HomepageFeedbackResource($homepageFeedback);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, HomepageFeedback $homepageFeedback)
     {
-        $feedback = HomepageFeedback::findOrFail($id);
+        $homepageFeedback->update($request->all());
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'role' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
-            'image_link' => 'nullable|string|max:255',
-            'rate' => 'required|integer|min:1|max:5',
-            'feedback' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
-
-        $feedback->update($validated);
-
-        return $feedback;
+        return new HomepageFeedbackResource($homepageFeedback);
     }
 
-    public function destroy($id)
+    public function destroy(HomepageFeedback $homepageFeedback)
     {
-        $feedback = HomepageFeedback::findOrFail($id);
-        $feedback->delete();
+        $homepageFeedback->delete();
 
-        return response()->json(['message' => 'Deleted successfully.']);
+        return $this->success('', 'Feedback deleted successfully', 200);
     }
 }

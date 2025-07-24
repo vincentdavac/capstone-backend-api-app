@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('homepage_teams', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 255);
-            $table->string('role', 255);
-            $table->string('image', 255);
-            $table->string('image_link', 255)->nullable();
-            $table->string('facebook_link', 255)->nullable();
-            $table->string('twitter_link', 255)->nullable();
-            $table->string('linkedin_link', 255)->nullable();
-            $table->string('instagram_link', 255)->nullable();
+            $table->longText('name');
+            $table->longText('role');
+            $table->longText('image')->nullable();
+            $table->longText('image_url')->nullable();
+            $table->longText('facebook_link')->nullable();
+            $table->longText('twitter_link')->nullable();
+            $table->longText('linkedin_link')->nullable();
+            $table->longText('instagram_link')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps(); // created_at & updated_at
         });

@@ -4,50 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepageFaq;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreHomepageFaq;
+use App\Http\Resources\HomepageFaqResource;
+use App\Traits\HttpResponses;
 
 class HomepageFaqController extends Controller
 {
+    use HttpResponses;
+
     public function index()
     {
-        return HomepageFaq::all();
+        return HomepageFaqResource::collection(HomepageFaq::all());
     }
 
-    public function store(Request $request)
+    public function store(StoreHomepageFaq $request)
     {
-        $validated = $request->validate([
-            'question' => 'required|string|max:255',
-            'answer' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
+        $validated = $request->validated();
+        $faq = HomepageFaq::create($validated);
 
-        return HomepageFaq::create($validated);
+        return new HomepageFaqResource($faq);
     }
 
-    public function show($id)
+    public function show(HomepageFaq $homepageFaq)
     {
-        return HomepageFaq::findOrFail($id);
+        return new HomepageFaqResource($homepageFaq);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, HomepageFaq $homepageFaq)
     {
-        $faq = HomepageFaq::findOrFail($id);
+        $homepageFaq->update($request->all());
 
-        $validated = $request->validate([
-            'question' => 'required|string|max:255',
-            'answer' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
-
-        $faq->update($validated);
-
-        return $faq;
+        return new HomepageFaqResource($homepageFaq);
     }
 
-    public function destroy($id)
+    public function destroy(HomepageFaq $homepageFaq)
     {
-        $faq = HomepageFaq::findOrFail($id);
-        $faq->delete();
+        $homepageFaq->delete();
 
-        return response()->json(['message' => 'FAQ deleted successfully']);
+        return $this->success('', 'FAQ deleted successfully', 200);
     }
 }

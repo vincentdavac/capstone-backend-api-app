@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('homepage_faqs', function (Blueprint $table) {
             $table->id();
-            $table->string('question', 255);
-            $table->string('answer', 255);
+            $table->longText('question');
+            $table->longText('answer');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

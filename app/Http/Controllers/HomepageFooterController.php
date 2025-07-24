@@ -4,56 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepageFooter;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreHomepageFooter;
+use App\Http\Resources\HomepageFooterResource;
+use App\Traits\HttpResponses;
 
 class HomepageFooterController extends Controller
 {
+    use HttpResponses;
+
     public function index()
     {
-        return HomepageFooter::all();
+        return HomepageFooterResource::collection(HomepageFooter::all());
     }
 
-    public function store(Request $request)
+    public function store(StoreHomepageFooter $request)
     {
-        $validated = $request->validate([
-            'footer_text' => 'nullable|string|max:255',
-            'facebook_url' => 'nullable|url|max:255',
-            'twitter_url' => 'nullable|url|max:255',
-            'instagram_url' => 'nullable|url|max:255',
-            'linkedin_url' => 'nullable|url|max:255',
-            'is_active' => 'required|boolean',
-        ]);
+        $validated = $request->validated();
+        $footer = HomepageFooter::create($validated);
 
-        return HomepageFooter::create($validated);
+        return new HomepageFooterResource($footer);
     }
 
-    public function show($id)
+    public function show(HomepageFooter $homepageFooter)
     {
-        return HomepageFooter::findOrFail($id);
+        return new HomepageFooterResource($homepageFooter);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, HomepageFooter $homepageFooter)
     {
-        $footer = HomepageFooter::findOrFail($id);
+        $homepageFooter->update($request->all());
 
-        $validated = $request->validate([
-            'footer_text' => 'nullable|string|max:255',
-            'facebook_url' => 'nullable|url|max:255',
-            'twitter_url' => 'nullable|url|max:255',
-            'instagram_url' => 'nullable|url|max:255',
-            'linkedin_url' => 'nullable|url|max:255',
-            'is_active' => 'required|boolean',
-        ]);
-
-        $footer->update($validated);
-
-        return $footer;
+        return new HomepageFooterResource($homepageFooter);
     }
 
-    public function destroy($id)
+    public function destroy(HomepageFooter $homepageFooter)
     {
-        $footer = HomepageFooter::findOrFail($id);
-        $footer->delete();
+        $homepageFooter->delete();
 
-        return response()->json(['message' => 'Footer deleted']);
+        return $this->success('', 'Footer deleted successfully', 200);
     }
 }

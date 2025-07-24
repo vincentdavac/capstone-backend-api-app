@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('homepage_feedbacks', function (Blueprint $table) {
     $table->id();
-    $table->string('name', 255);
-    $table->string('role', 255);
-    $table->string('image', 255);
-    $table->string('image_link', 255)->nullable();
+    $table->longText('name');
+    $table->longText('role');
+    $table->longText('image')->nullable();
+    $table->longText('image_url')->nullable();
     $table->integer('rate'); // 1-5 (validate in controller)
-    $table->string('feedback', 255);
+    $table->longText('feedback');
     $table->boolean('is_active')->default(true);
     $table->timestamps();
 });
