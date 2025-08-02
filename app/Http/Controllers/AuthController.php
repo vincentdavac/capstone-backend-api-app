@@ -16,8 +16,7 @@ class AuthController extends Controller
     // Import the HttpResponses trait to use its methods
     use HttpResponses;
 
-    public function login(LoginUserRequest $request)
-    {
+    public function login(LoginUserRequest $request){
         $request->validated($request->all());
 
         if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
