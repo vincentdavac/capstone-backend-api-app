@@ -42,12 +42,12 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
     ->name('verification.verify');
 
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes
-Route::group(['middleware' => ['auth:sanctum','throttle:5|60,1']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::resource('/vegetable', VegetableController::class);
-    Route::post('/login', [AuthController::class, 'login']);
     Route::apiResource('/slider', HomepageSliderController::class);
     Route::apiResource('/homepage-about', HomepageAboutController::class);
     Route::apiResource('/homepage-prototype', HomepagePrototypeController::class);

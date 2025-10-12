@@ -34,6 +34,8 @@ class VegetableController extends Controller
         return new VegetableResource($vegetable);
     }
 
+    
+
 
     public function show(Vegetable $vegetable)
     {
