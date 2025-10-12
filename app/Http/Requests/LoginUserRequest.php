@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\RecaptchaRule; // ✅ import the custom rule
 
 class LoginUserRequest extends FormRequest
 {
@@ -19,11 +20,25 @@ class LoginUserRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+public function rules(): array
+{
+    return [
+        'email' => 'required|string|email|max:255',
+        'password' => 'required|string|min:8',
+        // 🚫 remove captcha rule for now
+        // 'g-recaptcha-response' => ['required', 'string', new \App\Rules\RecaptchaRule],
+    ];
+}
+
+
+
+    /**
+     * Custom messages (optional)
+     */
+    public function messages(): array
     {
         return [
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:8',
+            'g-recaptcha-response.required' => 'Please complete the captcha to continue.',
         ];
     }
 }
