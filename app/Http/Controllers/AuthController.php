@@ -17,8 +17,7 @@ class AuthController extends Controller
 {
     use HttpResponses;
 
-    public function login(LoginUserRequest $request)
-    {
+    public function login(LoginUserRequest $request){
         $request->validated($request->all());
         // ✅ Step 2: Rate limiting
         $email = (string) $request->email;
