@@ -11,37 +11,56 @@ class VerificationController extends Controller
     /**
      * ✅ Verify email without requiring login
      */
-// app/Http/Controllers/VerificationController.php
+    public function verify(Request $request, $id, $hash)
+    {
+        $user = User::findOrFail($id);
 
-public function verify(Request $request, $id, $hash)
+        // 🔍 Validate hash
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return redirect($this->getFrontendUrl($user, 'verify-failed'));
+        }
+
+        // 🟡 If already verified
+        if ($user->hasVerifiedEmail()) {
+            return redirect($this->getFrontendUrl($user, 'verify-success'));
+        }
+
+        // ✅ Mark verified and fire event
+        $user->markEmailAsVerified();
+        event(new Verified($user));
+
+        // 🔁 Redirect to correct frontend (based on role)
+        return redirect($this->getFrontendUrl($user, 'verify-success'));
+    }
+
+    /**
+     * ✅ Decide which frontend base URL to use (user vs admin)
+     */
+private function getFrontendUrl(User $user, string $path)
 {
-    $user = User::findOrFail($id);
+    // Get base URLs from .env
+    $userUrl = rtrim(env('FRONTEND_USER_URL', 'http://localhost:5173/coastella'), '/');
+    $adminUrl = rtrim(env('FRONTEND_ADMIN_URL', 'http://localhost:5174'), '/');
 
-    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-        return redirect('http://localhost:5173/coastella/verify-failed'); // 👉 mobile app
-    }
+    // ✅ Detect admin either by is_admin column or role value
+    $isAdmin = (isset($user->is_admin) && $user->is_admin == 1) 
+            || (isset($user->role) && $user->role === 'admin');
 
-    if ($user->hasVerifiedEmail()) {
-        return redirect('http://localhost:5173/coastella/verify-success'); // 👉 mobile app
-    }
+    // ✅ Select correct frontend base
+    $baseUrl = $isAdmin ? $adminUrl : $userUrl;
 
-    $user->markEmailAsVerified();
-    event(new Verified($user));
-
-    return redirect('http://localhost:5173/coastella/verify-success'); // 👉 mobile app
+    return "{$baseUrl}/{$path}";
 }
 
 
     /**
      * ✅ Resend email verification link
-     * - Can be called from frontend via API
-     * - Requires user_id to identify the user
      */
     public function resend(Request $request)
     {
         $user = User::find($request->input('user_id'));
 
-        if (! $user) {
+        if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 

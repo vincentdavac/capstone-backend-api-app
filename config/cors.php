@@ -2,40 +2,25 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
-    */
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'allowed_methods' => ['*'],
 
-'allowed_methods' => ['*'],
+    // ✅ Allow both frontends (userdashboard & admin)
+'allowed_origins' => [
+    env('FRONTEND_URL', 'http://localhost:5173'),
+    env('FRONTEND_ADMIN_URL', 'http://localhost:5174'),
+],
 
-// ❌ ito yung issue:
-// 'allowed_origins' => ['*'],
+    'allowed_origins_patterns' => [],
 
-// ✅ palitan ng exact frontend URL:
-'allowed_origins' => ['http://localhost:5173'],
+    'allowed_headers' => ['*'],
 
-'allowed_origins_patterns' => [],
+    'exposed_headers' => [],
 
-'allowed_headers' => ['*'],
+    'max_age' => 0,
 
-'exposed_headers' => [],
-
-'max_age' => 0,
-
-// ❌ dati: false
-// ✅ kailangan naka true
-'supports_credentials' => true,
-
+    // ✅ Keep this true for Sanctum authentication
+    'supports_credentials' => true,
 
 ];
