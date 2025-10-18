@@ -11,14 +11,14 @@ class Authenticate extends Middleware
      */
     protected function redirectTo($request): ?string
     {
-        // ✅ For API requests, return JSON 401 instead of redirect
+        // For API requests, return JSON 401
         if ($request->expectsJson()) {
-            return null; // Laravel will automatically throw 401
+            return null; // Laravel will return 401 automatically
         }
 
-        // ✅ Or, if you want email link clicks to go to React login page:
-        // return 'http://localhost:5173/login';
-
-        return null;
+        // For non-JSON requests, return JSON manually
+        return response()->json([
+            'message' => 'Unauthenticated.'
+        ], 401);
     }
 }
