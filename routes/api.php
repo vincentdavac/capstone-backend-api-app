@@ -17,6 +17,7 @@ use App\Http\Controllers\HomepageFooterController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\testingWeather;
 use App\Http\Controllers\getReceiverStatus;
+use App\Http\Controllers\countUser;
 
 // -------------------
 // AUTH ROUTES
@@ -24,6 +25,7 @@ use App\Http\Controllers\getReceiverStatus;
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
 Route::get('/testingConnection', [getReceiverStatus::class, 'getStatus']);
+Route::get('/countUsers', [countUser::class, 'countUsers']);
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,1');
 Route::post('/register', [AuthController::class, 'register']);
