@@ -24,6 +24,7 @@ use App\Http\Controllers\countUser;
 // -------------------
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
+Route::get('/weatherHourly', [testingWeather::class, 'getHourlyTemperature']);
 Route::get('/testingConnection', [getReceiverStatus::class, 'getStatus']);
 Route::get('/countUsers', [countUser::class, 'countUsers']);
 // Public auth routes
