@@ -45,6 +45,7 @@ use App\Http\Controllers\rainSensorController;
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
 Route::get('/weatherHourly', [testingWeather::class, 'getHourlyTemperature']);
+
 // Route::get('/testingConnection', [getReceiverStatus::class, 'getStatus']); test lang to
 Route::get('/countUsers', [countUser::class, 'countUsers']);
 Route::get('/wind', [windController::class, 'getWindData']);

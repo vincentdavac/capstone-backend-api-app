@@ -15,10 +15,11 @@ class waterController extends Controller{
     public function getWaterTemp (){
         $reference = $this->firebase->getReference($this->ref_tblName);
         $data = $reference->getValue(); 
-        if(is_null($data)){
+        $temp = $data['WATER_PRESSURE'];
+        if(is_null($temp)){
             return response()->json(['status' => 'error', 'message' => 'no data found','data'=>[]],404);
         }else{
-            return response()->json(['status' => 'success', 'data' => $data],200,[],JSON_PRETTY_PRINT);
+            return response()->json(['status' => 'success', 'WATER_PRESSURE' => $temp],200,[],JSON_PRETTY_PRINT);
         }   
     }
 }
