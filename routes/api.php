@@ -28,10 +28,32 @@ use App\Http\Controllers\DepthReadingController;
 use App\Http\Controllers\WindReadingController;
 use App\Http\Controllers\RainGaugeReadingController;
 use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\testingWeather;
+use App\Http\Controllers\getReceiverStatus;
+use App\Http\Controllers\countUser;
+use App\Http\Controllers\windController;
+use App\Http\Controllers\waterController;
+use App\Http\Controllers\batteryController;
+use App\Http\Controllers\surroundingController;
+use App\Http\Controllers\gpsController;
+use App\Http\Controllers\raingaugeController;
+use App\Http\Controllers\rainSensorController;
 
 // -------------------
 // AUTH ROUTES
 // -------------------
+
+Route::get('/weather', [testingWeather::class, 'getWeather']);
+Route::get('/weatherHourly', [testingWeather::class, 'getHourlyTemperature']);
+// Route::get('/testingConnection', [getReceiverStatus::class, 'getStatus']); test lang to
+Route::get('/countUsers', [countUser::class, 'countUsers']);
+Route::get('/wind', [windController::class, 'getWindData']);
+Route::get('/water-temperature', [waterController::class, 'getWaterTemp']);
+Route::get('/surrounding-temperature', [surroundingController::class, 'getSurroundingData']);
+Route::get('/battery', [batteryController::class, 'getBatteryData']);
+Route::get('/gps-data', [gpsController::class, 'getGpsData']);
+Route::get('/rain-gauge', [raingaugeController::class, 'getRainGauge']);
+Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,1');
