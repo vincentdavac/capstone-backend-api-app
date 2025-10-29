@@ -38,10 +38,15 @@ use App\Http\Controllers\surroundingController;
 use App\Http\Controllers\gpsController;
 use App\Http\Controllers\raingaugeController;
 use App\Http\Controllers\rainSensorController;
+use App\Http\Controllers\surroundingtemperatureAlertController;
+use App\Http\Controllers\humidityAlertController;
+use App\Http\Controllers\atmosphericAlertController;
+use App\Http\Controllers\windAlertController;
+use App\Http\Controllers\rainAlertController;
+use App\Http\Controllers\waterTemperatureAlert;
+use App\Http\Controllers\fetchAlerts;
 
-// -------------------
-// AUTH ROUTES
-// -------------------
+
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
 Route::get('/weatherHourly', [testingWeather::class, 'getHourlyTemperature']);
@@ -56,11 +61,19 @@ Route::get('/gps-data', [gpsController::class, 'getGpsData']);
 Route::get('/rain-gauge', [raingaugeController::class, 'getRainGauge']);
 Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 
-// Public auth routes
+Route::post('/set-alert-surrounding', [surroundingtemperatureAlertController::class, 'setTemperatureAlert']);
+Route::post('/set-alert-water-temp', [waterTemperatureAlert::class, 'setWaterTemperatureAlert']);
+Route::post('/set-alert-humidity', [humidityAlertController::class, 'setHumidityAlert']);
+Route::post('/set-alert-atmospheric', [atmosphericAlertController::class, 'setAtmosphericAlert']);
+Route::post('/set-alert-wind', [windAlertController::class, 'setWindAlert']);
+Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
+Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
+
+
+
+
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,1');
 Route::post('/register', [AuthController::class, 'register']);
-
-// Email verification resend
 Route::post('/email/resend', [VerificationController::class, 'resend']);
 
 // ✅ Forgot / Reset password routes
