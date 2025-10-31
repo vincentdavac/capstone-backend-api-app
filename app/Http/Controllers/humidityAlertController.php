@@ -25,6 +25,7 @@ class humidityAlertController extends Controller
         $alertId = 'ALERT' . $uuid;
         $sensorType = 'Humidity';
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
+        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if($humidityData >= 60 && $humidityData <= 69){
             $description = "Relative humidity has reached " .$humidityData."% "."in Barangay Zone B at " . $currentTime. " Monitor indoor air; mold growth and discomfort may begin.";
             $alertLevel = "White";
@@ -45,7 +46,7 @@ class humidityAlertController extends Controller
             'description' => $description,
             'alert_level' => $alertLevel,
             'sensor_type' => $sensorType,
-            'recorded_at' => $currentTime
+            'recorded_at' => $recorded
         ]);
          return response()->json(['status' => 'success','data' => [ 'alertId' => $alertId,'description' => $description,'alert_level' => 
              $alertLevel,'sensor_type' => $sensorType,]], 200, [], JSON_PRETTY_PRINT);

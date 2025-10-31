@@ -28,6 +28,8 @@ class waterTemperatureAlert extends Controller
         $alertId = 'ALERT' . $uuid;
         $alert = null;
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
+        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
+
         $sensorType = 'Temperature';
         if ($waterTemp >= 26 && $waterTemp <= 30) {
             $description = "River water temperature is $waterTemp °C in Barangay Zone C at $currentTime. Comfortable for general swimming/activities; minimal temperature-related risk under normal conditions.";
@@ -50,7 +52,7 @@ class waterTemperatureAlert extends Controller
             'description' => $description,
             'alert_level' => $alert,
             'sensor_type' => $sensorType,
-            'recorded_at' => $currentTime
+            'recorded_at' => $recorded
         ]);
         return response()->json(['status' => 'success', 'data' => ['alertId' => $alertId, 'description' => $description, 'alert_level' =>
         $alert, 'sensor_type' => $sensorType,]], 200, [], JSON_PRETTY_PRINT);

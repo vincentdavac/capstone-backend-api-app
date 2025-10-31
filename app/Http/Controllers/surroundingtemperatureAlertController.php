@@ -27,6 +27,7 @@ class surroundingtemperatureAlertController extends Controller{
         $alert = null;
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
         $sensorType = 'Temperature';
+        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if ($surroundingTemp >= 27 && $surroundingTemp <=32) {
             $description = " Heat index has reached $surroundingTemp °C in Barangay Zone A at $currentTime. Stay alert, prolonged outdoor activity may cause fatigue.";
             $alert = 'White';
@@ -48,7 +49,7 @@ class surroundingtemperatureAlertController extends Controller{
             'description' => $description,
             'alert_level' => $alert,
             'sensor_type' => $sensorType,
-            'recorded_at' => $currentTime
+            'recorded_at' => $recorded
         ]);
         return response()->json(['status' => 'success','data' => [ 'alertId' => $alertId,'description' => $description,'alert_level' => 
              $alert,'sensor_type' => $sensorType,]], 200, [], JSON_PRETTY_PRINT);

@@ -27,7 +27,7 @@ class atmosphericAlertController extends Controller
         $alert = null;
         $sensorType = 'Atmospheric Pressure';
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
-
+        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if ($atmosphericData >= 1013.2) {
             $description = "Atmospheric pressure is at $atmosphericData hPa in Barangay Zone A at $currentTime. Clear skies and calm weather conditions expected.";
             $alert = "White";
@@ -47,7 +47,7 @@ class atmosphericAlertController extends Controller
             'description' => $description,
             'alert_level' => $alert,
             'sensor_type' => $sensorType,
-            'recorded_at' => $currentTime
+            'recorded_at' => $recorded
         ]);
          return response()->json(['status' => 'success','data' => [ 'alertId' => $alertId,'description' => $description,'alert_level' => 
              $alert,'sensor_type' => $sensorType,]], 200, [], JSON_PRETTY_PRINT);

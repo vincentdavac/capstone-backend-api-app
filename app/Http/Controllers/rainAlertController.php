@@ -27,13 +27,13 @@ class rainAlertController extends Controller
         $alertId = 'ALERT' . $uuid;
         $sensorType = 'Rain';
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
-        
+        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         DB::table('alerts')->insert([
             'alertId' => $alertId,
             'description' => $description,
             'alert_level' => $alertLevel,
             'sensor_type' => $sensorType,
-            'recorded_at' => $currentTime
+            'recorded_at' => $recorded
         ]);
         
         return response()->json(['status' => 'success', 'data' => ['alertId' => $alertId, 'description' => $description, 'alert_level' =>

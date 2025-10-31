@@ -27,6 +27,7 @@ class windAlertController extends Controller
         $alertId = 'ALERT' . $uuid;
         $sensorType = 'Wind Speed';
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
+        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if($windSpeedData >= 39 && $windSpeedData <= 61){
             $description = "Wind speed has reached $windSpeedData km/h in Barangay Zone A at $currentTime. Minimal to minor damage possible to light structures; trees sway and small branches may break.";
             $alertLevel = "White";
@@ -49,7 +50,7 @@ class windAlertController extends Controller
             'description' => $description,
             'alert_level' => $alertLevel,
             'sensor_type' => $sensorType,
-            'recorded_at' => $currentTime
+            'recorded_at' => $recorded
         ]);
         return response()->json(['status' => 'success', 'data' => ['alertId' => $alertId, 'description' => $description, 'alert_level' =>
         $alertLevel, 'sensor_type' => $sensorType,]], 200, [], JSON_PRETTY_PRINT);
