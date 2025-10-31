@@ -18,9 +18,6 @@ return new class extends Migration
             $table->decimal('wind_speed_k_h', 6, 2);
             $table->timestamp('recorded_at');
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
-
-            // Foreign key constraint (optional but recommended)
-            $table->foreign('buoy_id')->references('id')->on('buoys')->onDelete('cascade');
         });
     }
 
