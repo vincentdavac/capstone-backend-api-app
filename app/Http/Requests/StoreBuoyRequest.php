@@ -14,11 +14,15 @@ class StoreBuoyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'buoy_code' => 'required|string|max:255',
-            'location_name' => 'required|string|max:255',
-            'status' => 'required|in:active,inactive,maintenance',
-            'is_active' => 'required|boolean',
-            'installed_at' => 'nullable|date',
+            'buoy_code' => 'nullable|string|max:255|unique:buoys,buoy_code',
+            'river_name' => 'required|string|max:255',
+            'wall_height' => 'required|numeric|min:0',
+            'river_hectare' => 'required|numeric|min:0',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'barangay' => 'required|integer|min:1',
+            'attachment' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048', // max size 2MB
+            'status' => 'nullable|in:active,inactive,maintenance',
             'maintenance_at' => 'nullable|date',
         ];
     }

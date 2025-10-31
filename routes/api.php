@@ -12,7 +12,6 @@ use App\Http\Controllers\HomepageFaqController;
 use App\Http\Controllers\HomepageTeamController;
 use App\Http\Controllers\HomepageFeedbackController;
 use App\Http\Controllers\HomepageFooterController;
-use App\Http\Controllers\BuoyStatusController;
 use App\Http\Controllers\BuoyController;
 use App\Http\Controllers\GpsReadingController;
 use App\Http\Controllers\BatteryHealthController;
@@ -102,12 +101,6 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/buoys/{buoy}', [BuoyController::class, 'update']);
     Route::delete('/buoys/{buoy}', [BuoyController::class, 'destroy']);
 
-    // Buoy Status Routes
-    Route::get('/buoy-status', [BuoyStatusController::class, 'index']);
-    Route::post('/buoy-status', [BuoyStatusController::class, 'store']);
-    Route::get('/buoy-status/{buoyStatus}', [BuoyStatusController::class, 'show']);
-    Route::patch('/buoy-status/{buoyStatus}', [BuoyStatusController::class, 'update']);
-    Route::delete('/buoy-status/{buoyStatus}', [BuoyStatusController::class, 'destroy']);
 
     // GPS Reading Routes
     Route::get('/gps-readings', [GpsReadingController::class, 'index']);

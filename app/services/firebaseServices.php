@@ -4,9 +4,11 @@ namespace App\Services;
 
 use Kreait\Firebase\Factory;
 
-class FirebaseServices{
+class FirebaseServices
+{
     protected $database;
-    public function __construct(){
+    public function __construct()
+    {
         $firebaseCredentialsPath = base_path(env('FIREBASE_CREDENTIALS'));
         if (!file_exists($firebaseCredentialsPath)) {
             throw new \Exception("Firebase credentials file not found at: $firebaseCredentialsPath");
@@ -21,5 +23,10 @@ class FirebaseServices{
     public function getDatabase()
     {
         return $this->database;
+    }
+
+    public function getReference(string $path)
+    {
+        return $this->database->getReference($path);
     }
 }

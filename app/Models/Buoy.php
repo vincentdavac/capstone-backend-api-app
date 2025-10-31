@@ -2,24 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Buoy extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'buoy_code',
-        'location_name',
+        'river_name',
+        'wall_height',
+        'river_hectare',
+        'latitude',
+        'longitude',
+        'barangay',
+        'attachment',
         'status',
-        'is_active',
-        'installed_at',
         'maintenance_at',
     ];
 
-    public $timestamps = true; // Enables created_at and updated_at
-
-    // ✅ Relationship: A buoy can have many status records
-    public function statuses()
-    {
-        return $this->hasMany(BuoyStatus::class);
-    }
+    public $timestamps = true; // Keeps created_at and updated_at timestamps
 }
