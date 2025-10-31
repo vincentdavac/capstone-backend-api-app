@@ -9,20 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-
-    // TIME: 46:19
-
     public function up(): void
     {
-        Schema::create('vegetables', function (Blueprint $table) {
+        Schema::create('relay_status', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('name');
-            $table->string('description');
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->onDelete('cascade');
+            $table->unsignedBigInteger('buoy_id');
+            $table->boolean('relay_state')->default(false);
+            $table->timestamp('recorded_at')->useCurrent();
             $table->timestamps();
         });
     }
@@ -32,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('vegetables');
+        Schema::dropIfExists('relay_status');
     }
 };

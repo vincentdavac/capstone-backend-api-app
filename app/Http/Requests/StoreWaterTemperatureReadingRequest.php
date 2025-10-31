@@ -17,8 +17,6 @@ class StoreWaterTemperatureReadingRequest extends FormRequest
             'buoy_id' => 'required|exists:buoys,id',
             'temperature_celsius' => 'required|numeric',
             'temperature_fahrenheit' => 'required|numeric',
-            'report_status' => 'required|string',
-            'recorded_at' => 'required|date',
         ];
     }
 }

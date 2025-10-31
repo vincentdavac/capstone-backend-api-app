@@ -14,11 +14,12 @@ class Bme280HumidityReading extends Model
     protected $fillable = [
         'buoy_id',
         'humidity',
-        'report_status',
         'recorded_at',
+        'updated_at',
     ];
 
-    public $timestamps = false;
+    // Enable timestamps since you have `updated_at`
+    public $timestamps = true;
 
     public function buoy()
     {

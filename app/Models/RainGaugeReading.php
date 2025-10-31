@@ -13,11 +13,11 @@ class RainGaugeReading extends Model
         'buoy_id',
         'rainfall_mm',
         'tip_count',
-        'report_status',
         'recorded_at',
     ];
 
-    public $timestamps = false;
+    // Enable timestamps since your table includes created_at and updated_at
+    public $timestamps = true;
 
     public function buoy()
     {

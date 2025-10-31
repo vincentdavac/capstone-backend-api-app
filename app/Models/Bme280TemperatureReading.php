@@ -15,11 +15,14 @@ class Bme280TemperatureReading extends Model
         'buoy_id',
         'temperature_celsius',
         'temperature_fahrenheit',
-        'report_status',
         'recorded_at',
     ];
 
-    public $timestamps = false;
+    protected $casts = [
+        'temperature_celsius' => 'decimal:2',
+        'temperature_fahrenheit' => 'decimal:2',
+        'recorded_at' => 'datetime',
+    ];
 
     public function buoy()
     {

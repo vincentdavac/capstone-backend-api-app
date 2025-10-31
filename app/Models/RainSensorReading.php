@@ -5,19 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class VoltageReading extends Model
+class RainSensorReading extends Model
 {
     use HasFactory;
 
+    protected $table = 'rain_sensor_readings';
+
     protected $fillable = [
         'buoy_id',
-        'voltage_percentage',
-        'report_status',
+        'percentage',
         'recorded_at',
     ];
 
-    public $timestamps = false;
+    // Enable created_at and updated_at
+    public $timestamps = true;
 
+    /**
+     * Relationship: A rain sensor reading belongs to a buoy.
+     */
     public function buoy()
     {
         return $this->belongsTo(Buoy::class);

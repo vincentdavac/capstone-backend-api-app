@@ -51,7 +51,7 @@ class surroundingtemperatureAlertController extends Controller{
             'sensor_type' => $sensorType,
             'recorded_at' => $recorded
         ]);
-        return response()->json(['status' => 'success','data' => [ 'alertId' => $alertId,'description' => $description,'alert_level' => 
+        return response()->json(['status' => 'success','data' => [ 'alertId' => $alertId,'description' => $description,'alert_level' =>
              $alert,'sensor_type' => $sensorType,]], 200, [], JSON_PRETTY_PRINT);
     }
 }

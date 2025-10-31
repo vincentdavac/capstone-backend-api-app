@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreVoltageReadingRequest extends FormRequest
+class StoreRainSensorReadingRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,9 +15,7 @@ class StoreVoltageReadingRequest extends FormRequest
     {
         return [
             'buoy_id' => 'required|exists:buoys,id',
-            'voltage_percentage' => 'required|numeric|between:0,100',
-            'report_status' => 'required|string',
-            'recorded_at' => 'required|date',
+            'percentage' => 'required|numeric|min:0|max:100',
         ];
     }
 }
