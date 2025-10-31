@@ -17,8 +17,6 @@ class StoreRainGaugeReadingRequest extends FormRequest
             'buoy_id' => 'required|exists:buoys,id',
             'rainfall_mm' => 'required|numeric|min:0',
             'tip_count' => 'required|integer|min:0',
-            'report_status' => 'required|string',
-            'recorded_at' => 'required|date',
         ];
     }
 }

@@ -5,33 +5,37 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class RelayStatus extends Model
+class BatteryHealth extends Model
 {
     use HasFactory;
 
-    protected $table = 'relay_status';
+    protected $table = 'battery_health';
 
     protected $fillable = [
         'buoy_id',
-        'relay_state',
+        'percentage',
+        'voltage',
         'recorded_at',
     ];
 
     /**
-     * Enable automatic timestamps (created_at and updated_at)
+     * Enable timestamps for created_at and updated_at
      */
     public $timestamps = true;
 
     /**
-     * Cast attributes to correct data types
+     * Cast attributes to appropriate types
      */
     protected $casts = [
-        'relay_state' => 'boolean',
-        'recorded_at' => 'datetime',
+        'percentage'  => 'float',
+        'voltage'     => 'float',
+        'recorded_at' => 'float',
     ];
 
+
+
     /**
-     * Relationship: Each relay status belongs to a specific buoy
+     * Relationship: each battery health record belongs to a buoy
      */
     public function buoy()
     {

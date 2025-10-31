@@ -13,11 +13,11 @@ class WaterTemperatureReading extends Model
         'buoy_id',
         'temperature_celsius',
         'temperature_fahrenheit',
-        'report_status',
         'recorded_at',
+        'updated_at',
     ];
 
-    public $timestamps = false;
+    public $timestamps = true; // because you have created_at and updated_at columns
 
     public function buoy()
     {

@@ -2,43 +2,43 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\RainReading;
-use App\Http\Requests\StoreRainReadingRequest;
+use App\Models\RainSensorReading;
+use App\Http\Requests\StoreRainSensorReadingRequest;
 use App\Http\Requests\UpdateRainReadingRequest;
 use App\Http\Resources\RainReadingResource;
 use App\Traits\HttpResponses;
 
-class RainReadingController extends Controller
+class RainSensorReadingController extends Controller
 {
     use HttpResponses;
 
     public function index()
     {
-        return RainReadingResource::collection(RainReading::all());
+        return RainReadingResource::collection(RainSensorReading::all());
     }
 
-    public function store(StoreRainReadingRequest $request)
+    public function store(StoreRainSensorReadingRequest $request)
     {
         $validated = $request->validated();
-        $rain = RainReading::create($validated);
+        $rain = RainSensorReading::create($validated);
 
         return (new RainReadingResource($rain))
             ->response()
             ->setStatusCode(201);
     }
 
-    public function show(RainReading $rainReading)
+    public function show(RainSensorReading $rainReading)
     {
         return new RainReadingResource($rainReading);
     }
 
-    public function update(UpdateRainReadingRequest $request, RainReading $rainReading)
+    public function update(UpdateRainReadingRequest $request, RainSensorReading $rainReading)
     {
         $rainReading->update($request->validated());
         return new RainReadingResource($rainReading);
     }
 
-    public function destroy(RainReading $rainReading)
+    public function destroy(RainSensorReading $rainReading)
     {
         $rainReading->delete();
         return $this->success('', 'Rain reading deleted successfully', 200);

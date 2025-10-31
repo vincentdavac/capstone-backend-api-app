@@ -18,8 +18,8 @@ class StoreDepthReadingRequest extends FormRequest
             'pressure_mbar' => 'required|numeric',
             'pressure_hpa' => 'required|numeric',
             'depth_m' => 'required|numeric',
-            'report_status' => 'required|string',
-            'recorded_at' => 'required|date',
+            'depth_ft' => 'required|numeric',
+            'water_altitude' => 'nullable|numeric',
         ];
     }
 }

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreRelayStatusRequest extends FormRequest
+class StoreBatteryHealthRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,8 +14,9 @@ class StoreRelayStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'buoy_id'     => 'required|exists:buoys,id',
-            'relay_state' => 'required|boolean',
+            'buoy_id'    => 'required|exists:buoys,id',
+            'percentage' => 'required|numeric|between:0,100',
+            'voltage'    => 'required|numeric|min:0',
         ];
     }
 }

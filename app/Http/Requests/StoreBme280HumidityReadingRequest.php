@@ -15,9 +15,7 @@ class StoreBme280HumidityReadingRequest extends FormRequest
     {
         return [
             'buoy_id' => 'required|exists:buoys,id',
-            'humidity' => 'required|numeric',
-            'report_status' => 'required|string',
-            'recorded_at' => 'required|date',
+            'humidity' => 'required|numeric|between:0,100',
         ];
     }
 }
