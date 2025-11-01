@@ -67,20 +67,22 @@ Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAl
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);
 
+// USER INFORMATION
+Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
 
-
+// USER AUTHENTICATION ROUTES
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,1');
 Route::post('/register', [AuthController::class, 'register']);
+
+// ADMIN AUTHENTICATION ROUTES
+Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
+Route::post('/admin/register', [AuthController::class, 'registerAdmin']);
+
 Route::post('/email/resend', [VerificationController::class, 'resend']);
 
 // ✅ Forgot / Reset password routes
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
-
-// Get current user (needs token)
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 // Email Verification
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])

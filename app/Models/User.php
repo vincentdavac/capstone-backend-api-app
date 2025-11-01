@@ -23,9 +23,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'image',
         'image_url',
         'contact_number',
+        'house_no',
+        'street',
+        'barangay',
+        'municipality',
         'password',
-        'is_admin', // ✅ ADD THIS
+        'is_admin',
     ];
+
 
     /**
      * The attributes that should be hidden for serialization.
