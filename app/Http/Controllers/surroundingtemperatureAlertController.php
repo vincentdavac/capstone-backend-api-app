@@ -13,14 +13,15 @@ class surroundingtemperatureAlertController extends Controller{
     protected string $reftblName;
     public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
-        $this->reftblName = 'BME280';
+        $this->reftblName = 'BUOY-2025-8664';
         //BME280
     }
 
     public function setTemperatureAlert(Request $request){
         $ref = $this->firebase->getReference($this->reftblName);
         $surroundingData = $ref->getValue();
-        $surroundingTemp = $surroundingData['SURROUNDING_TEMPERATURE'];
+        $bme280 = $surroundingData['BME280'];
+        $surroundingTemp = $bme280['SURROUNDING_TEMPERATURE'];
         $description = null;
         $uuid = Str::uuid();
         $alertId = 'ALERT' . $uuid;

@@ -13,14 +13,15 @@ class atmosphericAlertController extends Controller
     protected string $reftblName;
     public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
-        $this->reftblName = 'BME280';
-        //BME280
+        $this->reftblName = 'BUOY-2025-8664';
+        //BUOY-2025-8664
     }
 
     public function setAtmosphericAlert(Request $request){
         $reference = $this->firebase->getReference($this->reftblName);
         $data = $reference->getValue();
-        $atmosphericData = $data['ATMOSPHERIC_PRESSURE'];
+        $bme280 = $data['BME280'];
+        $atmosphericData =$bme280['ATMOSPHERIC_PRESSURE'];
         $description = null;
         $uuid = Str::uuid();
         $alertId = 'ALERT' . $uuid;

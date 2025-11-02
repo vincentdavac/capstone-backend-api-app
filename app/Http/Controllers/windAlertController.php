@@ -15,12 +15,14 @@ class windAlertController extends Controller
     public function __construct(FirebaseServices $firebaseService)
     {
         $this->firebase = $firebaseService->getDatabase();
-        $this->ref_tblName = 'ANEMOMETER';
+        $this->ref_tblName = 'BUOY-2025-8664';
+        //ANEMOMETER
     }
     public function setWindAlert(){
         $ref = $this->firebase->getReference($this->ref_tblName);
         $data = $ref->getValue();
-        $windSpeedData = $data['WIND_SPEED_km-h'];
+        $anemometer = $data['ANEMOMETER'];
+        $windSpeedData = $anemometer['windSpeedData'];
         $description = null;
         $alertLevel = null;
         $uuid = Str::uuid();

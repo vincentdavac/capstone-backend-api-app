@@ -43,6 +43,8 @@ use App\Http\Controllers\rainAlertController;
 use App\Http\Controllers\waterTemperatureAlert;
 use App\Http\Controllers\fetchAlerts;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\waterPressureController;
+
 
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
@@ -64,6 +66,8 @@ Route::post('/set-alert-humidity', [humidityAlertController::class, 'setHumidity
 Route::post('/set-alert-atmospheric', [atmosphericAlertController::class, 'setAtmosphericAlert']);
 Route::post('/set-alert-wind', [windAlertController::class, 'setWindAlert']);
 Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
+Route::get('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
+
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);
 

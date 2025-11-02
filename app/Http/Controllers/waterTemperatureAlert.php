@@ -15,14 +15,15 @@ class waterTemperatureAlert extends Controller
     public function __construct(FirebaseServices $firebaseService)
     {
         $this->firebase = $firebaseService->getDatabase();
-        $this->reftblName = 'MS5837';
-        //BME280
+        $this->reftblName = 'BUOY-2025-8664';
+        //BUOY-2025-8664
     }
 
     public function setWaterTemperatureAlert(Request $request){
         $ref = $this->firebase->getReference($this->reftblName);
         $waterData = $ref->getValue();
-        $waterTemp = $waterData['WATER_TEMPERATURE'];
+        $ms5837 = $waterData['MS5837'];
+        $waterTemp = $ms5837['WATER_TEMPERATURE'];
         $description = null;
         $uuid = Str::uuid();
         $alertId = 'ALERT' . $uuid;
