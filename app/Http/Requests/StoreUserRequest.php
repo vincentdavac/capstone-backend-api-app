@@ -22,13 +22,19 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'g-recaptcha-response' => 'sometimes',
             'first_name'      => 'required|string|max:255',
             'last_name'       => 'required|string|max:255',
-            'email'           => 'required|string|email|max:255|unique:users,email',
-            'contact_number'  => 'nullable|numeric',
-            'image'           => 'nullable|string|max:255',
-            'image_url'       => 'nullable|url|',
+            'email'           => 'required|string|email|max:255|unique:users',
+            'contact_number'  => 'required|string|max:20',
+            'house_no'        => 'required|string|max:255',
+            'street'          => 'required|string|max:255',
+            'barangay'        => 'required|string|max:255',
+            'municipality'    => 'nullable|string|max:255',
             'password'        => 'required|string|min:8|confirmed',
+            'image'           => 'required|file|mimes:jpg,jpeg,png,webp|max:10240', // ✅ 10MB max
+            'image_url'       => 'nullable|url',
+            'is_admin'        => 'nullable|boolean',
         ];
     }
 }

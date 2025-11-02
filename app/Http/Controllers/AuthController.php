@@ -13,151 +13,275 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Http; // ✅ needed for reCAPTCHA verification
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log; // ✅ ADD THIS
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
     use HttpResponses;
 
-public function login(LoginUserRequest $request)
-{
-    $request->validated($request->all());
+    public function me(Request $request)
+    {
+        $user = $request->user();
 
-    // ✅ Step 2: Rate limiting
-    $email = (string) $request->email;
-    $key = Str::lower($email) . '|' . $request->ip();
+        if (!$user) {
+            return $this->error(null, 'User not authenticated.', 401);
+        }
 
-    if (RateLimiter::tooManyAttempts($key, 3)) {
-        $seconds = RateLimiter::availableIn($key);
-        return response()->json([
-            'status' => 'error',
-            'message' => "Too many login attempts. Try again in {$seconds} seconds.",
-            'retry_after' => $seconds
-        ], 429);
+        // Convert resource to array before passing to success()
+        $userResource = (new UserResource($user))->toArray($request);
+
+        return $this->success(
+            $userResource,
+            'User information retrieved successfully.',
+            200
+        );
     }
 
-    // ✅ Step 3: Attempt login
-    if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-        RateLimiter::hit($key, 3);
-        return $this->error('', 'Credentials do not match', 401);
+
+
+    public function login(LoginUserRequest $request)
+    {
+        $request->validated($request->all());
+
+        // ✅ Step 2: Rate limiting
+        $email = (string) $request->email;
+        $key = Str::lower($email) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $seconds = RateLimiter::availableIn($key);
+            return response()->json([
+                'status' => 'error',
+                'message' => "Too many login attempts. Try again in {$seconds} seconds.",
+                'retry_after' => $seconds
+            ], 429);
+        }
+
+        // ✅ Step 3: Attempt login
+        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            RateLimiter::hit($key, 3);
+            return $this->error('', 'Credentials do not match', 401);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        // 🚨 Step 4: Check if email is verified
+        if (is_null($user->email_verified_at)) {
+            Auth::logout();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please verify your email address before logging in.'
+            ], 403);
+        }
+
+        // ✅ Step 6: Clear rate limit and issue token
+        RateLimiter::clear($key);
+        $token = $user->createToken('admin_auth_token')->plainTextToken;
+
+        return $this->success([
+            'user' => new UserResource($user),
+            'token' => $token,
+            'message' => 'User logged in successfully'
+        ]);
     }
 
-    $user = User::where('email', $request->email)->first();
 
-    // 🚨 Step 4: Check if email is verified
-    if (is_null($user->email_verified_at)) {
-        Auth::logout();
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Please verify your email address before logging in.'
-        ], 403);
+    public function register(StoreUserRequest $request)
+    {
+        // 🔹 Step 1: Handle image upload
+        $imageName = null;
+        $imageUrl = null;
+
+        if ($request->hasFile('image')) {
+            $imageFile = $request->file('image');
+            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+            $imageFile->move(public_path('profile_images'), $imageName);
+            $imageUrl = url('profile_images/' . $imageName);
+        }
+
+        // 🔹 Step 2: Verify Google reCAPTCHA (skip for local/testing)
+        if (!app()->environment(['local', 'testing'])) {
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret'   => env('RECAPTCHA_SECRET_KEY'),
+                'response' => $request->input('g-recaptcha-response'),
+                'remoteip' => $request->ip(),
+            ]);
+
+            $recaptchaData = $response->json();
+
+            if (!($recaptchaData['success'] ?? false)) {
+                return $this->error(
+                    'Captcha verification failed',
+                    $recaptchaData['error-codes'] ?? [],
+                    422
+                );
+            }
+        }
+
+        // 🔹 Step 3: Determine if user should be admin
+        $origin = $request->headers->get('origin');
+        $isAdmin = $request->boolean('is_admin');
+
+        // Allow admin creation from dev origins
+        if (!$isAdmin && $origin && (str_contains($origin, '5173') || str_contains($origin, '127.0.0.1:5173'))) {
+            $isAdmin = true;
+        }
+
+        // 🔹 Step 4: Create new user
+        $user = User::create([
+            'first_name'     => $request->first_name,
+            'last_name'      => $request->last_name,
+            'email'          => $request->email,
+            'contact_number' => $request->contact_number,
+            'house_no'       => $request->house_no,
+            'street'         => $request->street,
+            'barangay'       => $request->barangay,
+            'municipality'   => $request->municipality,
+            'image'          => $imageName,
+            'image_url'      => $imageUrl,
+            'password'       => Hash::make($request->password),
+            'is_admin'       => 0,
+        ]);
+
+        // ✅ Generate Sanctum token
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Attach the token to the resource
+        $user->token = $token;
+
+        // 🔹 Step 5: Send email verification
+        $user->sendEmailVerificationNotification();
+
+        // 🔹 Step 6: Return success response using HttpResponses
+        return $this->success([
+            'user' => new UserResource($user),
+            'token' => $token,
+            'message' => 'Account created successfully. Please check your email to verify your account before logging in.',
+        ]);
     }
 
-    // 🚫 Step 5: Block cross-login based on Origin
-    $origin = $request->headers->get('origin');
 
-    if ($user->is_admin && str_contains($origin, '5173')) {
-        // Admin trying to log in from user site
-        Auth::logout();
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Admins cannot log in from the user site.'
-        ], 403);
+    public function loginAdmin(LoginUserRequest $request)
+    {
+        $request->validated($request->all());
+
+        $email = (string) $request->email;
+        $key = Str::lower($email) . '|' . $request->ip();
+
+        // ✅ Rate limit: max 3 attempts
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $seconds = RateLimiter::availableIn($key);
+            return response()->json([
+                'status' => 'error',
+                'message' => "Too many login attempts. Try again in {$seconds} seconds.",
+                'retry_after' => $seconds
+            ], 429);
+        }
+
+        // ✅ Attempt login
+        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            RateLimiter::hit($key, 3);
+            return $this->error('', 'Credentials do not match', 401);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        // 🚨 Check if email is verified
+        if (is_null($user->email_verified_at)) {
+            Auth::logout();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please verify your email address before logging in.'
+            ], 403);
+        }
+
+        // 🚨 Ensure admin
+        if (!$user->is_admin) {
+            Auth::logout();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Access denied. Only admin accounts can log in here.'
+            ], 403);
+        }
+
+        // ✅ Clear rate limit and issue token
+        RateLimiter::clear($key);
+        $token = $user->createToken('admin_auth_token')->plainTextToken;
+
+        return $this->success([
+            'user' => new UserResource($user),
+            'token' => $token,
+            'message' => 'Admin logged in successfully'
+        ]);
     }
 
-    if (!$user->is_admin && str_contains($origin, '5174')) {
-        // User trying to log in from admin site
-        Auth::logout();
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Users cannot log in from the admin site.'
-        ], 403);
+    public function registerAdmin(StoreUserRequest $request)
+    {
+        // 🔹 Step 1: Handle image upload
+        $imageName = null;
+        $imageUrl = null;
+
+        if ($request->hasFile('image')) {
+            $imageFile = $request->file('image');
+            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+            $imageFile->move(public_path('profile_images'), $imageName);
+            $imageUrl = url('profile_images/' . $imageName);
+        }
+
+        // 🔹 Step 2: Verify Google reCAPTCHA (skip for local/testing)
+        if (!app()->environment(['local', 'testing'])) {
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret'   => env('RECAPTCHA_SECRET_KEY'),
+                'response' => $request->input('g-recaptcha-response'),
+                'remoteip' => $request->ip(),
+            ]);
+
+            $recaptchaData = $response->json();
+
+            if (!($recaptchaData['success'] ?? false)) {
+                return $this->error(
+                    'Captcha verification failed',
+                    $recaptchaData['error-codes'] ?? [],
+                    422
+                );
+            }
+        }
+
+        // 🔹 Step 3: Create new admin user
+        $user = User::create([
+            'first_name'     => $request->first_name,
+            'last_name'      => $request->last_name,
+            'email'          => $request->email,
+            'contact_number' => $request->contact_number,
+            'house_no'       => $request->house_no,
+            'street'         => $request->street,
+            'barangay'       => $request->barangay,
+            'municipality'   => $request->municipality,
+            'image'          => $imageName,
+            'image_url'      => $imageUrl,
+            'password'       => Hash::make($request->password),
+            'is_admin'       => 1, // ✅ Force admin
+        ]);
+
+        // ✅ Generate Sanctum token
+        $token = $user->createToken('admin_auth_token')->plainTextToken;
+        $user->token = $token;
+
+        // 🔹 Step 4: Send email verification
+        $user->sendEmailVerificationNotification();
+
+
+        // 🔹 Step 5: Return success response using HttpResponses
+        return $this->success([
+            'user' => new UserResource($user),
+            'token' => $token,
+            'message' => 'Admin account created successfully. Please check your email to verify your account before logging in.',
+
+        ]);
     }
-
-    // ✅ Step 6: Clear rate limit and issue token
-    RateLimiter::clear($key);
-
-    return $this->success([
-        'user' => $user,
-        'token' => $user->createToken('API Token:' . $user->first_name)->plainTextToken,
-        'message' => 'User logged in successfully'
-    ]);
-}
-
-
-public function register(StoreUserRequest $request)
-{
-    // 🔹 Step 1: Validate required fields + captcha
-    $request->validate([
-        'g-recaptcha-response' => 'required',
-        'first_name'           => 'required|string|max:255',
-        'last_name'            => 'required|string|max:255',
-        'email'                => 'required|string|email|max:255|unique:users',
-        'contact_number'       => 'nullable|string|max:20',
-        'password'             => 'required|string|min:8|confirmed',
-    ]);
-
-    // 🔹 Step 2: Verify reCAPTCHA
-    $response = \Illuminate\Support\Facades\Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-        'secret'   => env('RECAPTCHA_SECRET_KEY'),
-        'response' => $request->input('g-recaptcha-response'),
-        'remoteip' => $request->ip(),
-    ]);
-
-    $recaptchaData = $response->json();
-
-    if (!($recaptchaData['success'] ?? false)) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'Captcha verification failed',
-            'errors'  => $recaptchaData['error-codes'] ?? [],
-        ], 422);
-    }
-
-    // ✅ Step 3: Detect admin request or force admin creation
-    // If your frontend explicitly sends is_admin: 1, trust that value.
-    // If not, you can also check origin as fallback.
-    $origin = $request->headers->get('origin');
-    $isAdmin = $request->boolean('is_admin'); // ✅ handles "1", 1, "true", etc.
-
-    if (!$isAdmin && $origin && (str_contains($origin, '5174') || str_contains($origin, '127.0.0.1:5174'))) {
-        $isAdmin = true;
-    }
-
-    //     // 🟡 ADD THIS DEBUG LOG HERE (before creating user)
-    // \Log::info('REGISTER DEBUG', [
-    //     'origin' => $request->headers->get('origin'),
-    //     'is_admin_raw' => $request->is_admin,
-    //     'parsed_boolean' => $request->boolean('is_admin'),
-    //     'final_value' => $isAdmin,
-    // ]);
-    // 🔹 Step 4: Create user
-    $user = User::create([
-        'first_name'     => $request->first_name,
-        'last_name'      => $request->last_name,
-        'email'          => $request->email,
-        'contact_number' => $request->contact_number,
-        'image'          => $request->image,
-        'image_url'      => $request->image_url,
-        'password'       => \Illuminate\Support\Facades\Hash::make($request->password),
-        'is_admin'       => $isAdmin ? 1 : 0, // ✅ This now respects the frontend
-    ]);
-
-    // 🔹 Step 5: Send verification email
-    $user->sendEmailVerificationNotification();
-
-    return response()->json([
-        'status'  => 'success',
-        'message' => 'Account created successfully. Please check your email to verify your account before logging in.'
-    ], 201);
-}
-
-
-
-
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return $this->success('', 'User logged out successfully', 200);
+        return $this->success('', 'Logged out successfully', 200);
     }
 }

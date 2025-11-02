@@ -21,11 +21,16 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('is_admin')->default(false);
             $table->string('contact_number')->nullable();
+            $table->string('house_no')->nullable();
+            $table->string('street')->nullable();
+            $table->string('barangay')->nullable();
+            $table->string('municipality')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
         });
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
