@@ -43,6 +43,8 @@ use App\Http\Controllers\rainAlertController;
 use App\Http\Controllers\waterTemperatureAlert;
 use App\Http\Controllers\fetchAlerts;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\BarangayController;
+
 
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
@@ -95,6 +97,13 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Barangay Routes
+    Route::get('/barangays', [BarangayController::class, 'index']);
+    Route::post('/barangays', [BarangayController::class, 'store']);
+    Route::get('/barangays/{barangay}', [BarangayController::class, 'show']);
+    Route::patch('/barangays/{barangay}', [BarangayController::class, 'update']);
+    Route::delete('/barangays/{barangay}', [BarangayController::class, 'destroy']);
 
     // Buoy Routes
     Route::get('/buoys', [BuoyController::class, 'index']);
@@ -181,8 +190,34 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/rain-gauge-readings/{rainGaugeReading}', [RainGaugeReadingController::class, 'update']);
     Route::delete('/rain-gauge-readings/{rainGaugeReading}', [RainGaugeReadingController::class, 'destroy']);
 
-    Route::apiResource('/slider', HomepageSliderController::class);
-    Route::apiResource('/homepage-about', HomepageAboutController::class);
+
+    // HOMEPAGE CONTENT MANAGEMENT ROUTES
+
+    // Slider Routes
+    Route::get('/sliders', [HomepageSliderController::class, 'index']);
+    Route::post('/sliders', [HomepageSliderController::class, 'store']);
+    Route::get('/active-sliders', [HomepageSliderController::class, 'activeSliders']);
+    Route::get('/archived-sliders', [HomepageSliderController::class, 'archivedSliders']);
+    Route::get('/sliders/{slider}', [HomepageSliderController::class, 'show']);
+    Route::patch('/sliders/{slider}', [HomepageSliderController::class, 'update']);
+    Route::delete('/sliders/{slider}', [HomepageSliderController::class, 'destroy']);
+
+
+    // About Routes
+    Route::get('/abouts', [HomepageAboutController::class, 'index']);
+    Route::post('/abouts', [HomepageAboutController::class, 'store']);
+    Route::get('/active-abouts', [HomepageAboutController::class, 'activeAbouts']);
+    Route::get('/archived-abouts', [HomepageAboutController::class, 'archivedAbouts']);
+    Route::get('/abouts/{about}', [HomepageAboutController::class, 'show']);
+    Route::patch('/abouts/{about}', [HomepageAboutController::class, 'update']);
+    Route::delete('/abouts/{about}', [HomepageAboutController::class, 'destroy']);
+
+    Route::post('about-cards', [HomepageAboutController::class, 'storeCard']);
+    Route::patch('about-cards/{card}', [HomepageAboutController::class, 'updateCard']);
+    Route::delete('about-cards/{card}', [HomepageAboutController::class, 'destroyCard']);
+
+
+
     Route::apiResource('/homepage-prototype', HomepagePrototypeController::class);
     Route::apiResource('/homepage-faq', HomepageFaqController::class);
     Route::apiResource('/homepage-team', HomepageTeamController::class);

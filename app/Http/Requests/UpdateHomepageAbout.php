@@ -4,13 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreHomepageAbout extends FormRequest
+class UpdateHomepageAbout extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
+        // Allow all authenticated or authorized users (adjust if needed)
         return true;
     }
 
@@ -22,12 +23,12 @@ class StoreHomepageAbout extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string',
-            'caption' => 'required|string',
+            'title' => 'sometimes|string',
+            'caption' => 'sometimes|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
-            'side_title' => 'nullable|string',
-            'side_description' => 'nullable|string',
-            'is_archived' => 'boolean',
+            'side_title' => 'sometimes|nullable|string',
+            'side_description' => 'sometimes|nullable|string',
+            'is_archived' => 'sometimes|boolean',
         ];
     }
 
@@ -37,10 +38,8 @@ class StoreHomepageAbout extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' => 'The about title is required.',
-            'caption.required' => 'The about caption is required.',
             'image.image' => 'The uploaded file must be a valid image.',
-            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, webp.',
+            'image.mimes' => 'The image must be one of the following types: jpg, jpeg, png, webp.',
         ];
     }
 }

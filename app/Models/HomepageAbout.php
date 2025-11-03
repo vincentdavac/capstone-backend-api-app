@@ -10,16 +10,16 @@ class HomepageAbout extends Model
         'title',
         'caption',
         'image',
-        'image_url',
+        'is_archived',
         'side_title',
-        'side_description',
-        'first_card_title',
-        'first_card_description',
-        'second_card_title',
-        'second_card_description',
-        'third_card_title',
-        'third_card_description',
+        'side_description'
     ];
 
     public $timestamps = true; // This enables created_at and updated_at
+
+
+    public function cards()
+    {
+        return $this->hasMany(HomepageAboutCard::class);
+    }
 }

@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreHomepageSlider extends FormRequest
+class UpdateHomepageSlider extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // allow authorized users to update
     }
 
     /**
@@ -22,10 +22,10 @@ class StoreHomepageSlider extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // 10MB max
-            'title' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // optional 10MB image
+            'title' => 'sometimes|required|string|max:255',                // only validate if provided
             'description' => 'nullable|string',
-            'is_archive' => 'sometimes|boolean',
+            'is_archive' => 'sometimes|required|boolean',                  // optional but validated if present
         ];
     }
 }

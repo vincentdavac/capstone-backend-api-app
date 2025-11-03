@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('homepage_sliders', function (Blueprint $table) {
+        Schema::create('homepage_about_cards', function (Blueprint $table) {
             $table->id();
-            $table->longText('title');
-            $table->longText('description')->nullable();
-            $table->longText('image')->nullable();
-            $table->boolean('is_archive')->default(false);
+            $table->foreignId('homepage_about_id')
+                ->constrained('homepage_abouts')
+                ->onDelete('cascade'); // delete cards when about is deleted
+            $table->string('card_title');
+            $table->longText('card_description');
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('homepage_sliders');
+        Schema::dropIfExists('homepage_about_cards');
     }
 };

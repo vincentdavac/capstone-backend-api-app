@@ -16,7 +16,7 @@ class Buoy extends Model
         'river_hectare',
         'latitude',
         'longitude',
-        'barangay',
+        'barangay_id',
         'attachment',
         'status',
         'maintenance_at',

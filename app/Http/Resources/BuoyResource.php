@@ -18,7 +18,7 @@ class BuoyResource extends JsonResource
                 'riverHectare' => $this->river_hectare,
                 'latitude' => $this->latitude,
                 'longitude' => $this->longitude,
-                'barangay' => $this->barangay,
+                'barangayId' => $this->barangay_id,
                 'attachment' => $this->attachment
                     ? config('app.url') . '/buoy_attachment/' . $this->attachment
                     : null,
