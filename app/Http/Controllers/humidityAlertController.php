@@ -13,12 +13,13 @@ class humidityAlertController extends Controller
     protected string $reftblName;
     public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
-        $this->reftblName = 'BME280';
+        $this->reftblName = 'BUOY-2025-8664';
     }
     public function setHumidityAlert(){
         $ref = $this->firebase->getReference($this->reftblName);
         $data = $ref->getValue();
-        $humidityData = $data['HUMIDITY'];
+        $bme280 = $data['BME280'];
+        $humidityData = $bme280['HUMIDITY'];
         $description = null;
         $alertLevel = null;
         $uuid = Str::uuid();
