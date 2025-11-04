@@ -20,7 +20,7 @@ class Bme280AtmosphericReading extends Model
     ];
 
     // Disable Laravel's automatic timestamps since recorded_at handles timing
-    public $timestamps = false;
+    public $timestamps = true;
 
     public function buoy()
     {

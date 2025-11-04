@@ -44,8 +44,12 @@ use App\Http\Controllers\waterTemperatureAlert;
 use App\Http\Controllers\fetchAlerts;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\waterPressureController;
+use App\Http\Controllers\insertSensorReadings;
+use App\Http\Controllers\getHistoricalData;
 
 
+Route::post('/add-historical', [insertSensorReadings::class, 'insertSensorData']);
+Route::get('/get-sensor-monitoring', [getHistoricalData::class, 'fetchHistorical']);
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
 Route::get('/weatherHourly', [testingWeather::class, 'getHourlyTemperature']);
@@ -60,13 +64,15 @@ Route::get('/gps-data', [gpsController::class, 'getGpsData']);
 Route::get('/rain-gauge', [raingaugeController::class, 'getRainGauge']);
 Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 
+
 Route::post('/set-alert-surrounding', [surroundingtemperatureAlertController::class, 'setTemperatureAlert']);
 Route::post('/set-alert-water-temp', [waterTemperatureAlert::class, 'setWaterTemperatureAlert']);
 Route::post('/set-alert-humidity', [humidityAlertController::class, 'setHumidityAlert']);
 Route::post('/set-alert-atmospheric', [atmosphericAlertController::class, 'setAtmosphericAlert']);
 Route::post('/set-alert-wind', [windAlertController::class, 'setWindAlert']);
 Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
-Route::get('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
+Route::post('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
+
 
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);

@@ -21,7 +21,7 @@ class rainAlertController extends Controller
     public function setRainPercentageAlert(){
         $ref = $this->firebase->getReference($this->ref_tblName);
         $data = $ref->getValue();
-        $rainSensor = $data['RAIN_SENSOR'];
+        $rainSensor = $data['RAIN_GAUGE'];
         $rainData  = $rainSensor['FALL_COUNT_MILIMETERS'];
         $description = null;
         $alertLevel = null;

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->decimal('pressure_mbar', 10, 2);
             $table->decimal('pressure_hpa', 10, 2);
             $table->decimal('altitude', 10, 2);
-            $table->timestamp('recorded_at');
+            $table->timestamp('recorded_at')->nullable();
             $table->timestamps();
         });
     }
