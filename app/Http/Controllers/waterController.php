@@ -10,15 +10,17 @@ class waterController extends Controller{
     protected string $ref_tblName;
     public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
-        $this->ref_tblName = 'MS5837'; 
+        $this->ref_tblName = 'BUOY-2025-8664'; 
     }
     public function getWaterTemp (){
         $reference = $this->firebase->getReference($this->ref_tblName);
         $data = $reference->getValue(); 
+        $waterTemp = $data['MS5837'];
+       
         if(is_null($data)){
             return response()->json(['status' => 'error', 'message' => 'no data found','data'=>[]],404);
         }else{
-            return response()->json(['status' => 'success', 'data' => $data],200,[],JSON_PRETTY_PRINT);
+            return response()->json(['status' => 'success', 'data' => $waterTemp],200,[],JSON_PRETTY_PRINT);
         }   
     }
 }
