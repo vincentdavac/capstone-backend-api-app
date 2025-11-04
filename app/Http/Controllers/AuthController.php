@@ -139,7 +139,7 @@ class AuthController extends Controller
             'image'          => $imageName,
             'image_url'      => $imageUrl,
             'password'       => Hash::make($request->password),
-            'is_admin'       => 0,
+            'is_admin'       => $isAdmin ? 1 : 0,
         ]);
 
         // ✅ Generate Sanctum token
