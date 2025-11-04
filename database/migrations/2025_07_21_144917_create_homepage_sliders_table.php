@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('homepage_sliders', function (Blueprint $table) {
             $table->id();
-            $table->longText('image')->nullable();
-            $table->longText('image_url')->nullable();
             $table->longText('title');
             $table->longText('description')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->longText('image')->nullable();
+            $table->boolean('is_archive')->default(false);
             $table->timestamps();
         });
     }

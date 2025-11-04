@@ -8,9 +8,13 @@ class HomepagePrototype extends Model
 {
     protected $fillable = [
         'title',
-        'caption',
+        'description',
         'image',
-        'image_url',
-        'is_active',
+        'position',     // accepts only 'left' or 'right'
+        'is_archived',
+    ];
+
+    protected $casts = [
+        'is_archived' => 'boolean',
     ];
 }

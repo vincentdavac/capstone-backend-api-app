@@ -22,11 +22,10 @@ class StoreHomepageSlider extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => 'nullable|string',
-            'image_url' => 'nullable|url',
-            'title' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240', // 10MB max
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'required|boolean',
+            'is_archive' => 'sometimes|boolean',
         ];
     }
 }

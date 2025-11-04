@@ -8,10 +8,9 @@ class HomepageSlider extends Model
 {
     protected $fillable = [
         'image',
-        'image_url',
         'title',
         'description',
-        'is_active',
+        'is_archive',
     ];
 
     public $timestamps = true;

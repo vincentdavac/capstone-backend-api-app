@@ -27,10 +27,12 @@ class BuoyController extends Controller
         $this->firebase = $firebase;
     }
 
-
     public function index()
     {
-        return BuoyResource::collection(Buoy::all());
+        return $this->success(
+            BuoyResource::collection(Buoy::all()),
+            'Buoys list retrieved successfully'
+        );
     }
 
     public function store(StoreBuoyRequest $request)

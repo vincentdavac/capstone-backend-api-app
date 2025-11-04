@@ -24,20 +24,23 @@ class StoreHomepageAbout extends FormRequest
         return [
             'title' => 'required|string',
             'caption' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_link' => 'nullable|url',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'side_title' => 'nullable|string',
+            'side_description' => 'nullable|string',
+            'is_archived' => 'boolean',
+        ];
+    }
 
-            'side_title' => 'required|string',
-            'side_description' => 'required|string',
-
-            'first_card_title' => 'required|string',
-            'first_card_description' => 'required|string',
-
-            'second_card_title' => 'required|string',
-            'second_card_description' => 'required|string',
-
-            'third_card_title' => 'required|string',
-            'third_card_description' => 'required|string',
+    /**
+     * Custom error messages (optional)
+     */
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'The about title is required.',
+            'caption.required' => 'The about caption is required.',
+            'image.image' => 'The uploaded file must be a valid image.',
+            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, webp.',
         ];
     }
 }

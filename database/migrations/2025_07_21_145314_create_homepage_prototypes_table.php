@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('homepage_prototypes', function (Blueprint $table) {
             $table->id();
             $table->longText('title');
-            $table->longText('caption')->nullable();
+            $table->longText('description')->nullable();
             $table->longText('image')->nullable();
-            $table->longText('image_url')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->enum('position', ['left', 'right'])->nullable(); // Accepts only left or right
+            $table->boolean('is_archived')->default(false);
             $table->timestamps(); // created_at & updated_at
         });
     }

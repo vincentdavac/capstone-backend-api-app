@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('buoys', function (Blueprint $table) {
             $table->id();
             $table->string('buoy_code')->unique();
+            $table->unsignedBigInteger('barangay_id');
             $table->string('river_name');
             $table->double('wall_height', 8, 2);
             $table->double('river_hectare', 8, 2);
             $table->double('latitude', 10, 6);
             $table->double('longitude', 10, 6);
-            $table->unsignedBigInteger('barangay');
             $table->string('attachment')->nullable();
             $table->enum('status', ['active', 'inactive', 'maintenance'])->default('active');
             $table->dateTime('maintenance_at')->nullable();

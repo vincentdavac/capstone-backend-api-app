@@ -16,15 +16,9 @@ return new class extends Migration
             $table->longText('title');
             $table->longText('caption');
             $table->longText('image')->nullable();
-            $table->longText('image_url')->nullable();
-            $table->longText('side_title');
-            $table->longText('side_description');
-            $table->longText('first_card_title');
-            $table->longText('first_card_description');
-            $table->longText('second_card_title');
-            $table->longText('second_card_description');
-            $table->longText('third_card_title');
-            $table->longText('third_card_description');
+            $table->boolean('is_archived')->default(false);
+            $table->longText('side_title')->nullable();
+            $table->longText('side_description')->nullable();
             $table->timestamps();
         });
     }
