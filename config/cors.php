@@ -8,8 +8,8 @@ return [
 
     // ✅ Allow both frontends (userdashboard & admin)
 'allowed_origins' => [
-    env('FRONTEND_URL', 'http://localhost:5173'),
-    env('FRONTEND_ADMIN_URL', 'http://localhost:5174'),
+    env('FRONTEND_URL', 'http://localhost:5174'),
+    env('FRONTEND_ADMIN_URL', 'http://localhost:5173'),
 ],
 
     'allowed_origins_patterns' => [],

@@ -39,15 +39,16 @@ class VerificationController extends Controller
 private function getFrontendUrl(User $user, string $path)
 {
     // Get base URLs from .env
-    $userUrl = rtrim(env('FRONTEND_USER_URL', 'http://localhost:5173/coastella'), '/');
-    $adminUrl = rtrim(env('FRONTEND_ADMIN_URL', 'http://localhost:5174'), '/');
+    $userUrl = rtrim(env('FRONTEND_USER_URL', 'http://localhost:5174'), '/');
+    $adminUrl = rtrim(env('FRONTEND_ADMIN_URL', 'http://localhost:5173'), '/');
 
-    // ✅ Detect admin either by is_admin column or role value
-    $isAdmin = (isset($user->is_admin) && $user->is_admin == 1) 
-            || (isset($user->role) && $user->role === 'admin');
+// ✅ Detect admin either by is_admin column or role value
+$isAdmin = (isset($user->is_admin) && $user->is_admin == 1) 
+        || (isset($user->role) && $user->role === 'admin');
 
-    // ✅ Select correct frontend base
-    $baseUrl = $isAdmin ? $adminUrl : $userUrl;
+// ✅ FIXED: Admins → 5173, Users → 5174
+$baseUrl = $isAdmin ? $adminUrl : $userUrl;
+
 
     return "{$baseUrl}/{$path}";
 }
