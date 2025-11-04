@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('homepage_faqs', function (Blueprint $table) {
+        Schema::create('homepage_prototype_file', function (Blueprint $table) {
             $table->id();
-            $table->longText('question');
-            $table->longText('answer');
-            $table->boolean('is_archived')->default(false);
+            $table->string('name'); // name of the 3D model
+            $table->string('attachment'); // stores the .glb file name or path
+            $table->boolean('is_archived')->default(false); // archive flag
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('homepage_faqs');
+        Schema::dropIfExists('homepage_prototype_file');
     }
 };
