@@ -220,8 +220,16 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::delete('about-cards/{card}', [HomepageAboutController::class, 'destroyCard']);
 
 
+    // Prototype Routes
+    Route::get('/prototypes', [HomepagePrototypeController::class, 'index']);
+    Route::post('/prototypes', [HomepagePrototypeController::class, 'store']);
+    Route::get('/active-prototypes', [HomepagePrototypeController::class, 'activePrototypes']);
+    Route::get('/archived-prototypes', [HomepagePrototypeController::class, 'archivedPrototypes']);
+    Route::get('/prototypes/{prototype}', [HomepagePrototypeController::class, 'show']);
+    Route::patch('/prototypes/{prototype}', [HomepagePrototypeController::class, 'update']);
+    Route::delete('/prototypes/{prototype}', [HomepagePrototypeController::class, 'destroy']);
 
-    Route::apiResource('/homepage-prototype', HomepagePrototypeController::class);
+
     Route::apiResource('/homepage-faq', HomepageFaqController::class);
     Route::apiResource('/homepage-team', HomepageTeamController::class);
     Route::apiResource('/homepage-feedback', HomepageFeedbackController::class);

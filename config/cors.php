@@ -2,15 +2,18 @@
 
 return [
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => [
+        'api/*',
+        'admin/*',  // ✅ Add this line
+        'sanctum/csrf-cookie',
+    ],
 
     'allowed_methods' => ['*'],
 
-    // ✅ Allow both frontends (userdashboard & admin)
-'allowed_origins' => [
-    env('FRONTEND_URL', 'http://localhost:5174'),
-    env('FRONTEND_ADMIN_URL', 'http://localhost:5173'),
-],
+    'allowed_origins' => [
+        env('FRONTEND_URL', 'http://localhost:5174'),
+        env('FRONTEND_ADMIN_URL', 'http://localhost:5173'),
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -20,7 +23,5 @@ return [
 
     'max_age' => 0,
 
-    // ✅ Keep this true for Sanctum authentication
     'supports_credentials' => true,
-
 ];

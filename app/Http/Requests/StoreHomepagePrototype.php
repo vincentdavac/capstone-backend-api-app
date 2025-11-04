@@ -22,11 +22,11 @@ class StoreHomepagePrototype extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => 'required|string',
-            'image_link' => 'nullable|string',
             'title' => 'required|string',
-            'caption' => 'nullable|string',
-            'is_active' => 'required|boolean',
+            'description' => 'nullable|string',
+            'image' => 'required|nullable|file|mimes:jpg,jpeg,png,webp|max:10240', // max:10240 = 10MB
+            'position' => 'required|in:left,right', // only accepts "left" or "right"
+            'is_archived' => 'boolean',
         ];
     }
 }
