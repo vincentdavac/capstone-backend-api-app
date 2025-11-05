@@ -45,6 +45,7 @@ use App\Http\Controllers\fetchAlerts;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BarangayController;
 use App\Http\Controllers\waterPressureController;
+use App\Http\Controllers\PrototypeFileController;
 use App\Http\Controllers\insertSensorReadings;
 use App\Http\Controllers\getHistoricalData;
 use App\Http\Controllers\getAtmostphericdata;
@@ -254,9 +255,33 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/prototypes/{prototype}', [HomepagePrototypeController::class, 'update']);
     Route::delete('/prototypes/{prototype}', [HomepagePrototypeController::class, 'destroy']);
 
+    // Prototype-file Routes - Not working since the 3D file is too large
+    Route::get('/prototype-file', [PrototypeFileController::class, 'index']);
+    Route::post('/prototype-file', [PrototypeFileController::class, 'store']);
+    Route::get('/active-prototype-file', [PrototypeFileController::class, 'activePrototypeFile']);
+    Route::get('/archived-prototype-file', [PrototypeFileController::class, 'archivedPrototypeFile']);
+    Route::get('/prototype-file/{prototype}', [PrototypeFileController::class, 'show']);
+    Route::patch('/prototype-file/{prototype}', [PrototypeFileController::class, 'update']);
+    Route::delete('/prototype-file/{prototype}', [PrototypeFileController::class, 'destroy']);
 
-    Route::apiResource('/homepage-faq', HomepageFaqController::class);
-    Route::apiResource('/homepage-team', HomepageTeamController::class);
+    // Team Routes
+    Route::get('/teams', [HomepageTeamController::class, 'index']);
+    Route::get('/active-teams', [HomepageTeamController::class, 'activeTeams']);
+    Route::get('/archived-teams', [HomepageTeamController::class, 'archivedTeams']);
+    Route::post('/teams', [HomepageTeamController::class, 'store']);
+    Route::get('/teams/{team}', [HomepageTeamController::class, 'show']);
+    Route::patch('/teams/{team}', [HomepageTeamController::class, 'update']);
+    Route::delete('/teams/{team}', [HomepageTeamController::class, 'destroy']);
+
+    // FAQS Routes
+    Route::get('/faqs', [HomepageFaqController::class, 'index']);
+    Route::get('/active-faqs', [HomepageFaqController::class, 'activeFaqs']);
+    Route::get('/archived-faqs', [HomepageFaqController::class, 'archivedFaqs']);
+    Route::post('/faqs', [HomepageFaqController::class, 'store']);
+    Route::get('/faqs/{faq}', [HomepageFaqController::class, 'show']);
+    Route::patch('/faqs/{faq}', [HomepageFaqController::class, 'update']);
+    Route::delete('/faqs/{faq}', [HomepageFaqController::class, 'destroy']);
+
     Route::apiResource('/homepage-feedback', HomepageFeedbackController::class);
     Route::apiResource('/homepage-footer', HomepageFooterController::class);
 });

@@ -54,10 +54,10 @@ class HomepagePrototypeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(HomepagePrototype $homepagePrototype)
+    public function show(HomepagePrototype $prototype)
     {
         return $this->success(
-            new HomepagePrototypeResource($homepagePrototype),
+            new HomepagePrototypeResource($prototype),
             'Homepage prototype fetched successfully',
             200
         );
@@ -66,14 +66,15 @@ class HomepagePrototypeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateHomepagePrototype $request, HomepagePrototype $homepagePrototype)
+    public function update(UpdateHomepagePrototype $request, HomepagePrototype $prototype)
     {
         $validated = $request->validated();
 
+        // Handle image upload
         if ($request->hasFile('image')) {
             // Delete old image if it exists
-            if ($homepagePrototype->image && file_exists(public_path('homepage_prototype_images/' . $homepagePrototype->image))) {
-                unlink(public_path('homepage_prototype_images/' . $homepagePrototype->image));
+            if ($prototype->image && file_exists(public_path('homepage_prototype_images/' . $prototype->image))) {
+                unlink(public_path('homepage_prototype_images/' . $prototype->image));
             }
 
             // Upload new image
@@ -83,10 +84,11 @@ class HomepagePrototypeController extends Controller
             $validated['image'] = $imageName;
         }
 
-        $homepagePrototype->update($validated);
+        // Update record
+        $prototype->update($validated);
 
         return $this->success(
-            new HomepagePrototypeResource($homepagePrototype),
+            new HomepagePrototypeResource($prototype),
             'Homepage prototype updated successfully',
             200
         );
@@ -95,14 +97,14 @@ class HomepagePrototypeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(HomepagePrototype $homepagePrototype)
+    public function destroy(HomepagePrototype $prototype)
     {
         // Delete the image file if it exists
-        if ($homepagePrototype->image && file_exists(public_path('homepage_prototype_images/' . $homepagePrototype->image))) {
-            unlink(public_path('homepage_prototype_images/' . $homepagePrototype->image));
+        if ($prototype->image && file_exists(public_path('homepage_prototype_images/' . $prototype->image))) {
+            unlink(public_path('homepage_prototype_images/' . $prototype->image));
         }
 
-        $homepagePrototype->delete();
+        $prototype->delete();
 
         return $this->success('', 'Homepage prototype deleted successfully', 200);
     }

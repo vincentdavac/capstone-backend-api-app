@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreHomepageFaq extends FormRequest
+class StoreHomepageFaqRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,20 @@ class StoreHomepageFaq extends FormRequest
     public function rules(): array
     {
         return [
-            'question' => 'required|string',
+            'question' => 'required|string|max:255',
             'answer' => 'required|string',
-            'is_active' => 'nullable|boolean',
+            'is_archived' => 'nullable|boolean',
+        ];
+    }
+
+    /**
+     * Custom validation messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'question.required' => 'The question field is required.',
+            'answer.required' => 'The answer field is required.',
         ];
     }
 }

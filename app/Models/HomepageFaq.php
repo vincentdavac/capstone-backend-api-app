@@ -9,7 +9,7 @@ class HomepageFaq extends Model
     protected $fillable = [
         'question',
         'answer',
-        'is_active',
+        'is_archived',
     ];
 
     public $timestamps = true; // enable created_at and updated_at
