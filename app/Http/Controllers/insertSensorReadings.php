@@ -45,13 +45,15 @@ class insertSensorReadings extends Controller
         $RAIN_PERCENTAGE = $RAIN_SENSOR['RAIN_PERCENTAGE'];
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         $f = $surrounding_temp * 1.8 + 32;
+        
 
         $wf = $WATER_TEMPERATURE * 1.8 + 32;
         DB::table('bme280_atmospheric_readings')->insert([
             'buoy_id' => $id->id,
             'pressure_hpa' => $ATMOSPHERIC_PRESSURE,
             'pressure_mbar'=>$ATMOSPHERIC_PRESSURE,
-            'altitude' => $ALTITUDE, 
+            'altitude' => $ALTITUDE,
+             'recorded_at' => $recorded
         ]);
 
         DB::table('bme280_humidity_readings')->insert([
@@ -72,6 +74,7 @@ class insertSensorReadings extends Controller
             'depth_m' => $WATER_LEVEL_METER,
             'depth_ft' => $WATER_LEVEL_FEET,
             'water_altitude' => $WATER_ALTITUDE,
+            'recorded_at' => $recorded
         ]);
 
         DB::table('water_temperature_readings')->insert([
@@ -93,6 +96,7 @@ class insertSensorReadings extends Controller
         DB::table('rain_sensor_readings')->insert([
             'buoy_id' => $id->id,
             'percentage' => $RAIN_PERCENTAGE,
+             'recorded_at' => $recorded
         ]);
         return response()->json(['status' => 'success', 'data' => $id], 200, [], JSON_PRETTY_PRINT);
     }

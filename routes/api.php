@@ -48,9 +48,26 @@ use App\Http\Controllers\waterPressureController;
 use App\Http\Controllers\PrototypeFileController;
 use App\Http\Controllers\insertSensorReadings;
 use App\Http\Controllers\getHistoricalData;
+use App\Http\Controllers\getAtmostphericdata;
+use App\Http\Controllers\getsurroundingdata;
+use App\Http\Controllers\gethumiditydata;
+use App\Http\Controllers\getwaterdata;
+use App\Http\Controllers\getwaterTemp;
+use App\Http\Controllers\getWind;
+use App\Http\Controllers\getRaingauge;
+use App\Http\Controllers\getRainSensor;
+use App\Http\Controllers\alertController;
 
 
-Route::post('/add-historical', [insertSensorReadings::class, 'insertSensorData']);
+Route::get('/get-rain-sensor', [getRainSensor::class, 'getrainsensorChart']);
+Route::get('/get-raingauge', [getRaingauge::class, 'getraingaugeChart']);
+Route::get('/get-wind', [getWind::class, 'getwindChart']);
+Route::get('/get-water-temp', [getwaterTemp::class, 'getwatertempChart']);
+
+Route::get('/get-water', [getwaterdata::class, 'getwaterChart']);
+Route::get('/get-humidity', [gethumiditydata::class, 'gethumidityChart']);
+Route::get('/get-surrounding', [getsurroundingdata::class, 'getsurroundingChart']);
+Route::get('/get-atmospheric', [getAtmostphericdata::class, 'getAtmosphericChart']);
 Route::get('/get-sensor-monitoring', [getHistoricalData::class, 'fetchHistorical']);
 
 Route::get('/weather', [testingWeather::class, 'getWeather']);
@@ -67,13 +84,15 @@ Route::get('/rain-gauge', [raingaugeController::class, 'getRainGauge']);
 Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 
 
-Route::post('/set-alert-surrounding', [surroundingtemperatureAlertController::class, 'setTemperatureAlert']);
-Route::post('/set-alert-water-temp', [waterTemperatureAlert::class, 'setWaterTemperatureAlert']);
-Route::post('/set-alert-humidity', [humidityAlertController::class, 'setHumidityAlert']);
-Route::post('/set-alert-atmospheric', [atmosphericAlertController::class, 'setAtmosphericAlert']);
-Route::post('/set-alert-wind', [windAlertController::class, 'setWindAlert']);
-Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
-Route::post('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
+// Route::post('/set-alert-surrounding', [surroundingtemperatureAlertController::class, 'setTemperatureAlert']);
+// Route::post('/set-alert-water-temp', [waterTemperatureAlert::class, 'setWaterTemperatureAlert']);
+// Route::post('/set-alert-humidity', [humidityAlertController::class, 'setHumidityAlert']);
+// Route::post('/set-alert-atmospheric', [atmosphericAlertController::class, 'setAtmosphericAlert']);
+// Route::post('/set-alert-wind', [windAlertController::class, 'setWindAlert']);
+// Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
+// Route::post('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
+// Route::post('/add-historical', [insertSensorReadings::class, 'insertSensorData']);
+Route::post('/all-set-alerts', [alertController::class, 'allAlerts']);
 
 
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
