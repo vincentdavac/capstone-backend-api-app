@@ -17,14 +17,21 @@ class HomepageFooterResource extends JsonResource
         return [
             'id' => $this->id,
             'attributes' => [
-                'footerText' => $this->footer_text,
-                'facebookUrl' => $this->facebook_url,
-                'twitterUrl' => $this->twitter_url,
-                'instagramUrl' => $this->instagram_url,
-                'linkedinUrl' => $this->linkedin_url,
-                'isActive' => (bool) $this->is_active,
-                'createdAt' => $this->created_at,
-                'updatedAt' => $this->updated_at,
+                'image' => $this->image
+                    ? config('app.url') . '/footer_images/' . $this->image
+                    : null,
+                'caption' => $this->caption,
+                'documentationLink' => $this->documentation_link,
+                'researchPaperLink' => $this->research_paper_link,
+                'emailAddress' => $this->email_address,
+                'facebookLink' => $this->facebook_link,
+                'youtubeLink' => $this->youtube_link,
+                'footerSubtitle' => $this->footer_subtitle,
+                'isArchived' => (bool) $this->is_archived,
+                'createdDate' => $this->created_at?->format('F d, Y') ?? ' ',
+                'createdTime' => $this->created_at?->format('h:i:s A') ?? ' ',
+                'updatedDate' => $this->updated_at?->format('F d, Y') ?? ' ',
+                'updatedTime' => $this->updated_at?->format('h:i:s A') ?? ' ',
             ],
         ];
     }

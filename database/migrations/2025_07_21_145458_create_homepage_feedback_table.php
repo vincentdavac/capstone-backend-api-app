@@ -12,17 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('homepage_feedbacks', function (Blueprint $table) {
-    $table->id();
-    $table->longText('name');
-    $table->longText('role');
-    $table->longText('image')->nullable();
-    $table->longText('image_url')->nullable();
-    $table->integer('rate'); // 1-5 (validate in controller)
-    $table->longText('feedback');
-    $table->boolean('is_active')->default(true);
-    $table->timestamps();
-});
-
+            $table->id();
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
+            $table->unsignedTinyInteger('rate'); // Better type for 1–5 range
+            $table->longText('feedback');
+            $table->boolean('is_archived')->default(false);
+            $table->timestamps();
+        });
     }
 
     /**

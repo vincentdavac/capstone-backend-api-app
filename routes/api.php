@@ -212,7 +212,6 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/sliders/{slider}', [HomepageSliderController::class, 'update']);
     Route::delete('/sliders/{slider}', [HomepageSliderController::class, 'destroy']);
 
-
     // About Routes
     Route::get('/abouts', [HomepageAboutController::class, 'index']);
     Route::post('/abouts', [HomepageAboutController::class, 'store']);
@@ -263,6 +262,18 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/faqs/{faq}', [HomepageFaqController::class, 'update']);
     Route::delete('/faqs/{faq}', [HomepageFaqController::class, 'destroy']);
 
-    Route::apiResource('/homepage-feedback', HomepageFeedbackController::class);
-    Route::apiResource('/homepage-footer', HomepageFooterController::class);
+    // Feedbacks Routes
+    Route::get('/feedbacks', [HomepageFeedbackController::class, 'index']);
+    Route::get('/active-feedbacks', [HomepageFeedbackController::class, 'activeFeedbacks']);
+    Route::get('/archived-feedbacks', [HomepageFeedbackController::class, 'archivedFeedbacks']);
+    Route::post('/feedbacks', [HomepageFeedbackController::class, 'store']);
+    Route::get('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'show']);
+    Route::patch('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'update']);
+    Route::delete('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'destroy']);
+
+    // Footers Routes
+    Route::get('/footers', [HomepageFooterController::class, 'index']);
+    Route::post('/footers', [HomepageFooterController::class, 'store']);
+    Route::patch('/footers/{footer}', [HomepageFooterController::class, 'update']);
+    Route::delete('/footers/{footer}', [HomepageFooterController::class, 'destroy']);
 });

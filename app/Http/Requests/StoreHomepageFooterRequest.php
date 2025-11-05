@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreHomepageFooter extends FormRequest
+class StoreHomepageFooterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +22,15 @@ class StoreHomepageFooter extends FormRequest
     public function rules(): array
     {
         return [
-            'logo_title' => 'required|string',
-            'logo_description' => 'required|string',
-            'social_title' => 'required|string',
+            'image' => 'required|file|image|mimes:jpg,jpeg,png,webp|max:10240', // max 10MB
+            'caption' => 'required|string',
+            'documentation_link' => 'nullable|url',
+            'research_paper_link' => 'nullable|url',
+            'email_address' => 'nullable|email',
             'facebook_link' => 'nullable|url',
-            'twitter_link' => 'nullable|url',
-            'instagram_link' => 'nullable|url',
-            'tiktok_link' => 'nullable|url',
-            'footer_message' => 'required|string',
+            'youtube_link' => 'nullable|url',
+            'footer_subtitle' => 'nullable|string',
+            'is_archived' => 'boolean',
         ];
     }
 }

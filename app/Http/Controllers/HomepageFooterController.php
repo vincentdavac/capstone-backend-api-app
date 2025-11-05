@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\HomepageFooter;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreHomepageFooter;
+use Illuminate\Support\Str;
+use App\Http\Requests\StoreHomepageFooterRequest;
+use App\Http\Requests\UpdateHomepageFooterRequest;
 use App\Http\Resources\HomepageFooterResource;
 use App\Traits\HttpResponses;
 
@@ -14,33 +16,102 @@ class HomepageFooterController extends Controller
 
     public function index()
     {
-        return HomepageFooterResource::collection(HomepageFooter::all());
+        $footers = HomepageFooter::where('is_archived', false)->latest()->get();
+
+        return $this->success(
+            HomepageFooterResource::collection($footers),
+            'Homepage footers fetched successfully',
+            200
+        );
     }
 
-    public function store(StoreHomepageFooter $request)
+
+    public function store(StoreHomepageFooterRequest $request)
     {
         $validated = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $imageFile = $request->file('image');
+            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+            $imageFile->move(public_path('footer_images'), $imageName);
+            $validated['image'] = $imageName;
+        }
+
         $footer = HomepageFooter::create($validated);
 
-        return new HomepageFooterResource($footer);
+        return $this->success(
+            new HomepageFooterResource($footer),
+            'Homepage footer created successfully',
+            201
+        );
     }
 
-    public function show(HomepageFooter $homepageFooter)
+    public function show(HomepageFooter $footer)
     {
-        return new HomepageFooterResource($homepageFooter);
+        return $this->success(
+            new HomepageFooterResource($footer),
+            'Homepage footer fetched successfully',
+            200
+        );
     }
 
-    public function update(Request $request, HomepageFooter $homepageFooter)
+    public function update(UpdateHomepageFooterRequest $request, HomepageFooter $footer)
     {
-        $homepageFooter->update($request->all());
+        $validated = $request->validated();
 
-        return new HomepageFooterResource($homepageFooter);
+        if ($request->hasFile('image')) {
+            // Delete old image if it exists
+            if ($footer->image && file_exists(public_path('footer_images/' . $footer->image))) {
+                unlink(public_path('footer_images/' . $footer->image));
+            }
+
+            // Upload new image
+            $imageFile = $request->file('image');
+            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+            $imageFile->move(public_path('footer_images'), $imageName);
+            $validated['image'] = $imageName;
+        }
+
+        $footer->update($validated);
+
+        return $this->success(
+            new HomepageFooterResource($footer),
+            'Homepage footer updated successfully',
+            200
+        );
     }
 
-    public function destroy(HomepageFooter $homepageFooter)
-    {
-        $homepageFooter->delete();
 
-        return $this->success('', 'Footer deleted successfully', 200);
+    public function destroy(HomepageFooter $footer)
+    {
+        $footer->delete();
+
+        return $this->success(
+            '',
+            'Homepage footer deleted successfully',
+            200
+        );
+    }
+
+    public function activeFooters()
+    {
+        $active = HomepageFooter::where('is_archived', false)->latest()->get();
+
+        return $this->success(
+            HomepageFooterResource::collection($active),
+            'Active homepage footers fetched successfully',
+            200
+        );
+    }
+
+    public function archivedFooters()
+    {
+        $archived = HomepageFooter::where('is_archived', true)->latest()->get();
+
+        return $this->success(
+            HomepageFooterResource::collection($archived),
+            'Archived homepage footers fetched successfully',
+            200
+        );
     }
 }

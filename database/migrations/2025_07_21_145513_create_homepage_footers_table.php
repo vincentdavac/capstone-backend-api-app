@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('homepage_footers', function (Blueprint $table) {
             $table->id();
-            $table->longText('email')->nullable();
-            $table->longText('phone')->nullable();
-            $table->longText('location')->nullable();
+            $table->longText('image')->nullable();
+            $table->string('caption')->nullable();
+            $table->longText('documentation_link')->nullable();
+            $table->longText('research_paper_link')->nullable();
+            $table->string('email_address')->nullable();
             $table->longText('facebook_link')->nullable();
-            $table->longText('twitter_link')->nullable();
-            $table->longText('linkedin_link')->nullable();
-            $table->longText('instagram_link')->nullable();
-            $table->longText('short_description')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->longText('youtube_link')->nullable();
+            $table->string('footer_subtitle')->nullable();
+            $table->boolean('is_archived')->default(false);
             $table->timestamps(); // created_at & updated_at
         });
     }
