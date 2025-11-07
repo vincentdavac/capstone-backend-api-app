@@ -57,8 +57,9 @@ use App\Http\Controllers\getWind;
 use App\Http\Controllers\getRaingauge;
 use App\Http\Controllers\getRainSensor;
 use App\Http\Controllers\alertController;
+use App\Http\Controllers\currentCondition;
 
-
+Route::get('/get-current-condition', [currentCondition::class, 'getCurrentCondition']);
 Route::get('/get-rain-sensor', [getRainSensor::class, 'getrainsensorChart']);
 Route::get('/get-raingauge', [getRaingauge::class, 'getraingaugeChart']);
 Route::get('/get-wind', [getWind::class, 'getwindChart']);
@@ -97,6 +98,7 @@ Route::post('/all-set-alerts', [alertController::class, 'allAlerts']);
 
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);
+Route::get('/notifications', [NotificationController::class, 'getNotifications']);
 
 // USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);

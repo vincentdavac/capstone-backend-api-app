@@ -61,15 +61,15 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new ResetPasswordNotification($token));
     }
     /**
+    /**
      * ✅ Custom Verify Email Mail
      */
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail);
     }
-
-    public function barangay()
+    public function notifications()
     {
-        return $this->belongsTo(Barangay::class);
+        return $this->hasMany(Notification::class);
     }
 }
