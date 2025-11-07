@@ -6,6 +6,8 @@ use App\Http\Requests\LoginUserRequest;
 use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +20,56 @@ use App\Http\Resources\UserResource;
 class AuthController extends Controller
 {
     use HttpResponses;
+
+    public function getAllUsers()
+    {
+        $users = User::with('barangay')->latest()->get();
+
+        return $this->success(
+            UserResource::collection($users),
+            'All users fetched successfully.',
+            200
+        );
+    }
+
+    public function updateUser(UpdateUserRequest $request, $user)
+    {
+        $user = User::find($user);
+
+        if (!$user) {
+            return $this->error(null, 'User not found.', 404);
+        }
+
+        $validated = $request->validated();
+
+        // Handle profile image update
+        if ($request->hasFile('image')) {
+            $imageFile = $request->file('image');
+            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+            $imageFile->move(public_path('profile_images'), $imageName);
+            $validated['image'] = $imageName;
+            $validated['image_url'] = url('profile_images/' . $imageName);
+        }
+
+        // If password is provided, hash it
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->load('barangay');
+
+
+        $user->update($validated);
+
+        return $this->success(
+            new UserResource($user),
+            'User information updated successfully.',
+            200
+        );
+    }
+
 
     public function me(Request $request)
     {
@@ -36,8 +88,6 @@ class AuthController extends Controller
             200
         );
     }
-
-
 
     public function login(LoginUserRequest $request)
     {
@@ -83,7 +133,6 @@ class AuthController extends Controller
             'message' => 'User logged in successfully'
         ]);
     }
-
 
     public function register(StoreUserRequest $request)
     {
@@ -134,7 +183,7 @@ class AuthController extends Controller
             'contact_number' => $request->contact_number,
             'house_no'       => $request->house_no,
             'street'         => $request->street,
-            'barangay'       => $request->barangay,
+            'barangay_id'    => $request->barangay_id,
             'municipality'   => $request->municipality,
             'image'          => $imageName,
             'image_url'      => $imageUrl,
@@ -151,6 +200,8 @@ class AuthController extends Controller
         // 🔹 Step 5: Send email verification
         $user->sendEmailVerificationNotification();
 
+        // ✅ Load barangay relationship for UserResource
+        $user->load('barangay');
         // 🔹 Step 6: Return success response using HttpResponses
         return $this->success([
             'user' => new UserResource($user),
@@ -158,7 +209,6 @@ class AuthController extends Controller
             'message' => 'Account created successfully. Please check your email to verify your account before logging in.',
         ]);
     }
-
 
     public function loginAdmin(LoginUserRequest $request)
     {
@@ -254,7 +304,7 @@ class AuthController extends Controller
             'contact_number' => $request->contact_number,
             'house_no'       => $request->house_no,
             'street'         => $request->street,
-            'barangay'       => $request->barangay,
+            'barangay_id'    => $request->barangay_id,
             'municipality'   => $request->municipality,
             'image'          => $imageName,
             'image_url'      => $imageUrl,
@@ -269,6 +319,8 @@ class AuthController extends Controller
         // 🔹 Step 4: Send email verification
         $user->sendEmailVerificationNotification();
 
+        // ✅ Load barangay relationship for UserResource
+        $user->load('barangay');
 
         // 🔹 Step 5: Return success response using HttpResponses
         return $this->success([

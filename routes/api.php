@@ -120,15 +120,17 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
     ->middleware(['auth:sanctum', 'signed'])
     ->name('verification.verify');
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+// Don't Include in the Protected routes -> It was used in the Register route
+Route::get('/barangays', [BarangayController::class, 'index']);
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
+
+    Route::get('/users', [AuthController::class, 'getAllUsers']);
+    Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Barangay Routes
-    Route::get('/barangays', [BarangayController::class, 'index']);
     Route::post('/barangays', [BarangayController::class, 'store']);
     Route::get('/barangays/{barangay}', [BarangayController::class, 'show']);
     Route::patch('/barangays/{barangay}', [BarangayController::class, 'update']);

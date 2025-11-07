@@ -26,12 +26,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'contact_number',
         'house_no',
         'street',
-        'barangay',
+        'barangay_id',
         'municipality',
         'password',
+        'is_active',
         'is_admin',
     ];
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -60,7 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new ResetPasswordNotification($token));
     }
-        /**
+    /**
      * ✅ Custom Verify Email Mail
      */
     public function sendEmailVerificationNotification()
@@ -68,4 +68,8 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new CustomVerifyEmail);
     }
 
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class);
+    }
 }

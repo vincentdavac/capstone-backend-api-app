@@ -22,11 +22,18 @@ class Buoy extends Model
     ];
 
     public $timestamps = true; // Keeps created_at and updated_at timestamps
+
+    // Relationship: A buoy belongs to one barangay
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class, 'barangay_id', 'id');
+    }
+
     public function bme280_atmospheric_readings()
     {
         return $this->hasmany(Bme280AtmosphericReading::class, 'buoy_id','id');
     }
-   
+
     public function Bme280TemperatureReading()
     {
         return $this->hasMany(Bme280TemperatureReading::class, 'buoy_id','id');
@@ -55,5 +62,5 @@ class Buoy extends Model
     {
         return $this->hasMany(Bme280HumidityReading::class, 'buoy_id','id');
     }
-   
+
 }
