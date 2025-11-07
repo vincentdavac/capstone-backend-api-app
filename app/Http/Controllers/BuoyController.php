@@ -29,12 +29,15 @@ class BuoyController extends Controller
 
     public function index()
     {
+        $buoys = Buoy::with('barangay')
+            ->latest() // Orders by created_at DESC
+            ->get();
+
         return $this->success(
-            BuoyResource::collection(Buoy::all()),
+            BuoyResource::collection($buoys),
             'Buoys list retrieved successfully'
         );
     }
-
     public function store(StoreBuoyRequest $request)
     {
         $validated = $request->validated();

@@ -7,11 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class HomepageFooter extends Model
 {
     protected $fillable = [
-        'footer_text',
-        'facebook_url',
-        'twitter_url',
-        'instagram_url',
-        'linkedin_url',
-        'is_active',
+        'image',
+        'caption',
+        'documentation_link',
+        'research_paper_link',
+        'email_address',
+        'facebook_link',
+        'youtube_link',
+        'footer_subtitle',
+        'is_archived',
     ];
 }

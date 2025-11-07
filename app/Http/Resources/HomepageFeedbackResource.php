@@ -7,25 +7,26 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class HomepageFeedbackResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'attributes' => [
-                'name' => $this->name,
-                'role' => $this->role,
-                'image' => $this->image,
-                'image_url' => $this->image_url,
+                'userId' => $this->user_id,
+                'barangay' => $this->user->barangay,
+                'userName' => $this->user
+                    ? ($this->user->first_name . ' ' . $this->user->last_name)
+                    : 'N/A',
+                'userImage' => $this->user && $this->user->image
+                    ? config('app.url') . '/profile_images/' . $this->user->image
+                    : null,
                 'rate' => $this->rate,
                 'feedback' => $this->feedback,
-                'isActive' => (bool) $this->is_active,
-                'createdAt' => $this->created_at,
-                'updatedAt' => $this->updated_at,
+                'isArchived' => (bool) $this->is_archived,
+                'createdDate' => $this->created_at?->format('F d, Y') ?? ' ',
+                'createdTime' => $this->created_at?->format('h:i:s A') ?? ' ',
+                'updatedDate' => $this->updated_at?->format('F d, Y') ?? ' ',
+                'updatedTime' => $this->updated_at?->format('h:i:s A') ?? ' ',
             ],
         ];
     }

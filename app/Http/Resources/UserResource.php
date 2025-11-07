@@ -12,25 +12,34 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'attributes' => [
-                'firstName' => $this->first_name,
-                'lastName' => $this->last_name,
-                'email' => $this->email,
+                'firstName'     => $this->first_name,
+                'lastName'      => $this->last_name,
+                'email'         => $this->email,
                 'contactNumber' => $this->contact_number,
-                'houseNo' => $this->house_no,
-                'street' => $this->street,
-                'barangay' => $this->barangay,
+                'houseNo'       => $this->house_no,
+                'street'        => $this->street,
+
+                // ✅ Barangay relationship (returns barangay info if loaded)
+                'barangay' => $this->whenLoaded('barangay', function () {
+                    return [
+                        'id'   => $this->barangay->id,
+                        'name' => $this->barangay->name ?? null,
+                    ];
+                }, null),
+
                 'municipality' => $this->municipality,
-                'isAdmin' => (bool) $this->is_admin,
+                'isAdmin'      => (bool) $this->is_admin,
+                'isActive'     => (bool) $this->is_active,
+
                 // ✅ Always build image URL dynamically from filename
                 'image' => $this->image ? config('app.url') . '/profile_images/' . $this->image : null,
-                'imageUrl' => $this->image
-                    ? url('profile_images/' . $this->image)
-                    : null,
-                'imageUrl' => $this->image_url,
-                'createdDate' => $this->created_at?->format('F d, Y') ?? ' ',
-                'createdTime' => $this->created_at?->format('h:i:s A') ?? ' ',
-                'updatedDate' => $this->updated_at?->format('F d, Y') ?? ' ',
-                'updatedTime' => $this->updated_at?->format('h:i:s A') ?? ' ',
+                'imageUrl' => $this->image_url ?? ($this->image ? url('profile_images/' . $this->image) : null),
+
+                // ✅ Dates
+                'createdDate' => $this->created_at?->format('F d, Y') ?? null,
+                'createdTime' => $this->created_at?->format('h:i:s A') ?? null,
+                'updatedDate' => $this->updated_at?->format('F d, Y') ?? null,
+                'updatedTime' => $this->updated_at?->format('h:i:s A') ?? null,
             ],
         ];
     }

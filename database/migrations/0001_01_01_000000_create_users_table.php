@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique();
+            $table->unsignedBigInteger('barangay_id')->nullable();
             $table->longText('image')->nullable();
             $table->longText('image_url')->nullable();
             $table->boolean('is_active')->default(true);
@@ -23,7 +24,6 @@ return new class extends Migration
             $table->string('contact_number')->nullable();
             $table->string('house_no')->nullable();
             $table->string('street')->nullable();
-            $table->string('barangay')->nullable();
             $table->string('municipality')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

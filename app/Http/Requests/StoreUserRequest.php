@@ -29,7 +29,7 @@ class StoreUserRequest extends FormRequest
             'contact_number'  => 'required|string|max:20',
             'house_no'        => 'required|string|max:255',
             'street'          => 'required|string|max:255',
-            'barangay'        => 'required|string|max:255',
+            'barangay_id'     => 'required|exists:barangays,id', // ✅ foreign key validation
             'municipality'    => 'nullable|string|max:255',
             'password'        => 'required|string|min:8|confirmed',
             'image'           => 'required|file|mimes:jpg,jpeg,png,webp|max:10240', // ✅ 10MB max
