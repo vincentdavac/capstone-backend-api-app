@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 class Notification extends Model
 {
     use HasFactory;
@@ -23,5 +22,9 @@ class Notification extends Model
     public function alert()
     {
         return $this->belongsTo(alerts::class);
+    }
+    public function alertbyid()
+    {
+        return $this->belongsTo(alerts::class, 'alert_id');
     }
 }
