@@ -32,17 +32,17 @@ class alertController extends Controller
         $sensorType = 'Temperature';
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if ($surroundingTemp >= 27 && $surroundingTemp <= 32) {
-            $description = " Heat index has reached $surroundingTemp °C in Barangay Zone A at $currentTime. Stay alert, prolonged outdoor activity may cause fatigue.";
+            $description = " WHITE Alert: Normal operation, monitoring, & reporting. Heat Alert (Caution):  $surroundingTemp °C in Brgy Zone A at $currentTime. Stay alert; long outdoor exposure may cause fatigue.";
             $alert = 'White';
         } else if ($surroundingTemp >= 33 && $surroundingTemp <= 41) {
-            $description = "Heat index has reached $surroundingTemp °C in Barangay Zone B at $currentTime. Take precautions, heat cramps and heat exhaustion are possible.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Heat Alert (Extreme Caution): $surroundingTemp °C in Brgy Zone B at $currentTime. Take care; heat cramps possible.";
             $alert = 'Blue';
         } else if ($surroundingTemp >= 42 && $surroundingTemp <= 51) {
-            $description = "Heat index has reached $surroundingTemp °C in Barangay Zone C at $currentTime. Danger, heat exhaustion is likely and heat stroke is probable with continued exposure.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Heat Alert (Danger): $surroundingTemp °C in Brgy Zone C at $currentTime. Extreme heat; exhaustion is possible.";
             $alert = 'Red';
         } else if ($surroundingTemp > 52) {
             $alert = 'Red';
-            $description = "Heat index has reached $surroundingTemp °C in Barangay Zone D at $currentTime. Extreme danger, heat stroke imminent.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Heat Alert (Extreme Danger): $surroundingTemp °C in Brgy Zone D at $currentTime. Extreme danger; heat stroke possible.";
         }
         if (is_null($description)) {
             return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
@@ -72,17 +72,18 @@ class alertController extends Controller
 
         $sensorType = 'Temperature';
         if ($waterTemp >= 26 && $waterTemp <= 30) {
-            $description = "River water temperature is $waterTemp °C in Barangay Zone C at $currentTime. Comfortable for general swimming/activities; minimal temperature-related risk under normal conditions.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Water Temp Alert (Comfortable): $waterTemp °C in Brgy Zone C at $currentTime. Safe for water activity; minimal risk.";
             $alert = "White";
         } else if ($waterTemp >= 20 && $waterTemp <= 25) {
             $alert = "Blue";
-            $description = "River water temperature is $waterTemp °C in Barangay Zone B at $currentTime. Cool water; comfortable for short durations but caution for children, older persons, or prolonged activity.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Water Temp Alert (Cool): $waterTemp °C in Brgy Zone B at $currentTime. Cool water; caution for kids, elderly.
+";
         } else if ($waterTemp < 20) {
             $alert = "Red";
-            $description = "River water temperature has dropped to $waterTemp °C in Barangay Zone A at $currentTime. Water is very cold; risk of cold shock or rapid cooling - limit exposure.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Water Temp Alert (Very Cold): $waterTemp °C in Brgy Zone A at $currentTime. Risk of cold shock; limit exposure.";
         } else if ($waterTemp > 30) {
             $alert = "Red";
-            $description = "River water temperature has reached $waterTemp °C in Barangay Zone D at $currentTime. Very warm water; risk of overheating, fatigue, especially if combined with hot air or high humidity.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Water Temp Alert (Very Warm): $waterTemp °C in Zone D at $currentTime. Risk of overheating in water & fatigue.";
         }
         if (is_null($description)) {
             return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
@@ -97,8 +98,7 @@ class alertController extends Controller
         // return response()->json(['status' => 'success', 'data' => ['alertId' => $alertId, 'description' => $description, 'alert_level' =>
         // $alert, 'sensor_type' => $sensorType,]], 200, [], JSON_PRETTY_PRINT);
     }
-    public function setHumidityAlert()
-    {
+    public function setHumidityAlert(){
         $ref = $this->firebase->getReference($this->reftblName);
         $data = $ref->getValue();
         $bme280 = $data['BME280'];
@@ -111,16 +111,16 @@ class alertController extends Controller
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if ($humidityData >= 60 && $humidityData <= 69) {
-            $description = "Relative humidity has reached " . $humidityData . "% " . "in Barangay Zone B at " . $currentTime . " Monitor indoor air; mold growth and discomfort may begin.";
+            $description = "WHITE Alert: Normal operations, monitoring, and reporting. Humidity Alert (Fair/High): $humidityData% in Zone D at $currentTime. Air slightly humid; ensure ventilation. ";
             $alertLevel = "White";
         } else if ($humidityData > 70) {
-            $description = " Relative humidity has reached " . $humidityData . "% " . "in Barangay Zone C at " . $currentTime . " High humidity may cause discomfort, condensation, and increased risk of mold.";
+            $description = " BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Humidity Alert (Poor/High): $humidityData% in Zone E at $currentTime. Excess moisture may cause mold/bacteria.";
             $alertLevel = "Blue";
         } else if ($humidityData >= 20 && $humidityData <= 29) {
             $alertLevel = "White";
-            $description = "Relative humidity has dropped to " . $humidityData . "% " . "in Barangay Zone D at " . $currentTime . " Air feels dry; may cause skin, eye, and throat irritation.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Humidity Alert (Fair/Low): $humidityData%  in Zone B at $currentTime. Air is slightly dry; it may cause discomfort.";
         } else if ($humidityData < 25) {
-            $description = "Relative humidity has fallen to " . $humidityData . "%" . "in Barangay Zone E at " . $currentTime . "Very dry air, high risk of irritation and static electricity buildup.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Humidity Alert (Poor/Low): $humidityData% in Zone A at $currentTime. Very dry air; may cause irritations.";
             $alertLevel = "Blue";
         } else {
             $description = "no data";
@@ -149,16 +149,16 @@ class alertController extends Controller
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if ($atmosphericData > 1013.2) {
-            $description = "Atmospheric pressure is at $atmosphericData hPa in Barangay Zone A at $currentTime. Clear skies and calm weather conditions expected.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Air Pressure Alert (High): $atmosphericData hPa in Zone A at $currentTime. Clear skies & calm weather expected.";
             $alert = "White";
         } else if ($atmosphericData >= 1010 && $atmosphericData <= 1012) {
-            $description = "Atmospheric pressure is at $atmosphericData hPa in Barangay Zone B at  $currentTime. Stable weather with mild conditions.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Air Pressure Alert (Normal): $atmosphericData hPa in Zone B at $currentTime. Stable weather with mild conditions.";
             $alert = "White";
         } else if ($atmosphericData >= 1007 && $atmosphericData <= 1009) {
-            $description = "Atmospheric pressure is at $atmosphericData hPa in Barangay Zone C at $currentTime. Increasing cloudiness; light rain possible.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Air Pressure Alert (Low): $atmosphericData hPa in Zone C at $currentTime. Increasing clouds; light rain possible.";
             $alert = "Blue";
         } else if ($atmosphericData < 1006) {
-            $description = "Atmospheric pressure is at $atmosphericData hPa in Barangay Zone D at $currentTime. Stormy conditions likely; prepare for heavy rain and strong winds.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Air Pressure Alert (Very Low): $atmosphericData hPa in Zone D at $currentTime. Stormy; expect heavy rain, strong winds. ";
             $alert = "Red";
         }
         DB::table('alerts')->insert([
@@ -186,19 +186,19 @@ class alertController extends Controller
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if ($windSpeedData >= 39 && $windSpeedData <= 61) {
-            $description = "Wind speed has reached $windSpeedData km/h in Barangay Zone A at $currentTime. Minimal to minor damage possible to light structures; trees sway and small branches may break.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Wind Alert (Strong Winds/TCWS #1): $windSpeedData km/h in Zone A at $currentTime. Minimal-minor damage is possible.";
             $alertLevel = "White";
         } else if ($windSpeedData >= 62 && $windSpeedData <= 68) {
-            $description = "Wind speed has reached $windSpeedData km/h in Barangay Zone B at $currentTime. Minor to moderate damage to light structures; unsecured objects may become projectiles.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Wind Alert (Gale-force Winds/TCWS #2): $windSpeedData in Zone B at $currentTime. Minor-moderate damage. ";
             $alertLevel = "Blue";
         } else if ($windSpeedData >= 89 && $windSpeedData <= 117) {
-            $description = "Wind speed has reached $windSpeedData km/h in Barangay Zone C at $currentTime. Moderate to significant structural damage possible, widespread tree damage likely.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Wind Alert (Storm-force Winds/TCWS #3): $windSpeedData km/h in Zone C at $currentTime. Flying debris expected.";
             $alertLevel = "Blue";
         } else if ($windSpeedData >= 118 && $windSpeedData <= 184) {
-            $description = "Wind speed has reached $windSpeedData km/h in Barangay Zone D at $currentTime. Severe damage expected, widespread destruction of buildings and infrastructure likely.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Wind Alert (Typhoon-force Winds/TCWS #4): $windSpeedData km/h in Zone D at $currentTime. Possible wall collapse.";
             $alertLevel = "Red";
         } else if ($windSpeedData > 185) {
-            $description = " Wind speed has reached $windSpeedData km/h in Barangay Zone E at $currentTime. Catastrophic damage, almost total destruction expected, very high risk to life and property.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Wind Alert (Typhoon-force Winds/TCWS #5): $windSpeedData km/h in Barangay Zone E at $currentTime.  Extreme damage.";
             $alertLevel = "Red";
         }
 
@@ -228,16 +228,16 @@ class alertController extends Controller
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
         if ($rainData < 1) {
-            $description = "Rain Alert: Rainfall is occurring at a very light rate in Barangay Zone A at $currentTime. Scattered drops; surfaces remain mostly dry.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Rain Alert (Very Light Rain): $rainData mm/hr in Zone A at $currentTime. Scattered drops; surfaces mostly dry.";
             $alertLevel = "White";
         } else if ($rainData >= 1 && $rainData <= 3) {
-            $description = "Rain Alert: Rainfall rate has reached $rainData mm/hr in Barangay Zone B at $currentTime. Individual drops easily identified; Surface wetness developing gradually. Small streams may flow in drains.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Rain Alert (Light Rain): $rainData mm/hr in Zone B at $currentTime. Surface wetness developing gradually.";
             $alertLevel = "White";
         } else if ($rainData >= 4 && $rainData <= 8) {
-            $description = "Rain Alert: Rainfall rate is $rainData mm/hr in Barangay Zone C at $currentTime. Water accumulations form quickly; downpipes flowing freely. Continuous rainfall with overcast sky.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Rain Alert (Moderate Rain): $rainData mm/hr in Zone C at $currentTime. Water accumulations form quickly.";
             $alertLevel = "Blue";
         } else if ($rainData > 8) {
-            $description = " Rainfall rate has exceeded $rainData mm/hr in Barangay Zone D at $currentTime. Intense rain; falls in sheets with misty spray over surfaces. May cause roaring noise on roofs and localized flooding.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Rain Alert (Heavy Rain): > $rainData mm/hr in Zone D at $currentTime. Intense rain; may cause noise on roofs.";
             $alertLevel = "Red";
         }
         DB::table('alerts')->insert([
@@ -265,16 +265,16 @@ class alertController extends Controller
         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         if ($waterPressureData < 100) {
-            $description = "Water Pressure Alert: Water pressure is around $waterPressureData hPa in Barangay Zone A at $currentTime. Minor river flooding possible; minimal structural risk. Stay alert in low-lying areas.";
+            $description = "WHITE Alert: Normal operations, monitoring, & reporting. Water Pressure Alert (Minor Surge): $waterPressureData hPa in Zone A at $currentTime. Minor river flooding is possible.";
             $alertLevel = 'White';
         } else if ($waterPressureData >= 100 && $waterPressureData <= 200) {
-            $description = "Water Pressure Alert: Water pressure is $waterPressureData hPa in Barangay Zone B at $currentTime. Noticeable water surge causing moderate disruption to river infrastructure; monitor closely.";
+            $description = "BLUE Alert: Early emergency stage. 50% DRRMD on duty & standby. Water Pressure Alert (Moderate Surge): $waterPressureData hPa in Zone B at $currentTime. Causes moderate disruption.";
             $alertLevel = "Blue";
         } else if ($waterPressureData >= 200 && $waterPressureData <= 300) {
-            $description = "Water Pressure Alert: Water pressure is $waterPressureData hPa in Barangay Zone C at $currentTime. Severe flooding conditions; significant threat to communities and riverbank structures. Prepare for evacuation if needed.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Water Pressure Alert (Severe Surge): $waterPressureData hPa in Zone C at $currentTime. Severe flooding threat.";
             $alertLevel = "Red";
         } else if ($waterPressureData > 300) {
-            $description = "Water Pressure Alert: Water pressure is $waterPressureData hPa in Barangay Zone D at $currentTime. Extreme flooding; catastrophic damage to riverine areas likely. Immediate action required.";
+            $description = "RED Alert: Imminent emergency. 100% DRRMD on duty & standby. Water Pressure Alert (Extreme Surge): $waterPressureData hPa in Zone D at $currentTime. Extreme flooding; take action.";
             $alertLevel = "Red";
         }
 
@@ -316,7 +316,6 @@ class alertController extends Controller
         $RAIN_PERCENTAGE = $RAIN_SENSOR['RAIN_PERCENTAGE'];
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
         $f = $surrounding_temp * 1.8 + 32;
-
 
         $wf = $WATER_TEMPERATURE * 1.8 + 32;
         DB::table('bme280_atmospheric_readings')->insert([
@@ -371,8 +370,16 @@ class alertController extends Controller
         ]);
         // return response()->json(['status' => 'success', 'data' => $id], 200, [], JSON_PRETTY_PRINT);
     }
+    private function validData($value)
+    {
+        if ($value === null || $value === '' || $value == 0) {
+            return false;
+        }
 
-    public function allAlerts(Request $request){
+        return true;
+    }
+    public function allAlerts(Request $request)
+    {
 
         DB::transaction(function () {
 
