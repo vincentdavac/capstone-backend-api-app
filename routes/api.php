@@ -100,8 +100,8 @@ Route::post('/all-set-alerts', [alertController::class, 'allAlerts']);
 
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);
-Route::get('/notifications', [NotificationController::class, 'getNotifications']);
-
+// Route::get('/notifications', [NotificationController::class, 'getNotifications']);
+Route::middleware('auth:sanctum')->get('/notifications', [NotificationController::class, 'getNotifications']);
 // USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
 
