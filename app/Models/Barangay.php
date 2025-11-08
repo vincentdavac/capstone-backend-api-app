@@ -65,4 +65,10 @@ class Barangay extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    // Add this relationship
+    public function buoys()
+    {
+        return $this->hasMany(Buoy::class, 'barangay_id', 'id');
+    }
 }
