@@ -14,7 +14,6 @@ class RelayStatus extends Model
     protected $fillable = [
         'buoy_id',
         'relay_state',
-        'recorded_at',
     ];
 
     /**
@@ -27,7 +26,6 @@ class RelayStatus extends Model
      */
     protected $casts = [
         'relay_state' => 'boolean',
-        'recorded_at' => 'datetime',
     ];
 
     /**
@@ -35,6 +33,6 @@ class RelayStatus extends Model
      */
     public function buoy()
     {
-        return $this->belongsTo(Buoy::class);
+        return $this->belongsTo(Buoy::class, 'buoy_id');
     }
 }

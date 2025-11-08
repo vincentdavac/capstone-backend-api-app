@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('gps_readings', function (Blueprint $table) {
+        Schema::create('relay_status', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('buoy_id'); // foreign key reference to buoys table (optional)
-            $table->decimal('latitude', 10, 7);
-            $table->decimal('longitude', 10, 7);
+            $table->unsignedBigInteger('buoy_id');
+            $table->boolean('relay_state')->default(false);
             $table->timestamps();
 
-            // Optional: if you have a buoys table and want to enforce FK constraint
+            // Optional: foreign key to buoys table
             // $table->foreign('buoy_id')->references('id')->on('buoys')->onDelete('cascade');
         });
     }
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('gps_readings');
+        Schema::dropIfExists('relay_status');
     }
 };

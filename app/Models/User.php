@@ -33,37 +33,36 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     */
+
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     */
+
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_admin' => 'integer', // ✅ ADD THIS
+            'is_admin' => 'integer',
         ];
     }
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class, 'barangay_id');
+    }
 
-    /**
-     * Send the password reset notification.
-     */
+
+
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
     }
-    /**
-    /**
-     * ✅ Custom Verify Email Mail
-     */
+
+
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail);

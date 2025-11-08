@@ -15,7 +15,6 @@ class BatteryHealth extends Model
         'buoy_id',
         'percentage',
         'voltage',
-        'recorded_at',
     ];
 
     /**
@@ -27,18 +26,15 @@ class BatteryHealth extends Model
      * Cast attributes to appropriate types
      */
     protected $casts = [
-        'percentage'  => 'float',
-        'voltage'     => 'float',
-        'recorded_at' => 'float',
+        'percentage' => 'float',
+        'voltage'    => 'float',
     ];
-
-
 
     /**
      * Relationship: each battery health record belongs to a buoy
      */
     public function buoy()
     {
-        return $this->belongsTo(Buoy::class);
+        return $this->belongsTo(Buoy::class, 'buoy_id');
     }
 }

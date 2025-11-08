@@ -58,6 +58,8 @@ use App\Http\Controllers\getRaingauge;
 use App\Http\Controllers\getRainSensor;
 use App\Http\Controllers\alertController;
 use App\Http\Controllers\currentCondition;
+use App\Http\Controllers\DeployedBuoyController;
+
 
 Route::get('/get-current-condition', [currentCondition::class, 'getCurrentCondition']);
 Route::get('/get-rain-sensor', [getRainSensor::class, 'getrainsensorChart']);
@@ -299,4 +301,9 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::post('/footers', [HomepageFooterController::class, 'store']);
     Route::patch('/footers/{footer}', [HomepageFooterController::class, 'update']);
     Route::delete('/footers/{footer}', [HomepageFooterController::class, 'destroy']);
+
+
+    // Deployed Buoy Routes
+    Route::get('/deployed-buoy/{buoyCode}', [DeployedBuoyController::class, 'show']);
+    Route::get('/get-all-data/{buoyCode}', [DeployedBuoyController::class, 'getAllData']);
 });
