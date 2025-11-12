@@ -33,6 +33,23 @@ class BarangayController extends Controller
     {
         $validated = $request->validated();
 
+        // Normalize data
+        $validated['name'] = trim(Str::title($validated['name'])); // Capitalize each word
+        $validated['number'] = trim($validated['number']);
+
+        // Check for duplicates
+        $existing = Barangay::where('name', $validated['name'])
+            ->orWhere('number', $validated['number'])
+            ->first();
+
+        if ($existing) {
+            return $this->error(
+                null,
+                'Barangay with this name or number already exists.',
+                409 // Conflict
+            );
+        }
+
         // Compute hectare if square_meter is given
         if (isset($validated['square_meter'])) {
             $validated['hectare'] = $validated['square_meter'] / 10000;
@@ -55,6 +72,7 @@ class BarangayController extends Controller
         );
     }
 
+
     /**
      * Display the specified barangay.
      */
@@ -72,6 +90,34 @@ class BarangayController extends Controller
     public function update(UpdateBarangayRequest $request, Barangay $barangay)
     {
         $validated = $request->validated();
+
+        // Normalize data
+        if (isset($validated['name'])) {
+            $validated['name'] = trim(Str::title($validated['name']));
+        }
+        if (isset($validated['number'])) {
+            $validated['number'] = trim($validated['number']);
+        }
+
+        // Check for duplicates (excluding current barangay)
+        $existing = Barangay::where(function ($query) use ($validated) {
+            if (isset($validated['name'])) {
+                $query->where('name', $validated['name']);
+            }
+            if (isset($validated['number'])) {
+                $query->orWhere('number', $validated['number']);
+            }
+        })
+            ->where('id', '!=', $barangay->id)
+            ->first();
+
+        if ($existing) {
+            return $this->error(
+                null,
+                'Another barangay with this name or number already exists.',
+                409 // Conflict
+            );
+        }
 
         // Compute hectare if square_meter is provided
         if (isset($validated['square_meter'])) {
@@ -99,6 +145,7 @@ class BarangayController extends Controller
         );
     }
 
+
     /**
      * Remove the specified barangay.
      */
@@ -113,5 +160,3 @@ class BarangayController extends Controller
         return $this->success([], 'Barangay deleted successfully');
     }
 }
-
-

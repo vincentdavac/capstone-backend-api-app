@@ -28,10 +28,10 @@ return [
     | Application URL
     |--------------------------------------------------------------------------
     */
-'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'http://localhost'),
 
-'frontend_user_url' => env('FRONTEND_USER_URL', 'http://localhost:5174'),
-'frontend_admin_url' => env('FRONTEND_ADMIN_URL', 'http://localhost:5173'),
+    'frontend_user_url' => env('FRONTEND_USER_URL', 'http://localhost:5174'),
+    'frontend_admin_url' => env('FRONTEND_ADMIN_URL', 'http://localhost:5173'),
 
 
     /*
@@ -39,7 +39,7 @@ return [
     | Application Timezone
     |--------------------------------------------------------------------------
     */
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Manila',  // Change from 'UTC' to 'Asia/Manila'
 
     /*
     |--------------------------------------------------------------------------

@@ -19,23 +19,42 @@ class UserResource extends JsonResource
                 'houseNo'       => $this->house_no,
                 'street'        => $this->street,
 
-                // ✅ Barangay relationship (returns barangay info if loaded)
+                // ✅ Barangay relationship
                 'barangay' => $this->whenLoaded('barangay', function () {
                     return [
                         'id'   => $this->barangay->id,
                         'name' => $this->barangay->name ?? null,
                     ];
-                }, null),
+                }),
 
                 'municipality' => $this->municipality,
+                'userType'     => $this->user_type,
                 'isAdmin'      => (bool) $this->is_admin,
                 'isActive'     => (bool) $this->is_active,
+                'registrationStatus' => (bool) $this->registration_status,
 
-                // ✅ Always build image URL dynamically from filename
-                'image' => $this->image ? config('app.url') . '/profile_images/' . $this->image : null,
-                'imageUrl' => $this->image_url ?? ($this->image ? url('profile_images/' . $this->image) : null),
+                // ✅ Uploaded files
+                'image' => $this->image
+                    ? url('profile_images/' . $this->image)
+                    : null,
+                'idDocument' => $this->id_document
+                    ? url('id_documents/' . $this->id_document)
+                    : null,
 
-                // ✅ Dates
+                // ✅ Verification details
+                'dateVerified' => $this->date_verified
+                    ? $this->date_verified->format('F d, Y h:i A')
+                    : null,
+
+                'verifiedBy' => $this->whenLoaded('verifier', function () {
+                    return [
+                        'id'   => $this->verifier->id,
+                        'name' => $this->verifier->first_name . ' ' . $this->verifier->last_name,
+                        'email' => $this->verifier->email,
+                    ];
+                }),
+
+                // ✅ Created and updated timestamps
                 'createdDate' => $this->created_at?->format('F d, Y') ?? null,
                 'createdTime' => $this->created_at?->format('h:i:s A') ?? null,
                 'updatedDate' => $this->updated_at?->format('F d, Y') ?? null,

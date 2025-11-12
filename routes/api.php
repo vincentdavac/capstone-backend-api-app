@@ -102,6 +102,7 @@ Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);
 // Route::get('/notifications', [NotificationController::class, 'getNotifications']);
 Route::middleware('auth:sanctum')->get('/notifications', [NotificationController::class, 'getNotifications']);
+
 // USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
 
@@ -112,6 +113,11 @@ Route::post('/register', [AuthController::class, 'register']);
 // ADMIN AUTHENTICATION ROUTES
 Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
 Route::post('/admin/register', [AuthController::class, 'registerAdmin']);
+
+// BARANGAY AUTHENTICATION ROUTES
+Route::post('/barangay/login', [AuthController::class, 'loginBarangay']);
+Route::post('/barangay/register', [AuthController::class, 'registerBarangay']);
+
 
 Route::post('/email/resend', [VerificationController::class, 'resend']);
 
@@ -133,6 +139,15 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('/users', [AuthController::class, 'getAllUsers']);
     Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/active-users', [AuthController::class, 'activeUsers']);
+    Route::get('/archived-users', [AuthController::class, 'archivedUsers']);
+
+    Route::patch('/barangay/archived-user/{id}', [AuthController::class, 'archiveUser']);
+    Route::patch('/barangay/restore-user/{id}', [AuthController::class, 'restoreUser']);
+
+    Route::patch('/admin/archived-barangay/{id}', [AuthController::class, 'archiveBarangay']);
+    Route::patch('/admin/restore-barangay/{id}', [AuthController::class, 'restoreBarangay']);
 
     // Barangay Routes
     Route::post('/barangays', [BarangayController::class, 'store']);

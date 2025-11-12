@@ -38,9 +38,24 @@ class BuoyController extends Controller
             'Buoys list retrieved successfully'
         );
     }
+
+
     public function store(StoreBuoyRequest $request)
     {
         $validated = $request->validated();
+
+        // Ensure only one barangay per buoy
+        if (isset($validated['barangay_id'])) {
+            $existingBuoy = Buoy::where('barangay_id', $validated['barangay_id'])->first();
+            if ($existingBuoy) {
+                return $this->error(
+                    null,
+                    'This barangay is already assigned to another buoy.',
+                    409 // Conflict
+                );
+            }
+        }
+
 
         if (empty($validated['buoy_code'])) {
             $year = Carbon::now()->format('Y');
@@ -55,6 +70,10 @@ class BuoyController extends Controller
         }
 
         $buoy = Buoy::create($validated);
+
+        // Load the barangay relation for the response
+        $buoy->load('barangay');
+
 
         $buoyCode = str_replace(' ', '_', $validated['buoy_code']);
         $firebaseData = [
@@ -94,6 +113,10 @@ class BuoyController extends Controller
 
     public function show(Buoy $buoy)
     {
+
+        // Load the barangay relation for the response
+        $buoy->load('barangay');
+
         return $this->success(
             new BuoyResource($buoy),
             'Buoy data'
@@ -104,8 +127,23 @@ class BuoyController extends Controller
     {
         $validated = $request->validated();
 
+        // Ensure only one buoy per barangay (ignore current buoy)
+        if (isset($validated['barangay_id'])) {
+            $existingBuoy = Buoy::where('barangay_id', $validated['barangay_id'])
+                ->where('id', '!=', $buoy->id)
+                ->first();
+            if ($existingBuoy) {
+                return $this->error(
+                    null,
+                    'This barangay is already assigned to another buoy.',
+                    409 // Conflict
+                );
+            }
+        }
+
         // Store old buoy code before update
         $oldBuoyCode = str_replace(' ', '_', $buoy->buoy_code);
+
 
         // Handle new image upload if present
         if ($request->hasFile('attachment')) {
@@ -122,6 +160,10 @@ class BuoyController extends Controller
         }
 
         $buoy->update($validated);
+
+        // Load the barangay relation for the response
+        $buoy->load('barangay');
+
 
         // Check if buoy_code was changed
         $newBuoyCode = str_replace(' ', '_', $buoy->buoy_code);

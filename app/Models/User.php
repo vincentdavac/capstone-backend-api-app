@@ -22,7 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_name',
         'email',
         'image',
-        'image_url',
+        'id_document',
         'contact_number',
         'house_no',
         'street',
@@ -31,44 +31,58 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'is_active',
         'is_admin',
+        'registration_status',
+        'date_verified',
+        'verified_by',
+        'user_type',
     ];
 
-
-
+    /**
+     * The attributes that should be hidden for arrays.
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-
-
+    /**
+     * The attributes that should be cast to native types.
+     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'date_verified' => 'datetime',
             'password' => 'hashed',
-            'is_admin' => 'integer',
+            'registration_status' => 'boolean',
+            'is_active' => 'boolean',
+            'is_admin' => 'boolean',
         ];
     }
+
+
     public function barangay()
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
     }
 
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
 
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
     }
 
-
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail);
-    }
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
     }
 }

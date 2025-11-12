@@ -17,10 +17,19 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('email')->unique();
             $table->unsignedBigInteger('barangay_id')->nullable();
+
+            // Keep image but remove image_url
             $table->longText('image')->nullable();
-            $table->longText('image_url')->nullable();
+
+            // New fields
+            $table->longText('id_document')->nullable();
+            $table->boolean('registration_status')->default(false);
+            $table->dateTime('date_verified')->nullable();
+            $table->unsignedBigInteger('verified_by')->nullable();
+            $table->enum('user_type', ['admin', 'barangay', 'user'])->default('user');
+
             $table->boolean('is_active')->default(true);
-            $table->boolean('is_admin')->default(false);
+            $table->boolean('is_admin')->default(false); // optional if using user_type
             $table->string('contact_number')->nullable();
             $table->string('house_no')->nullable();
             $table->string('street')->nullable();
