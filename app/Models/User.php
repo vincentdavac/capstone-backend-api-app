@@ -61,6 +61,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
+    // Custom accessor for convenience
+    public function getChatsAttribute()
+    {
+        return $this->chatsAsSender->merge($this->chatsAsReceiver);
+    }
+    public function chatsAsSender()
+    {
+        return $this->hasMany(Chat::class, 'sender_id');
+    }
+
+    public function chatsAsReceiver()
+    {
+        return $this->hasMany(Chat::class, 'receiver_id');
+    }
+
+
     public function barangay()
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
