@@ -20,8 +20,13 @@ class UserInformationResource extends JsonResource
             'isActive' => $this->is_active,
             'registrationStatus' => $this->registration_status,
             'userType' => $this->user_type,
-            'image' => $this->image,
-            'idDocument' => $this->id_document,
+             // ✅ Uploaded files
+                'image' => $this->image
+                    ? url('profile_images/' . $this->image)
+                    : null,
+                'idDocument' => $this->id_document
+                    ? url('id_documents/' . $this->id_document)
+                    : null,
             'verifiedBy' => $this->verified_by,
             'dateVerified' => $this->date_verified
                 ? $this->date_verified->format('F d, Y h:i A')

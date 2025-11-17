@@ -13,8 +13,7 @@ use App\Http\Resources\MessageSentResource;
 use App\Http\Resources\ChatResource;
 use App\Http\Resources\PendingChatsResource;
 use App\Http\Resources\UserResource;
-
-
+use App\Events\MessageSent;
 use Illuminate\Support\Facades\Auth;
 
 class MessageController extends Controller
@@ -82,6 +81,9 @@ class MessageController extends Controller
              */
             $message = Message::create($messageData);
 
+            broadcast(new MessageSent($message))->toOthers();
+
+
             /**
              *  RETURN RESOURCE
              */
@@ -128,6 +130,8 @@ class MessageController extends Controller
             ]);
         }
 
+        broadcast(new MessageSent($chat))->toOthers();
+
         /**
          *  MESSAGE DATA
          */
@@ -147,14 +151,12 @@ class MessageController extends Controller
             $messageData['attachment'] = $filename;
         }
 
-        /**
-         *  CREATE MESSAGE
-         */
+
         $message = Message::create($messageData);
 
-        /**
-         *  RETURN RESOURCE
-         */
+        broadcast(new MessageSent($message))->toOthers();
+
+
         return new MessageSentResource($message->load('sender'));
     }
 
@@ -238,8 +240,8 @@ class MessageController extends Controller
 
         return $this->success([
             'chatId'   => $chat->id,
-            'sender'   => $chat->sender,
-            'receiver' => $chat->receiver,
+            'sender'   => new UserResource($chat->sender),    // ✅ Use UserResource
+            'receiver' => new UserResource($chat->receiver),  // ✅ Use UserResource
             'messages' => $messages,
         ], 'Chat retrieved successfully');
     }
@@ -261,16 +263,35 @@ class MessageController extends Controller
 
         // Transform each user into a response
         $data = $barangayUsers->map(function ($user) {
-            // Take the latest chat for the user if exists
-            $latestChat = $user->chats->first();
+            // Get all chats and find the one with the most recent message
+            $latestChat = $user->chats
+                ->sortByDesc(function ($chat) {
+                    // Get the latest message timestamp in this chat
+                    return $chat->messages->max('created_at');
+                })
+                ->first();
 
             return [
                 'user' => new UserResource($user),
-                'chat' => $latestChat ? new PendingChatsResource($latestChat) : null
+                'chat' => $latestChat ? new PendingChatsResource($latestChat) : null,
+                // Add a sorting key for the collection
+                'latest_message_time' => $latestChat && $latestChat->messages->isNotEmpty()
+                    ? $latestChat->messages->max('created_at')
+                    : null
             ];
         });
 
-        return $this->success($data, 'All barangay users and chats retrieved successfully');
+        // Sort the entire collection by latest message time (DESC - most recent first)
+        $sortedData = $data
+            ->sortByDesc('latest_message_time')
+            ->map(function ($item) {
+                // Remove the sorting key before returning
+                unset($item['latest_message_time']);
+                return $item;
+            })
+            ->values(); // Reset array keys
+
+        return $this->success($sortedData, 'All barangay users and chats retrieved successfully');
     }
 
     // Barangay Side : Get all Users and Admins that have chats
@@ -303,4 +324,35 @@ class MessageController extends Controller
 
         return $this->success($data, 'All admin and regular users chats retrieved successfully');
     }
+
+    // Mark all messages in a chat as read
+    public function markChatAsRead($chatId)
+    {
+        $user = Auth::user();
+
+        // Load chat with sender + receiver
+        $chat = Chat::with(['sender', 'receiver'])
+            ->find($chatId);
+
+        if (!$chat) {
+            return $this->error(null, 'Chat not found', 404);
+        }
+
+        // Ensure user belongs to the chat
+        if ($chat->sender_id !== $user->id && $chat->receiver_id !== $user->id) {
+            return $this->error(null, 'Unauthorized to update this chat', 403);
+        }
+
+        /**
+         * Mark all messages as read
+         * BUT ONLY messages where the viewer is the receiver
+         */
+        Message::where('chat_id', $chatId)
+            ->where('sender_id', '!=', $user->id)      // only messages from the other user
+            ->where('is_read', false)                  // only unread messages
+            ->update(['is_read' => true]);
+
+        return $this->success(null, 'Messages marked as read successfully');
+    }
+
 }

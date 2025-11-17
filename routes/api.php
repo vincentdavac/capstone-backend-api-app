@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Models\Message;
 
 use App\Http\Controllers\HomepageSliderController;
 use App\Http\Controllers\HomepageAboutController;
@@ -60,6 +61,8 @@ use App\Http\Controllers\alertController;
 use App\Http\Controllers\currentCondition;
 use App\Http\Controllers\DeployedBuoyController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\TestPusherController;
+
 
 
 
@@ -330,7 +333,7 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/messages/send', [MessageController::class, 'send']);
     Route::get('/chat/{chatId}', [MessageController::class, 'getChat']);
-    Route::patch('/messages/{id}/read', [MessageController::class, 'markAsRead']);
+    Route::patch('/chat/{id}/read', [MessageController::class, 'markChatAsRead']);
 
     Route::get('/admin/chats/barangays', [MessageController::class, 'getAllBarangayChats']);
     Route::get('/barangay/chats/users-admins', [MessageController::class, 'getAllUserAndAdminChats']);
@@ -342,3 +345,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // User Side: Get all Barangay Chats
     Route::get('/user/chats/barangays', [MessageController::class, 'getChatUserToBarangay']);
 });
+
+
+Route::get('/test-pusher', [TestPusherController::class, 'testConnection']);
