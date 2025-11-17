@@ -33,6 +33,7 @@ class MessageController extends Controller
          */
         // ALLOWED PAIRS
         if (
+            ($sender->user_type === 'admin' && $receiver->user_type === 'admin') ||
             ($sender->user_type === 'admin' && $receiver->user_type === 'barangay') ||
             ($sender->user_type === 'barangay' && $receiver->user_type === 'admin') ||
             ($sender->user_type === 'barangay' && $receiver->user_type === 'user' && $sender->barangay_id === $receiver->barangay_id) ||
@@ -246,7 +247,7 @@ class MessageController extends Controller
         ], 'Chat retrieved successfully');
     }
 
-    // Admin Side : Get all Barangays that have chats
+    // Admin Side: Get all Barangays and Admins that have chats, or create one if none exists
     public function getAllBarangayChats()
     {
         $admin = Auth::user();
@@ -256,73 +257,115 @@ class MessageController extends Controller
             return $this->error(null, 'Unauthorized', 403);
         }
 
-        // Get all barangay users and their chats (if any)
-        $barangayUsers = User::with(['chatsAsSender.messages', 'chatsAsReceiver.messages'])
-            ->where('user_type', 'barangay')
+        // Get all users with user_type = barangay or admin, exclude self
+        $users = User::whereIn('user_type', ['barangay', 'admin'])
+            ->where('id', '!=', $admin->id)
             ->get();
 
-        // Transform each user into a response
-        $data = $barangayUsers->map(function ($user) {
-            // Get all chats and find the one with the most recent message
-            $latestChat = $user->chats
-                ->sortByDesc(function ($chat) {
-                    // Get the latest message timestamp in this chat
-                    return $chat->messages->max('created_at');
-                })
-                ->first();
+        $data = $users->map(function ($user) use ($admin) {
+
+            // Find existing chat between admin and this user
+            $chat = Chat::where(function ($query) use ($admin, $user) {
+                $query->where('sender_id', $admin->id)
+                    ->where('receiver_id', $user->id);
+            })->orWhere(function ($query) use ($admin, $user) {
+                $query->where('sender_id', $user->id)
+                    ->where('receiver_id', $admin->id);
+            })->first();
+
+            // If chat does not exist, create one
+            if (!$chat) {
+                $chat = Chat::create([
+                    'sender_id'   => $admin->id,
+                    'receiver_id' => $user->id,
+                ]);
+            }
+
+            // Load messages for the chat, descending
+            $chat->load(['messages' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }]);
+
+            // Get latest message timestamp for sorting
+            $latestMessageTime = $chat->messages->first()?->created_at ?? null;
 
             return [
                 'user' => new UserResource($user),
-                'chat' => $latestChat ? new PendingChatsResource($latestChat) : null,
-                // Add a sorting key for the collection
-                'latest_message_time' => $latestChat && $latestChat->messages->isNotEmpty()
-                    ? $latestChat->messages->max('created_at')
-                    : null
+                'chat' => new PendingChatsResource($chat),
+                'latest_message_time' => $latestMessageTime,
             ];
         });
 
-        // Sort the entire collection by latest message time (DESC - most recent first)
+        // Sort users by latest message time (DESC)
         $sortedData = $data
             ->sortByDesc('latest_message_time')
             ->map(function ($item) {
-                // Remove the sorting key before returning
-                unset($item['latest_message_time']);
+                unset($item['latest_message_time']); // Remove temporary sorting key
                 return $item;
             })
             ->values(); // Reset array keys
 
-        return $this->success($sortedData, 'All barangay users and chats retrieved successfully');
+        return $this->success($sortedData, 'All barangay and admin users chats retrieved successfully');
     }
 
-    // Barangay Side : Get all Users and Admins that have chats
+
+    // Barangay Side: Get all Users and Admins that have chats, or create one if none exists
     public function getAllUserAndAdminChats()
     {
-        $admin = Auth::user();
+        $barangay = Auth::user();
 
-        // Make sure only admin can access this
-        if ($admin->user_type !== 'barangay') {
+        // Make sure only barangay can access this
+        if ($barangay->user_type !== 'barangay') {
             return $this->error(null, 'Unauthorized', 403);
         }
 
-        // Get all users with user_type = admin or user and their chats (if any)
-        $users = User::with(['chatsAsSender.messages', 'chatsAsReceiver.messages'])
-            ->whereIn('user_type', ['admin', 'user'])
-            ->get();
+        // Get all users with user_type = admin or user
+        $users = User::whereIn('user_type', ['admin', 'user'])->get();
 
-        // Transform each user into a response
-        $data = $users->map(function ($user) {
-            // Merge chats as sender and receiver, then take the latest chat
-            $latestChat = $user->chatsAsSender->merge($user->chatsAsReceiver)
-                ->sortByDesc('updated_at')
-                ->first();
+        $data = $users->map(function ($user) use ($barangay) {
+
+            // Find existing chat between barangay and this user
+            $chat = Chat::where(function ($query) use ($barangay, $user) {
+                $query->where('sender_id', $barangay->id)
+                    ->where('receiver_id', $user->id);
+            })->orWhere(function ($query) use ($barangay, $user) {
+                $query->where('sender_id', $user->id)
+                    ->where('receiver_id', $barangay->id);
+            })->first();
+
+            // If chat does not exist, create one
+            if (!$chat) {
+                $chat = Chat::create([
+                    'sender_id' => $barangay->id,
+                    'receiver_id' => $user->id,
+                ]);
+            }
+
+            // Load messages for the chat, descending
+            $chat->load(['messages' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }]);
+
+            // Get the latest message timestamp for sorting
+            $latestMessageTime = $chat->messages->first()?->created_at ?? null;
 
             return [
                 'user' => new UserResource($user),
-                'chat' => $latestChat ? new PendingChatsResource($latestChat) : null
+                'chat' => new PendingChatsResource($chat),
+                'latest_message_time' => $latestMessageTime,
             ];
         });
 
-        return $this->success($data, 'All admin and regular users chats retrieved successfully');
+        // Sort users by latest message time (DESC), so most recent chats appear first
+        $sortedData = $data
+            ->sortByDesc('latest_message_time')
+            ->map(function ($item) {
+                unset($item['latest_message_time']); // Remove temp sorting field
+                return $item;
+            })
+            ->values(); // Reset array keys
+
+        return $this->success($sortedData, 'All admin and regular users chats retrieved successfully');
     }
 
     // Mark all messages in a chat as read
@@ -354,5 +397,4 @@ class MessageController extends Controller
 
         return $this->success(null, 'Messages marked as read successfully');
     }
-
 }

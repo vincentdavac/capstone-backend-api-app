@@ -18,5 +18,5 @@ Broadcast::channel('chat.{chatId}', function ($user, $chatId) {
 // NEW: Admin global chat list updates
 Broadcast::channel('admin.chats', function ($user) {
     // Only admin should listen to this
-    return $user->user_type === 'admin';
+    return $user->user_type === 'admin' || $user->user_type === 'barangay' ;
 });
