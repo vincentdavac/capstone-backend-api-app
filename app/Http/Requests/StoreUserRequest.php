@@ -49,8 +49,8 @@ class StoreUserRequest extends FormRequest
             ],
 
             // ✅ File uploads
-            'image'       => 'required|file|mimes:jpg,jpeg,png,webp|max:10240', // 10MB max
-            'id_document' => 'required|file|mimes:jpg,jpeg,png,pdf|max:20480',  // 20MB max
+            'image'           => 'required|file|mimes:jpg,jpeg,png,webp|max:10240', // ✅ Changed to nullable
+            'id_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:20480',  // 20MB max
 
             // ✅ Verification and user type
             'registration_status' => 'nullable|boolean',
