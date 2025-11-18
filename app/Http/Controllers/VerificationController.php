@@ -17,42 +17,38 @@ class VerificationController extends Controller
 
         // 🔍 Validate hash
         if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return redirect($this->getFrontendUrl($user, 'verify-failed'));
+            return redirect($this->getFrontendUrl($request, $user, 'verify-failed'));
         }
 
         // 🟡 If already verified
         if ($user->hasVerifiedEmail()) {
-            return redirect($this->getFrontendUrl($user, 'verify-success'));
+            return redirect($this->getFrontendUrl($request, $user, 'verify-success'));
         }
 
         // ✅ Mark verified and fire event
         $user->markEmailAsVerified();
         event(new Verified($user));
 
-        // 🔁 Redirect to correct frontend (based on role)
-        return redirect($this->getFrontendUrl($user, 'verify-success'));
+        // 🔁 Redirect to success page
+        return redirect($this->getFrontendUrl($request, $user, 'verify-success'));
     }
 
     /**
-     * ✅ Decide which frontend base URL to use (user vs admin)
+     * ✅ Get the appropriate URL for verification result pages
      */
-private function getFrontendUrl(User $user, string $path)
-{
-    // Get base URLs from .env
-    $userUrl = rtrim(env('FRONTEND_USER_URL', 'http://localhost:5174'), '/');
-    $adminUrl = rtrim(env('FRONTEND_ADMIN_URL', 'http://localhost:5173'), '/');
-
-// ✅ Detect admin either by is_admin column or role value
-$isAdmin = (isset($user->is_admin) && $user->is_admin == 1) 
-        || (isset($user->role) && $user->role === 'admin');
-
-// ✅ FIXED: Admins → 5173, Users → 5174
-$baseUrl = $isAdmin ? $adminUrl : $userUrl;
-
-
-    return "{$baseUrl}/{$path}";
-}
-
+    private function getFrontendUrl(Request $request, User $user, string $path)
+    {
+        // ✅ Use Laravel routes for verification result pages
+        if ($path === 'verify-success') {
+            return route('verify.success');
+        }
+        
+        if ($path === 'verify-failed') {
+            return route('verify.failed');
+        }
+        
+        return route('verify.success'); // fallback
+    }
 
     /**
      * ✅ Resend email verification link
