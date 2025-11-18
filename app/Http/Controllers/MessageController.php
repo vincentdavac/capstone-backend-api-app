@@ -318,8 +318,10 @@ class MessageController extends Controller
             return $this->error(null, 'Unauthorized', 403);
         }
 
-        // Get all users with user_type = admin or user
-        $users = User::whereIn('user_type', ['admin', 'user'])->get();
+        // Get all users with user_type = admin or user AND SAME barangay_id
+        $users = User::whereIn('user_type', ['admin', 'user'])
+            ->where('barangay_id', $barangay->barangay_id)
+            ->get();
 
         $data = $users->map(function ($user) use ($barangay) {
 

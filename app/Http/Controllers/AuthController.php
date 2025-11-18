@@ -26,18 +26,48 @@ class AuthController extends Controller
 {
     use HttpResponses;
 
-    public function getAllUsers()
-    {
-        $users = User::with('barangay')->latest()->get();
 
-        return $this->success(
-            UserResource::collection($users),
-            'All users fetched successfully.',
-            200
-        );
-    }
 
-    // ✅ UPDATE USER
+    // public function getAllBarangayAndAdminUsers()
+    // {
+    //     $users = User::with('barangay')
+    //         ->whereIn('user_type', ['admin', 'barangay'])
+    //         ->where('is_active', 1)
+    //         ->latest()
+    //         ->get();
+
+    //     return $this->success(
+    //         UserResource::collection($users),
+    //         'All Barangay and Admin users fetched successfully.',
+    //         200
+    //     );
+    // }
+
+    // public function getAllBarangayResidents()
+    // {
+    //     $authUser = Auth::user();
+
+    //     if (!$authUser || !$authUser->barangay_id) {
+    //         return $this->error(null,'Authenticated user has no assigned barangay.', 400);
+    //     }
+
+    //     $users = User::with('barangay')
+    //         ->where('user_type', 'user')
+    //         ->where('is_active', 1)
+    //         ->where('barangay_id', $authUser->barangay_id)
+    //         ->latest()
+    //         ->get();
+
+    //     return $this->success(
+    //         UserResource::collection($users),
+    //         'All barangay residents fetched successfully.',
+    //         200
+    //     );
+    // }
+
+
+
+    // UPDATE USER
     public function updateUser(UpdateUserRequest $request, $user)
     {
         $user = User::find($user);
@@ -84,7 +114,7 @@ class AuthController extends Controller
         $user->load(['barangay', 'verifier']);
 
         return $this->success(
-            UserResource::collection($user),
+            new UserResource($user),
             'User information updated successfully.',
             200
         );
