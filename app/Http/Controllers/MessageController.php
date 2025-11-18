@@ -131,7 +131,6 @@ class MessageController extends Controller
             ]);
         }
 
-        broadcast(new MessageSent($chat))->toOthers();
 
         /**
          *  MESSAGE DATA
