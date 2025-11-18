@@ -186,6 +186,18 @@ class AuthController extends Controller
     // USER REGISTRATION
     public function register(StoreUserRequest $request)
     {
+
+        // 🔹 Step 4: Check if contact number already exists
+        $existingContact = User::where('contact_number', $request->contact_number)->first();
+
+        if ($existingContact) {
+            return $this->error(
+                'The contact number is already registered.',
+                ['contact_number' => ['The contact number has already been taken.']],
+                422
+            );
+        }
+
         // 🔹 Step 1: Handle image upload
         $imageName = null;
         if ($request->hasFile('image')) {
@@ -325,6 +337,18 @@ class AuthController extends Controller
     // ADMIN REGISTRATION
     public function registerAdmin(StoreUserRequest $request)
     {
+
+        // 🔹 Step 4: Check if contact number already exists
+        $existingContact = User::where('contact_number', $request->contact_number)->first();
+
+        if ($existingContact) {
+            return $this->error(
+                'The contact number is already registered.',
+                ['contact_number' => ['The contact number has already been taken.']],
+                422
+            );
+        }
+
         // 🔹 Step 1: Handle profile image upload
         $imageName = null;
         if ($request->hasFile('image')) {
@@ -359,6 +383,8 @@ class AuthController extends Controller
                 );
             }
         }
+
+
 
         // 🔹 Step 4: Create new admin user
         $user = User::create([
@@ -465,6 +491,18 @@ class AuthController extends Controller
     // BARANGAY REGISTRATION
     public function registerBarangay(StoreUserRequest $request)
     {
+
+        // 🔹 Step 4: Check if contact number already exists
+        $existingContact = User::where('contact_number', $request->contact_number)->first();
+
+        if ($existingContact) {
+            return $this->error(
+                'The contact number is already registered.',
+                ['contact_number' => ['The contact number has already been taken.']],
+                422
+            );
+        }
+
         // 🔹 Step 1: Handle profile image upload
         $imageName = null;
         if ($request->hasFile('image')) {
@@ -577,7 +615,6 @@ class AuthController extends Controller
         );
     }
 
-
     // RESTORE USER
     public function restoreUser($id)
     {
@@ -609,8 +646,6 @@ class AuthController extends Controller
             200
         );
     }
-
-
 
     // ARCHIVE BARANGAY ACCOUNT BY ADMIN
     public function archiveBarangay($id)

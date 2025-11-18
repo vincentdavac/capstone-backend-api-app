@@ -1,7 +1,11 @@
 <?php
 
 return [
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+        'broadcasting/*', // Add this line
+    ],
     'allowed_methods' => ['*'],
     'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:5174'),

@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Models\Message;
 
 use App\Http\Controllers\HomepageSliderController;
 use App\Http\Controllers\HomepageAboutController;
@@ -59,6 +60,10 @@ use App\Http\Controllers\getRainSensor;
 use App\Http\Controllers\alertController;
 use App\Http\Controllers\currentCondition;
 use App\Http\Controllers\DeployedBuoyController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\TestPusherController;
+
+
 
 
 Route::get('/get-current-condition', [currentCondition::class, 'getCurrentCondition']);
@@ -132,6 +137,7 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
 
 // Don't Include in the Protected routes -> It was used in the Register route
 Route::get('/barangays', [BarangayController::class, 'index']);
+
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
@@ -322,3 +328,23 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('/deployed-buoy/{buoyCode}', [DeployedBuoyController::class, 'show']);
     Route::get('/get-all-data/{buoyCode}', [DeployedBuoyController::class, 'getAllData']);
 });
+
+// CHAT ROUTES: No throttle
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/messages/send', [MessageController::class, 'send']);
+    Route::get('/chat/{chatId}', [MessageController::class, 'getChat']);
+    Route::patch('/chat/{id}/read', [MessageController::class, 'markChatAsRead']);
+
+    Route::get('/admin/chats/barangays', [MessageController::class, 'getAllBarangayChats']);
+    Route::get('/barangay/chats/users-admins', [MessageController::class, 'getAllUserAndAdminChats']);
+
+
+    // User Side: Send message to Barangay
+    Route::post('/user/message/send', [MessageController::class, 'sendMessageUserToBarangay']);
+
+    // User Side: Get all Barangay Chats
+    Route::get('/user/chats/barangays', [MessageController::class, 'getChatUserToBarangay']);
+});
+
+
+Route::get('/test-pusher', [TestPusherController::class, 'testConnection']);
