@@ -370,19 +370,8 @@ class alertController extends Controller
         ]);
         // return response()->json(['status' => 'success', 'data' => $id], 200, [], JSON_PRETTY_PRINT);
     }
-    private function validData($value)
-    {
-        if ($value === null || $value === '' || $value == 0) {
-            return false;
-        }
-
-        return true;
-    }
-    public function allAlerts(Request $request)
-    {
-
+    public function allAlerts(){
         DB::transaction(function () {
-
             $this->setTemperatureAlert();
             $this->setWaterTemperatureAlert();
             $this->setHumidityAlert();
@@ -392,10 +381,6 @@ class alertController extends Controller
             $this->insertSensorData();
             $this->setWaterPressure();
         });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'All alerts processed successfully'
-        ], 200);
+        return response()->json(['success' => true,'message' => 'All alerts processed successfully'], 200);
     }
 }
