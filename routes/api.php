@@ -142,7 +142,9 @@ Route::get('/barangays', [BarangayController::class, 'index']);
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
 
-    Route::get('/users', [AuthController::class, 'getAllUsers']);
+    // Route::get('/admin/users', [AuthController::class, 'getAllBarangayAndAdminUsers']);
+    // Route::get('/barangay/users', [AuthController::class, 'getAllBarangayResidents']);
+
     Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
