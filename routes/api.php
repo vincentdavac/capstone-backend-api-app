@@ -62,9 +62,11 @@ use App\Http\Controllers\currentCondition;
 use App\Http\Controllers\DeployedBuoyController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TestPusherController;
+use App\Http\Controllers\broadCastController;
 
 
 
+Route::middleware('auth:sanctum')->post('/broadcast-alert', [broadCastController::class, 'sendAlert']);
 
 Route::get('/get-current-condition', [currentCondition::class, 'getCurrentCondition']);
 Route::get('/get-rain-sensor', [getRainSensor::class, 'getrainsensorChart']);
@@ -100,14 +102,9 @@ Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 // Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
 // Route::post('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
 // Route::post('/add-historical', [insertSensorReadings::class, 'insertSensorData']);
-Route::get('/all-set-alerts', [alertController::class, 'allAlerts']);
-
+Route::post('/all-set-alerts', [alertController::class, 'allAlerts']);
 
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
-Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);
-// Route::get('/notifications', [NotificationController::class, 'getNotifications']);
-Route::middleware('auth:sanctum')->get('/notifications', [NotificationController::class, 'getNotifications']);
-
 // USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
 

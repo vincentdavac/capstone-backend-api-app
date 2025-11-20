@@ -44,6 +44,10 @@ class Buoy extends Model
     {
         return $this->belongsTo(Barangay::class, 'barangay_id', 'id');
     }
+    public function alerts()
+    {
+        return $this->hasMany(recent_alerts::class, 'buoy_id', 'id');
+    }
 
     public function bme280_atmospheric_readings()
     {
