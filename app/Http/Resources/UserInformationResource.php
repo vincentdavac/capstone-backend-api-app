@@ -20,6 +20,14 @@ class UserInformationResource extends JsonResource
             'isActive' => $this->is_active,
             'registrationStatus' => $this->registration_status,
             'userType' => $this->user_type,
+           'createdDate' => $this->created_at
+                ? $this->created_at->format('F d, Y')
+                : null,
+
+            'createdTime' => $this->created_at
+                ? $this->created_at->format('h:i A')
+                : null,
+
              // ✅ Uploaded files
                 'image' => $this->image
                     ? url('profile_images/' . $this->image)
