@@ -37,7 +37,7 @@ class alertController extends Controller
             $uuid = Str::uuid();
             $alertId = 'ALERT' . $uuid;
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
-            $sensorType = 'Temperature';
+            $sensorType = 'SURROUNDING TEMPERATURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
             if ($surroundingTemp >= 27 && $surroundingTemp <= 32) {
@@ -66,59 +66,59 @@ class alertController extends Controller
             ]);
         }
     }
-    // public function setWaterTemperatureAlert(){
-    //     $firebaseData = $this->firebase->getReference()->getValue();
-    //     if (empty($firebaseData)) {
-    //         return response()->json(['status' => 'error','message' => 'No data found in Firebase','data' => []], 404);
-    //     }
+    public function setWaterTemperatureAlert(){
+        $firebaseData = $this->firebase->getReference()->getValue();
+        if (empty($firebaseData)) {
+            return response()->json(['status' => 'error','message' => 'No data found in Firebase','data' => []], 404);
+        }
        
-    //     foreach ($firebaseData as $prototypeName => $buoyData) {
-    //         if (!isset($buoyData['MS5837']['WATER_TEMPERATURE'])) {
-    //             continue;
-    //         }
-    //         $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
-    //         if (!$prototype) {
-    //             continue;
-    //         }
-    //         $ms5837 = $buoyData['MS5837'];
-    //         $waterTemp = $ms5837['WATER_TEMPERATURE'];
-    //         $description = null;
-    //         $alert = null;
-    //         $uuid = Str::uuid();
-    //         $alertId = 'ALERT' . $uuid;
-    //         $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
-    //         $sensorType = 'Temperature';
-    //         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
+        foreach ($firebaseData as $prototypeName => $buoyData) {
+            if (!isset($buoyData['MS5837']['WATER_TEMPERATURE'])) {
+                continue;
+            }
+            $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
+            if (!$prototype) {
+                continue;
+            }
+            $ms5837 = $buoyData['MS5837'];
+            $waterTemp = $ms5837['WATER_TEMPERATURE'];
+            $description = null;
+            $alert = null;
+            $uuid = Str::uuid();
+            $alertId = 'ALERT' . $uuid;
+            $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
+            $sensorType = 'WATER TEMPERATURE';
+            $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
-    //         if ($waterTemp >= 26 && $waterTemp <= 30) {
-    //         $description = "WHITE Alert: Katamtamang temperatura ng tubig! Naitala ang $waterTemp °C sa Brgy Zone C ($currentTime). Ligtas ang tubig para sa aktibidad at mababa ang panganib na dala nito.";
-    //         $alert = "White";
-    //         }
-    //         else if ($waterTemp >= 20 && $waterTemp <= 25) {
-    //             $alert = "Blue";
-    //             $description = "BLUE Alert: Malamig ang tubig! Naitala ang $waterTemp °C sa Brgy Zone B ($currentTime). Malamig ang tubig kaya dapat mag-ingat ang bawat isa lalo na ang mga bata at matatanda.";
-    //         } 
-    //         else if ($waterTemp < 20) {
-    //             $alert = "Red";
-    //             $description = "RED Alert: Matinding lamig ng tubig! Naitala ang $waterTemp °C sa Brgy Zone A ($currentTime); Possible ang biglaang lamig sa katawan kaya iwasan ang matagal na pananatili sa tubig.";
-    //         } 
-    //         else if ($waterTemp > 30) {
-    //             $alert = "Red";
-    //             $description = "RED Alert: Matinding init ng tubig! Naitala ang $waterTemp °C sa Brgy. Zone D ($currentTime). Posibleng magdulot ng sobrang init sa katawan at pagkapagod habang nasa tubig.";
-    //         }
-    //         if (is_null($description)) {
-    //             return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
-    //         }
-    //         DB::table('recent_alerts')->insert([
-    //             'alertId' => $alertId,
-    //             'buoy_id' => $prototype->id,
-    //             'description' => $description,
-    //             'alert_level' => $alert,
-    //             'sensor_type' => $sensorType,
-    //             'recorded_at' => $recorded
-    //         ]);
-    //     }
-    // }
+            if ($waterTemp >= 26 && $waterTemp <= 30) {
+            $description = "WHITE Alert: Katamtamang temperatura ng tubig! Naitala ang $waterTemp °C sa Brgy Zone C ($currentTime). Ligtas ang tubig para sa aktibidad at mababa ang panganib na dala nito.";
+            $alert = "White";
+            }
+            else if ($waterTemp >= 20 && $waterTemp <= 25) {
+                $alert = "Blue";
+                $description = "BLUE Alert: Malamig ang tubig! Naitala ang $waterTemp °C sa Brgy Zone B ($currentTime). Malamig ang tubig kaya dapat mag-ingat ang bawat isa lalo na ang mga bata at matatanda.";
+            } 
+            else if ($waterTemp < 20) {
+                $alert = "Red";
+                $description = "RED Alert: Matinding lamig ng tubig! Naitala ang $waterTemp °C sa Brgy Zone A ($currentTime); Possible ang biglaang lamig sa katawan kaya iwasan ang matagal na pananatili sa tubig.";
+            } 
+            else if ($waterTemp > 30) {
+                $alert = "Red";
+                $description = "RED Alert: Matinding init ng tubig! Naitala ang $waterTemp °C sa Brgy. Zone D ($currentTime). Posibleng magdulot ng sobrang init sa katawan at pagkapagod habang nasa tubig.";
+            }
+            if (is_null($description)) {
+                return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
+            }
+            DB::table('recent_alerts')->insert([
+                'alertId' => $alertId,
+                'buoy_id' => $prototype->id,
+                'description' => $description,
+                'alert_level' => $alert,
+                'sensor_type' => $sensorType,
+                'recorded_at' => $recorded
+            ]);
+        }
+    }
     // public function setHumidityAlert(){
     //     $firebaseData = $this->firebase->getReference()->getValue();
     //     if (empty($firebaseData)) {
@@ -343,7 +343,7 @@ class alertController extends Controller
     public function allAlerts(){
         DB::transaction(function () {
             $this->setTemperatureAlert();
-            // $this->setWaterTemperatureAlert();
+            $this->setWaterTemperatureAlert();
             // $this->setHumidityAlert();
             // $this->setAtmosphericAlert();
             // $this->setWindAlert();
