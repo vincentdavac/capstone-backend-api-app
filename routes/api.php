@@ -264,6 +264,8 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/abouts/{about}', [HomepageAboutController::class, 'update']);
     Route::delete('/abouts/{about}', [HomepageAboutController::class, 'destroy']);
 
+    Route::get('about-cards', [HomepageAboutController::class, 'getAllCards']);
+    Route::get('about-cards-active', [HomepageAboutController::class, 'getActiveCards']);
     Route::post('about-cards', [HomepageAboutController::class, 'storeCard']);
     Route::patch('about-cards/{card}', [HomepageAboutController::class, 'updateCard']);
     Route::delete('about-cards/{card}', [HomepageAboutController::class, 'destroyCard']);
@@ -271,6 +273,8 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
 
     // Prototype Routes
     Route::get('/prototypes', [HomepagePrototypeController::class, 'index']);
+    Route::get('/prototypes/left', [HomepagePrototypeController::class, 'fetchLeftPrototypes']);
+    Route::get('/prototypes/right', [HomepagePrototypeController::class, 'fetchRightPrototypes']);
     Route::post('/prototypes', [HomepagePrototypeController::class, 'store']);
     Route::get('/active-prototypes', [HomepagePrototypeController::class, 'activePrototypes']);
     Route::get('/archived-prototypes', [HomepagePrototypeController::class, 'archivedPrototypes']);

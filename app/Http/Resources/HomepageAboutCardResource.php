@@ -15,6 +15,7 @@ class HomepageAboutCardResource extends JsonResource
                 'homepageAboutId' => $this->homepage_about_id,
                 'cardTitle' => $this->card_title,
                 'cardDescription' => $this->card_description,
+                'isArchive' => (bool) $this->is_archive,
                 'createdDate' => $this->created_at?->format('F d, Y') ?? null,
                 'createdTime' => $this->created_at?->format('h:i:s A') ?? null,
                 'updatedDate' => $this->updated_at?->format('F d, Y') ?? null,
