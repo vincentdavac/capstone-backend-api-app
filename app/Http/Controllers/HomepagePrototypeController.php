@@ -28,6 +28,35 @@ class HomepagePrototypeController extends Controller
         );
     }
 
+      public function fetchLeftPrototypes()
+    {
+        $leftPrototypes = HomepagePrototype::where('is_archived', false)
+            ->where('position', 'left')
+            ->latest()
+            ->get();
+
+        return $this->success(
+            HomepagePrototypeResource::collection($leftPrototypes),
+            'Left prototypes fetched successfully',
+            200
+        );
+    }
+
+    public function fetchRightPrototypes()
+    {
+        $rightPrototypes = HomepagePrototype::where('is_archived', false)
+            ->where('position', 'right')
+            ->latest()
+            ->get();
+
+        return $this->success(
+            HomepagePrototypeResource::collection($rightPrototypes),
+            'Right prototypes fetched successfully',
+            200
+        );
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */
