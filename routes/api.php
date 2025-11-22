@@ -63,8 +63,12 @@ use App\Http\Controllers\DeployedBuoyController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TestPusherController;
 use App\Http\Controllers\broadCastController;
+use App\Http\Controllers\alertMonitoring;
 
 
+Route::get('/{buoyId}/active', [alertMonitoring::class, 'getActiveAlerts']);
+Route::post('/mark-shown', [alertMonitoring::class, 'markAlertAsShown']);
+Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
 
 Route::middleware('auth:sanctum')->post('/broadcast-alert', [broadCastController::class, 'sendAlert']);
 
