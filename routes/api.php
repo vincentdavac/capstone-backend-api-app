@@ -69,6 +69,7 @@ use App\Http\Controllers\alertMonitoring;
 Route::get('/{buoyId}/active', [alertMonitoring::class, 'getActiveAlerts']);
 Route::post('/mark-shown', [alertMonitoring::class, 'markAlertAsShown']);
 Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
+Route::middleware('auth:sanctum')->post('/broadcast-monitoring', [alertMonitoring::class, 'sendAlert']);
 
 Route::middleware('auth:sanctum')->post('/broadcast-alert', [broadCastController::class, 'sendAlert']);
 
