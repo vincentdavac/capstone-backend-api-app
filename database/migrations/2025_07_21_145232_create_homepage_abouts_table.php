@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->longText('title');
             $table->longText('caption');
+            $table->longText('video_link')->nullable();
             $table->longText('image')->nullable();
             $table->boolean('is_archived')->default(false);
             $table->longText('side_title')->nullable();

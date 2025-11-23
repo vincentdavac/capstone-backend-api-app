@@ -30,7 +30,7 @@ class StoreHomepageFooterRequest extends FormRequest
             'facebook_link' => 'nullable|url',
             'youtube_link' => 'nullable|url',
             'footer_subtitle' => 'nullable|string',
-            'is_archived' => 'boolean',
+            'is_archived' => 'nullable|boolean',
         ];
     }
 }

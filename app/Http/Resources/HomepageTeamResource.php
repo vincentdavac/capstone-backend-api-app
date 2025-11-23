@@ -12,10 +12,7 @@ class HomepageTeamResource extends JsonResource
         return [
             'id' => $this->id,
             'attributes' => [
-                'userId' => $this->user_id,
-                'userName' => $this->user
-                    ? ($this->user->first_name . ' ' . $this->user->last_name)
-                    : 'N/A',
+                'userName' => $this->user_name,
                 'role' => $this->role,
                 'image' => $this->image
                     ? config('app.url') . '/homepage_team_images/' . $this->image

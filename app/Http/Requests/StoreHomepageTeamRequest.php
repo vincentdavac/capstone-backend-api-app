@@ -22,7 +22,7 @@ class StoreHomepageTeamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
+            'user_name' => 'required|string|max:255',
             'role' => 'required|string|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:10240', // max 10MB
             'facebook_link' => 'nullable|url|max:255',
