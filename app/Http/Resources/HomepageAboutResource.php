@@ -19,6 +19,7 @@ class HomepageAboutResource extends JsonResource
                     : null,
                 'sideTitle' => $this->side_title,
                 'sideDescription' => $this->side_description,
+                'videoLink' => $this->video_link, // added video_link field
                 'isArchived' => (bool) $this->is_archived,
 
                 'createdDate' => $this->created_at?->format('F d, Y') ?? null,

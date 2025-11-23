@@ -41,6 +41,16 @@ class HomepageAboutController extends Controller
     {
         $validated = $request->validated();
 
+        // ✅ Check if a record already exists
+        if (HomepageAbout::count() > 0) {
+            return $this->error(
+                null,
+                'Only one Homepage About record is allowed.',
+                400
+            );
+        }
+
+        // Handle image upload
         if ($request->hasFile('image')) {
             $imageFile = $request->file('image');
             $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
@@ -56,6 +66,7 @@ class HomepageAboutController extends Controller
             201
         );
     }
+
 
 
     public function show(HomepageAbout $about)
