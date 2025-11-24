@@ -12,8 +12,6 @@ class HomepageFeedbackResource extends JsonResource
         return [
             'id' => $this->id,
             'attributes' => [
-                'userId' => $this->user_id,
-                'barangay' => $this->user->barangay,
                 'userName' => $this->user
                     ? ($this->user->first_name . ' ' . $this->user->last_name)
                     : 'N/A',

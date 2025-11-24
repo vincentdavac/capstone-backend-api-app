@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('alerts', function (Blueprint $table) {
             $table->id();
-            $table->string('alertId');
-            $table->string('description');
-            $table->string('alert_level');
-            $table->string('sensor_type');
+            $table->unsignedBigInteger('alert_id');
+            $table->string('broadcast_by')->nullable(); 
+            $table->boolean('is_read')->default(false);
+            $table->foreign('alert_id')->references('id')->on('recent_alerts')->onDelete('cascade');
             $table->timestamp('recorded_at')->nullable();
             $table->timestamps();
         });

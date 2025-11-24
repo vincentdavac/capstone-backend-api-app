@@ -12,7 +12,8 @@ class HomepageAbout extends Model
         'image',
         'is_archived',
         'side_title',
-        'side_description'
+        'side_description',
+        'video_link',
     ];
 
     public $timestamps = true; // This enables created_at and updated_at

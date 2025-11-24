@@ -62,9 +62,16 @@ use App\Http\Controllers\currentCondition;
 use App\Http\Controllers\DeployedBuoyController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TestPusherController;
+use App\Http\Controllers\broadCastController;
+use App\Http\Controllers\alertMonitoring;
 
 
+Route::get('/{buoyId}/active', [alertMonitoring::class, 'getActiveAlerts']);
+Route::post('/mark-shown', [alertMonitoring::class, 'markAlertAsShown']);
+Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
+Route::middleware('auth:sanctum')->post('/broadcast-monitoring', [alertMonitoring::class, 'sendAlert']);
 
+Route::middleware('auth:sanctum')->post('/broadcast-alert', [broadCastController::class, 'sendAlert']);
 
 Route::get('/get-current-condition', [currentCondition::class, 'getCurrentCondition']);
 Route::get('/get-rain-sensor', [getRainSensor::class, 'getrainsensorChart']);
@@ -102,12 +109,7 @@ Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 // Route::post('/add-historical', [insertSensorReadings::class, 'insertSensorData']);
 Route::post('/all-set-alerts', [alertController::class, 'allAlerts']);
 
-
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
-Route::post('/broadcast-alert', [NotificationController::class, 'broadCastAlerts']);
-// Route::get('/notifications', [NotificationController::class, 'getNotifications']);
-Route::middleware('auth:sanctum')->get('/notifications', [NotificationController::class, 'getNotifications']);
-
 // USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
 
@@ -142,9 +144,9 @@ Route::get('/barangays', [BarangayController::class, 'index']);
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
 
-    Route::get('/users', [AuthController::class, 'getAllUsers']);
-    Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
 
     Route::get('/active-users', [AuthController::class, 'activeUsers']);
     Route::get('/archived-users', [AuthController::class, 'archivedUsers']);
@@ -267,6 +269,8 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/abouts/{about}', [HomepageAboutController::class, 'update']);
     Route::delete('/abouts/{about}', [HomepageAboutController::class, 'destroy']);
 
+    Route::get('about-cards', [HomepageAboutController::class, 'getAllCards']);
+    Route::get('about-cards-active', [HomepageAboutController::class, 'getActiveCards']);
     Route::post('about-cards', [HomepageAboutController::class, 'storeCard']);
     Route::patch('about-cards/{card}', [HomepageAboutController::class, 'updateCard']);
     Route::delete('about-cards/{card}', [HomepageAboutController::class, 'destroyCard']);
@@ -274,6 +278,8 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
 
     // Prototype Routes
     Route::get('/prototypes', [HomepagePrototypeController::class, 'index']);
+    Route::get('/prototypes/left', [HomepagePrototypeController::class, 'fetchLeftPrototypes']);
+    Route::get('/prototypes/right', [HomepagePrototypeController::class, 'fetchRightPrototypes']);
     Route::post('/prototypes', [HomepagePrototypeController::class, 'store']);
     Route::get('/active-prototypes', [HomepagePrototypeController::class, 'activePrototypes']);
     Route::get('/archived-prototypes', [HomepagePrototypeController::class, 'archivedPrototypes']);

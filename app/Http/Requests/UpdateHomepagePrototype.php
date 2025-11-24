@@ -27,7 +27,7 @@ class UpdateHomepagePrototype extends FormRequest
             'description' => 'sometimes|nullable|string',
             'image' => 'sometimes|nullable|file|mimes:jpg,jpeg,png,webp|max:10240', // max:10240 = 10MB
             'position' => 'sometimes|required|in:left,right', // Only accepts "left" or "right"
-            'is_archived' => 'sometimes|boolean',
+            'is_archived' => 'nullable|boolean',
         ];
     }
 }

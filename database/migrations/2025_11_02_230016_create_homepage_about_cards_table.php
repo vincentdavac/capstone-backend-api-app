@@ -18,6 +18,7 @@ return new class extends Migration
                 ->onDelete('cascade'); // delete cards when about is deleted
             $table->string('card_title');
             $table->longText('card_description');
+            $table->boolean('is_archive')->default(false);
             $table->timestamps();
         });
     }

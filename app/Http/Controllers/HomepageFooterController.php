@@ -28,6 +28,15 @@ class HomepageFooterController extends Controller
 
     public function store(StoreHomepageFooterRequest $request)
     {
+        // Check if a footer already exists
+        if (HomepageFooter::exists()) {
+            return $this->error(
+                null,
+                'Only one homepage footer is allowed. Please update the existing one.',
+                400
+            );
+        }
+
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {

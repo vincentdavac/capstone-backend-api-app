@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('homepage_teams', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // links to users.id
+            $table->string('user_name'); // changed from user_id foreign key
             $table->string('role');
             $table->string('image')->nullable(); // store image filename/path
             $table->string('facebook_link')->nullable();

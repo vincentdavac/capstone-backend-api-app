@@ -26,29 +26,48 @@ class AuthController extends Controller
 {
     use HttpResponses;
 
-    public function getAllUsers()
-    {
-        $users = User::with('barangay')->latest()->get();
-
-        return $this->success(
-            UserResource::collection($users),
-            'All users fetched successfully.',
-            200
-        );
-    }
-
-    // ✅ UPDATE USER
+    // UPDATE USER
     public function updateUser(UpdateUserRequest $request, $user)
     {
-        $user = User::find($user);
+        // Get authenticated user from database
+        $authUser = User::where('id', Auth::id())->first();
+        $targetUser = User::find($user);
 
-        if (!$user) {
+        if (!$targetUser) {
             return $this->error(null, 'User not found.', 404);
         }
 
         $validated = $request->validated();
 
-        // 🔹 Handle profile image update
+
+        // IF AUTH USER IS ADMIN
+        if ($authUser->user_type === 'admin') {
+
+            // Admin cannot update registration_status of another admin
+            if ($targetUser->user_type === 'admin' && isset($validated['registration_status'])) {
+                return $this->error(null, 'You are not allowed to modify the registration status of another admin.', 403);
+            }
+
+            // Admin cannot update their own registration_status
+            if ($authUser->id === $targetUser->id && isset($validated['registration_status'])) {
+                return $this->error(null, 'You cannot modify your own registration status.', 403);
+            }
+        }
+
+        // IF AUTH USER IS BARANGAY
+        if ($authUser->user_type === 'barangay') {
+
+            // Barangay user cannot update admins or barangays
+            if ($targetUser->user_type !== 'user') {
+                return $this->error(null, 'You are only allowed to update your barangay residents.', 403);
+            }
+
+            // Must belong to same barangay
+            if ($authUser->barangay_id !== $targetUser->barangay_id) {
+                return $this->error(null, 'You can only update users within your barangay.', 403);
+            }
+        }
+
         if ($request->hasFile('image')) {
             $imageFile = $request->file('image');
             $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
@@ -56,7 +75,6 @@ class AuthController extends Controller
             $validated['image'] = $imageName;
         }
 
-        // 🔹 Handle ID document update
         if ($request->hasFile('id_document')) {
             $idDocumentFile = $request->file('id_document');
             $idDocumentName = Str::random(32) . '.' . $idDocumentFile->getClientOriginalExtension();
@@ -64,31 +82,29 @@ class AuthController extends Controller
             $validated['id_document'] = $idDocumentName;
         }
 
-        // 🔹 Hash password if provided
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
         }
 
-        // 🔹 Automatically update verification date if registration_status is true
         if (isset($validated['registration_status']) && $validated['registration_status'] == true) {
             $validated['date_verified'] = now();
-            $validated['verified_by'] = Auth::id(); // Optional: track verifier if admin is logged in
+            $validated['verified_by'] = Auth::id();
         }
 
-        // 🔹 Update the user record
-        $user->update($validated);
+        $targetUser->update($validated);
 
-        // ✅ Load relationships for API response
-        $user->load(['barangay', 'verifier']);
+        // Load related data
+        $targetUser->load(['barangay', 'verifier']);
 
         return $this->success(
-            UserResource::collection($user),
+            new UserResource($targetUser),
             'User information updated successfully.',
             200
         );
     }
+
 
     // GET AUTHENTICATED USER INFO
     public function me(Request $request)

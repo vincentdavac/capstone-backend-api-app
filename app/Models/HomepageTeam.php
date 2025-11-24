@@ -10,7 +10,7 @@ class HomepageTeam extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'user_name',
         'role',
         'image',
         'facebook_link',
@@ -21,10 +21,9 @@ class HomepageTeam extends Model
     ];
 
     /**
-     * Relationship: Each HomepageTeam entry belongs to a User.
+     * Cast attributes to native types.
      */
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    protected $casts = [
+        'is_archived' => 'boolean',
+    ];
 }

@@ -22,7 +22,7 @@ class UpdateHomepageTeamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'sometimes|exists:users,id',
+            'user_name' => 'sometimes|string|max:255',
             'role' => 'sometimes|string|max:255',
             'image' => 'sometimes|file|mimes:jpg,jpeg,png,webp|max:10240', // max 10MB
             'facebook_link' => 'nullable|url|max:255',
