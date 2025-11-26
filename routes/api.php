@@ -72,6 +72,7 @@ Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
 Route::middleware('auth:sanctum')->post('/broadcast-monitoring', [alertMonitoring::class, 'sendAlert']);
 
 Route::middleware('auth:sanctum')->post('/broadcast-alert', [broadCastController::class, 'sendAlert']);
+Route::middleware('auth:sanctum')->post('/reset-relay', [broadCastController::class, 'resetRelay']);
 
 Route::get('/get-current-condition', [currentCondition::class, 'getCurrentCondition']);
 Route::get('/get-rain-sensor', [getRainSensor::class, 'getrainsensorChart']);
