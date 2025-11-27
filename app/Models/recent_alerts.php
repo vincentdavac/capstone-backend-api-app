@@ -25,4 +25,7 @@ class recent_alerts extends Model
     {
         return $this->belongsTo(Buoy::class, 'buoy_id', 'id');
     }
+     public function buoyid(){
+        return $this->belongsTo(Buoy::class, 'buoy_id');
+    }
 }

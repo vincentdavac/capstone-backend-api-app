@@ -64,8 +64,10 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TestPusherController;
 use App\Http\Controllers\broadCastController;
 use App\Http\Controllers\alertMonitoring;
+use App\Http\Controllers\alertNotif;
 
 
+Route::get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::get('/{buoyId}/active', [alertMonitoring::class, 'getActiveAlerts']);
 Route::post('/mark-shown', [alertMonitoring::class, 'markAlertAsShown']);
 Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
