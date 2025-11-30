@@ -67,6 +67,7 @@ use App\Http\Controllers\alertMonitoring;
 use App\Http\Controllers\alertNotif;
 
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
+Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
 // Route::get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::get('/{buoyId}/active', [alertMonitoring::class, 'getActiveAlerts']);
 Route::post('/mark-shown', [alertMonitoring::class, 'markAlertAsShown']);
@@ -110,7 +111,7 @@ Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 // Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
 // Route::post('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
 // Route::post('/add-historical', [insertSensorReadings::class, 'insertSensorData']);
-Route::post('/all-set-alerts', [alertController::class, 'allAlerts']);
+
 
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 // USER INFORMATION
