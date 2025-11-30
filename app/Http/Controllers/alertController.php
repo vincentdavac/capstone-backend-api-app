@@ -8,16 +8,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
-class alertController extends Controller
-{
+class alertController extends Controller{
     protected $firebase;
     protected string $reftblName;
-    public function __construct(FirebaseServices $firebaseService)
-    {
+    public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function setTemperatureAlert()
-    {
+    public function setTemperatureAlert(){
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
@@ -40,7 +37,6 @@ class alertController extends Controller
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'SURROUNDING TEMPERATURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-
             if ($surroundingTemp >= 27 && $surroundingTemp <= 32) {
                 $description = "WHITE Alert: Mag-ingat sa init! Naitala ang $surroundingTemp °C sa Brgy Zone A ($currentTime). Mag-ingat dahil maaaring magdulot ng pagkapagod ang matagal na pananatili sa labas.";
                 $alert = 'White';
@@ -57,18 +53,41 @@ class alertController extends Controller
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
             }
-            DB::table('recent_alerts')->insert([
-                'alertId' => $alertId,
-                'buoy_id' => $prototype->id,
-                'description' => $description,
-                'alert_level' => $alert,
-                'sensor_type' => $sensorType,
-                'recorded_at' => $recorded
-            ]);
+            $lastAlert = DB::table('recent_alerts')
+                ->where('buoy_id', $prototype->id)
+                ->where('sensor_type', $sensorType)
+                ->orderBy('recorded_at', 'desc')
+                ->first();
+
+            $insert = false;
+
+            if (!$lastAlert) {
+                $insert = true;
+            } else {
+                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
+                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+                if ($lastAlert->alert_level !== $alert) {
+                    $insert = true; 
+                } elseif ($minutesDiff >= 5) {
+                    $insert = true; 
+                }
+            }
+            if ($insert) {
+                $uuid = Str::uuid();
+                $alertId = 'ALERT' . $uuid;
+
+                DB::table('recent_alerts')->insert([
+                    'alertId' => $alertId,
+                    'buoy_id' => $prototype->id,
+                    'description' => $description,
+                    'alert_level' => $alert,
+                    'sensor_type' => $sensorType,
+                    'recorded_at' => $recorded
+                ]);
+            }
         }
     }
-    public function setWaterTemperatureAlert()
-    {
+    public function setWaterTemperatureAlert(){
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
@@ -108,18 +127,41 @@ class alertController extends Controller
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
             }
-            DB::table('recent_alerts')->insert([
-                'alertId' => $alertId,
-                'buoy_id' => $prototype->id,
-                'description' => $description,
-                'alert_level' => $alert,
-                'sensor_type' => $sensorType,
-                'recorded_at' => $recorded
-            ]);
+           $lastAlert = DB::table('recent_alerts')
+                ->where('buoy_id', $prototype->id)
+                ->where('sensor_type', $sensorType)
+                ->orderBy('recorded_at', 'desc')
+                ->first();
+
+            $insert = false;
+
+            if (!$lastAlert) {
+                $insert = true;
+            } else {
+                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
+                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+                if ($lastAlert->alert_level !== $alert) {
+                    $insert = true; 
+                } elseif ($minutesDiff >= 5) {
+                    $insert = true; 
+                }
+            }
+            if ($insert) {
+                $uuid = Str::uuid();
+                $alertId = 'ALERT' . $uuid;
+
+                DB::table('recent_alerts')->insert([
+                    'alertId' => $alertId,
+                    'buoy_id' => $prototype->id,
+                    'description' => $description,
+                    'alert_level' => $alert,
+                    'sensor_type' => $sensorType,
+                    'recorded_at' => $recorded
+                ]);
+            }
         }
     }
-    public function setHumidityAlert()
-    {
+    public function setHumidityAlert(){
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
@@ -162,18 +204,41 @@ class alertController extends Controller
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
             }
-            DB::table('recent_alerts')->insert([
-                'alertId' => $alertId,
-                'buoy_id' => $prototype->id,
-                'description' => $description,
-                'alert_level' => $alertLevel,
-                'sensor_type' => $sensorType,
-                'recorded_at' => $recorded
-            ]);
+            $lastAlert = DB::table('recent_alerts')
+                ->where('buoy_id', $prototype->id)
+                ->where('sensor_type', $sensorType)
+                ->orderBy('recorded_at', 'desc')
+                ->first();
+
+            $insert = false;
+
+            if (!$lastAlert) {
+                $insert = true;
+            } else {
+                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
+                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+                if ($lastAlert->alert_level !== $alertLevel) {
+                    $insert = true; 
+                } elseif ($minutesDiff >= 5) {
+                    $insert = true; 
+                }
+            }
+            if ($insert) {
+                $uuid = Str::uuid();
+                $alertId = 'ALERT' . $uuid;
+
+                DB::table('recent_alerts')->insert([
+                    'alertId' => $alertId,
+                    'buoy_id' => $prototype->id,
+                    'description' => $description,
+                    'alert_level' => $alertLevel,
+                    'sensor_type' => $sensorType,
+                    'recorded_at' => $recorded
+                ]);
+            }
         }
     }
-    public function setAtmosphericAlert()
-    {
+    public function setAtmosphericAlert(){
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
@@ -214,18 +279,41 @@ class alertController extends Controller
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
             }
-            DB::table('recent_alerts')->insert([
-                'alertId' => $alertId,
-                'buoy_id' => $prototype->id,
-                'description' => $description,
-                'alert_level' => $alert,
-                'sensor_type' => $sensorType,
-                'recorded_at' => $recorded
-            ]);
+            $lastAlert = DB::table('recent_alerts')
+                ->where('buoy_id', $prototype->id)
+                ->where('sensor_type', $sensorType)
+                ->orderBy('recorded_at', 'desc')
+                ->first();
+
+            $insert = false;
+
+            if (!$lastAlert) {
+                $insert = true;
+            } else {
+                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
+                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+                if ($lastAlert->alert_level !== $alert) {
+                    $insert = true; 
+                } elseif ($minutesDiff >= 5) {
+                    $insert = true; 
+                }
+            }
+            if ($insert) {
+                $uuid = Str::uuid();
+                $alertId = 'ALERT' . $uuid;
+
+                DB::table('recent_alerts')->insert([
+                    'alertId' => $alertId,
+                    'buoy_id' => $prototype->id,
+                    'description' => $description,
+                    'alert_level' => $alert,
+                    'sensor_type' => $sensorType,
+                    'recorded_at' => $recorded
+                ]);
+            }
         }
     }
-    public function setWindAlert()
-    {
+    public function setWindAlert(){
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
@@ -270,18 +358,41 @@ class alertController extends Controller
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
             }
-            DB::table('recent_alerts')->insert([
-                'alertId' => $alertId,
-                'buoy_id' => $prototype->id,
-                'description' => $description,
-                'alert_level' => $alert,
-                'sensor_type' => $sensorType,
-                'recorded_at' => $recorded
-            ]);
+            $lastAlert = DB::table('recent_alerts')
+                ->where('buoy_id', $prototype->id)
+                ->where('sensor_type', $sensorType)
+                ->orderBy('recorded_at', 'desc')
+                ->first();
+
+            $insert = false;
+
+            if (!$lastAlert) {
+                $insert = true;
+            } else {
+                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
+                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+                if ($lastAlert->alert_level !== $alert) {
+                    $insert = true; 
+                } elseif ($minutesDiff >= 5) {
+                    $insert = true; 
+                }
+            }
+            if ($insert) {
+                $uuid = Str::uuid();
+                $alertId = 'ALERT' . $uuid;
+
+                DB::table('recent_alerts')->insert([
+                    'alertId' => $alertId,
+                    'buoy_id' => $prototype->id,
+                    'description' => $description,
+                    'alert_level' => $alert,
+                    'sensor_type' => $sensorType,
+                    'recorded_at' => $recorded
+                ]);
+            }
         }
     }
-    public function setRainPercentageAlert()
-    {
+    public function setRainPercentageAlert(){
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
@@ -321,14 +432,36 @@ class alertController extends Controller
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
             }
-            DB::table('recent_alerts')->insert([
-                'alertId' => $alertId,
-                'buoy_id' => $prototype->id,
-                'description' => $description,
-                'alert_level' => $alert,
-                'sensor_type' => $sensorType,
-                'recorded_at' => $recorded
-            ]);
+            $lastAlert = DB::table('recent_alerts')
+                ->where('buoy_id', $prototype->id)
+                ->where('sensor_type', $sensorType)
+                ->orderBy('recorded_at', 'desc')
+                ->first();
+
+            $insert = false;
+            if (!$lastAlert) {
+                $insert = true;
+            } else {
+                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
+                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+                if ($lastAlert->alert_level !== $alert) {
+                    $insert = true; 
+                } elseif ($minutesDiff >= 5) {
+                    $insert = true; 
+                }
+            }
+            if ($insert) {
+                $uuid = Str::uuid();
+                $alertId = 'ALERT' . $uuid;
+                DB::table('recent_alerts')->insert([
+                    'alertId' => $alertId,
+                    'buoy_id' => $prototype->id,
+                    'description' => $description,
+                    'alert_level' => $alert,
+                    'sensor_type' => $sensorType,
+                    'recorded_at' => $recorded
+                ]);
+            }
         }
     }
     public function insertSensorData(Request $request){
@@ -420,8 +553,7 @@ class alertController extends Controller
         }
         // return response()->json(['status' => 'success', 'data' => $id], 200, [], JSON_PRETTY_PRINT);
     }
-    public function allAlerts()
-    {
+    public function allAlerts(){
         DB::transaction(function () {
             $request = request();
             $this->setTemperatureAlert();
