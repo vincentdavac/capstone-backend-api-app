@@ -26,7 +26,7 @@ class alertMonitoring extends Controller
         return response()->json(['success' => true]);
     }
     public function checkAlertStatus($buoyId){
-        $sensorTypes = ['WATER TEMPERATURE', 'SURROUNDING TEMPERATURE'];
+        $sensorTypes = ['SURROUNDING TEMPERATURE','WATER TEMPERATURE','HUMIDITY','ATMOSPHERIC PRESSURE','WIND SPEED','RAIN GAUGE',];
         $currentLvl = [];
         $reset = false;
         foreach ($sensorTypes as $sensorType) {
@@ -47,8 +47,7 @@ class alertMonitoring extends Controller
         return response()->json(['current_levels' => $currentLvl, 'reset_triggered' => $reset]);
     }
     public function sendAlert(Request $request){
-        $validated =$request->validate(['alert_id' => 'required|integer|exists:recent_alerts,id', 'buoy_code' => 'required|string',]);
-
+        $validated =$request->validate(['alert_id' => 'required|integer|exists:recent_alerts,id', 'buoy_code' => 'required|string', 'sensor_stype' => 'required|string',]);
         $user = $request->user();
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
@@ -81,7 +80,7 @@ class alertMonitoring extends Controller
                 $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(false);
             }
         }
-        DB::table('recent_alerts')->where('id', $validated['alert_id'])->update(['alert_shown' => true]);
+         DB::table('recent_alerts')->where('sensor_type',$validated['sensor_stype'])->update(['alert_shown' => true]);
          return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime,], 201);
     }
     public function resetRelayModal(Request $request){
