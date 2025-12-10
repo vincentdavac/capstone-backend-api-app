@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class currentCondition extends Controller{
     public function getWind(){
+       DB::table('wind_readings', )->select('wind_speed_m_s')->latest('recorded_at')->first();
        return DB::table('wind_readings')->latest('recorded_at')->first();
         
     }
