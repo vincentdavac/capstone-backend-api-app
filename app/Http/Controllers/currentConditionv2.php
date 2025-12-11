@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\DB;
 class currentConditionv2 extends Controller
 {
     public function getwindKh(){
-        $kh = DB::table('wind_readings')->select('wind_speed_k_h')->latest('recorded_at')->first();
+        $kh = DB::table('wind_readings')->select('wind_speed_k_h', 'recorded_at')->latest('recorded_at')->first();
         $windKh = (int)$kh->wind_speed_k_h;
+        $recorded_at = $kh->recorded_at;
         $status = null;
         if ($windKh >= 39 && $windKh <= 61) {
             $status = "White";
@@ -20,9 +21,10 @@ class currentConditionv2 extends Controller
         } else {
             $status = "Red";
         }
-        return ['wind_speed_k_h' => $windKh, 'staus' => $status];
+        return ['wind_speed_k_h' => $windKh, 'recorded_at'=>$recorded_at, 'status' => $status];
     }
-    public function getwindMs(){
+    public function getwindMs()
+    {
         $kh = DB::table('wind_readings')->select('wind_speed_m_s')->latest('recorded_at')->first();
         $windMs = (int)$kh->wind_speed_m_s;
         $status = null;
@@ -52,23 +54,71 @@ class currentConditionv2 extends Controller
         } else {
             $status = 'Red';
         }
-        return ['wind_speed_m_s' => $depthFeet, 'status' => $status];
+        return ['depth' => $depthFeet, 'status' => $status];
     }
-    public function getHumidity(){
+    public function getHumidity()
+    {
         $humidity = DB::table('bme280_humidity_readings')->select('humidity')->latest('recorded_at')->first();
         $humidityData = $humidity->humidity;
         $status = null;
         if ($humidityData >= 30 && $humidityData <= 59) {
             $status = "White";
-        }else if ($humidityData >= 60 && $humidityData <= 69) {
+        } else if ($humidityData >= 60 && $humidityData <= 69) {
             $status = "Blue";
-        }else if ($humidityData >= 25 && $humidityData <= 29) {
+        } else if ($humidityData >= 25 && $humidityData <= 29) {
             $status = "Blue";
-        }else if ($humidityData < 25) {
-            $status ="Red";
-        }else if ($humidityData > 70) {
+        } else if ($humidityData < 25) {
+            $status = "Red";
+        } else if ($humidityData > 70) {
             $status = "Red";
         }
+        return ['humidity' => $humidityData, 'status' => $status];
+    }
+    public function getRain()
+    {
+        $rain = DB::table('rain_gauge_readings')->select('rainfall_mm')->latest('recorded_at')->first();
+        $rainData = $rain->rainfall_mm;
+        $status = null;
+        if ($rainData < 1) {
+            $status = "White";
+        } else if ($rainData >= 1 && $rainData <= 3) {
+            $status = "White";
+        } else if ($rainData >= 4 && $rainData <= 8) {
+            $status = "Blue";
+        } else if ($rainData > 8) {
+            $status = "Red";
+        }
+        return ['rainFall' => $rainData, 'status' => $status];
+    }
+    public function getSurrrounding(){
+        $surrounding = DB::table('bme280_temperature_readings')->select('temperature_celsius')->latest('recorded_at')->first();
+        $surroundingData = $surrounding->temperature_celsius;
+        $status = null;
+        if ($surroundingData >= 27 && $surroundingData <= 32) {
+            $status = 'White';
+        } else if ($surroundingData >= 33 && $surroundingData <= 41) {
+            $status = 'Blue';
+        } else if ($surroundingData >= 42 && $surroundingData <= 51) {
+            $status = 'Red';
+        } else if ($surroundingData > 52) {
+            $status = 'Red';
+        }
+        return ['surrounding' => $surroundingData, 'status' => $status];
+    }
+    public function getwaterData(){
+        $water = DB::table('water_temperature_readings')->select('temperature_celsius')->latest('recorded_at')->first();
+        $waterData = $water->temperature_celsius;
+        $status= null;
+        if ($waterData >= 26 && $waterData <= 30) {
+            $status = "White";
+        } else if ($waterData >= 20 && $waterData <= 25) {
+            $status = "Blue";
+        } else if ($waterData < 20) {
+            $status = "Red";
+        } else if ($waterData > 30) {
+            $status = "Red";
+        }
+        return ['waterTemp' => $waterData, 'status' => $status];
     }
     public function getCurrentCondition()
     {
@@ -77,6 +127,11 @@ class currentConditionv2 extends Controller
                 'windKh' => $this->getwindKh(),
                 'windms' => $this->getwindMs(),
                 'waterDepth' => $this->getdepth(),
+                'humidity' => $this->getHumidity(),
+                'rain'=>$this->getRain(),
+                'surrounding' => $this->getSurrrounding(),
+                'water_temp' => $this->getwaterData()
+
             ];
         });
         return response()->json(['success' => true, 'data' => $data], 200, [], JSON_PRETTY_PRINT);
