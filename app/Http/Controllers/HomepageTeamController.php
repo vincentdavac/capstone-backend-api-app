@@ -109,6 +109,18 @@ class HomepageTeamController extends Controller
     /**
      * Display all active (non-archived) team members.
      */
+
+    public function publicActiveTeams()
+    {
+        $teams = HomepageTeam::where('is_archived', false)->latest()->get();
+
+        return $this->success(
+            HomepageTeamResource::collection($teams),
+            'Active homepage teams fetched successfully',
+            200
+        );
+    }
+
     public function activeTeams()
     {
         $teams = HomepageTeam::where('is_archived', false)->latest()->get();

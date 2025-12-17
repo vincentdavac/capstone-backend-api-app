@@ -136,7 +136,7 @@ Route::post('/barangay/register', [AuthController::class, 'registerBarangay']);
 
 Route::post('/email/resend', [VerificationController::class, 'resend']);
 
-// ✅ Forgot / Reset password routes
+// Forgot / Reset password routes
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
 
@@ -147,6 +147,18 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
 
 // Don't Include in the Protected routes -> It was used in the Register route
 Route::get('/barangays', [BarangayController::class, 'index']);
+
+
+// HOMEPAGE CONTENT
+    Route::get('/public-sliders', [HomepageSliderController::class, 'publicSliders']);
+    Route::get('/public-abouts', [HomepageAboutController::class, 'publicAbouts']);
+    Route::get('/public-about-cards-active', [HomepageAboutController::class, 'publicGetActiveCards']);
+    Route::get('/public-prototypes/left', [HomepagePrototypeController::class, 'publicFetchLeftPrototypes']);
+    Route::get('/public-prototypes/right', [HomepagePrototypeController::class, 'publicFetchRightPrototypes']);
+    Route::get('/public-active-teams', [HomepageTeamController::class, 'publicActiveTeams']);
+    Route::get('/public-active-faqs', [HomepageFaqController::class, 'publicActiveFaqs']);
+    Route::get('/public-active-feedbacks', [HomepageFeedbackController::class, 'publicActiveFeedbacks']);
+    Route::get('/public-footers', [HomepageFooterController::class, 'publicFooters']);
 
 
 // Protected routes

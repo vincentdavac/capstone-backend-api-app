@@ -18,6 +18,24 @@ class HomepageAboutController extends Controller
 {
     use HttpResponses;
 
+    public function publicAbouts()
+    {
+        // Get the latest HomepageAbout with only active cards
+        $about = HomepageAbout::with(['cards' => function ($query) {
+            $query->where('is_archive', false)->latest();
+        }])->latest()->first();
+
+        if (! $about) {
+            return $this->success(null, 'No Homepage About section found.', 200);
+        }
+
+        return $this->success(
+            new HomepageAboutResource($about),
+            'Latest Homepage About section with active cards fetched successfully',
+            200
+        );
+    }
+
     public function index()
     {
         // Get the latest HomepageAbout with only active cards
@@ -127,6 +145,22 @@ class HomepageAboutController extends Controller
         return $this->success(
             HomepageAboutCardResource::collection($cards),
             'All Homepage About cards fetched successfully',
+            200
+        );
+    }
+
+
+     public function publicGetActiveCards()
+    {
+        // Fetch cards where is_archive = false, include their about section
+        $cards = HomepageAboutCard::with('about')
+            ->where('is_archive', false)
+            ->latest()
+            ->get();
+
+        return $this->success(
+            HomepageAboutCardResource::collection($cards),
+            'Active Homepage About cards fetched successfully',
             200
         );
     }

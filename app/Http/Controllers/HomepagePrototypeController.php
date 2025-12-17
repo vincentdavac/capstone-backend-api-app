@@ -28,6 +28,22 @@ class HomepagePrototypeController extends Controller
         );
     }
 
+
+      public function publicFetchLeftPrototypes()
+    {
+        $leftPrototypes = HomepagePrototype::where('is_archived', false)
+            ->where('position', 'left')
+            ->latest()
+            ->get();
+
+        return $this->success(
+            HomepagePrototypeResource::collection($leftPrototypes),
+            'Left prototypes fetched successfully',
+            200
+        );
+    }
+
+
       public function fetchLeftPrototypes()
     {
         $leftPrototypes = HomepagePrototype::where('is_archived', false)
@@ -38,6 +54,20 @@ class HomepagePrototypeController extends Controller
         return $this->success(
             HomepagePrototypeResource::collection($leftPrototypes),
             'Left prototypes fetched successfully',
+            200
+        );
+    }
+
+    public function publicFetchRightPrototypes()
+    {
+        $rightPrototypes = HomepagePrototype::where('is_archived', false)
+            ->where('position', 'right')
+            ->latest()
+            ->get();
+
+        return $this->success(
+            HomepagePrototypeResource::collection($rightPrototypes),
+            'Right prototypes fetched successfully',
             200
         );
     }
