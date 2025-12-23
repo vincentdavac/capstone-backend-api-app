@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\UserInformationResource;
-
+use App\Models\SystemNotifications;
 use Illuminate\Support\Facades\DB;
 
 
@@ -94,6 +94,53 @@ class AuthController extends Controller
         }
 
         $targetUser->update($validated);
+
+        //  CREATE APPROVAL NOTIFICATIONS
+        if (array_key_exists('registration_status', $validated)) {
+
+            $isApproved = (bool) $validated['registration_status'];
+
+            // ============================
+            // ADMIN → BARANGAY APPROVAL
+            // ============================
+            if ($authUser->user_type === 'admin' && $targetUser->user_type === 'barangay') {
+
+                SystemNotifications::create([
+                    'sender_id'     => $authUser->id,
+                    'receiver_id'   => $targetUser->id,
+                    'barangay_id'   => $targetUser->barangay_id,
+                    'receiver_role' => 'barangay',
+                    'title'         => $isApproved
+                        ? 'Barangay Registration Approved'
+                        : 'Barangay Registration Disapproved',
+                    'body'          => $isApproved
+                        ? 'Your barangay account has been approved by the administrator.'
+                        : 'Your barangay account has been disapproved by the administrator.',
+                    'status'        => 'unread',
+                ]);
+            }
+
+            // ============================
+            // BARANGAY → USER APPROVAL
+            // ============================
+            if ($authUser->user_type === 'barangay' && $targetUser->user_type === 'user') {
+
+                SystemNotifications::create([
+                    'sender_id'     => $authUser->id,
+                    'receiver_id'   => $targetUser->id,
+                    'barangay_id'   => $authUser->barangay_id,
+                    'receiver_role' => 'user',
+                    'title'         => $isApproved
+                        ? 'Account Approved'
+                        : 'Account Disapproved',
+                    'body'          => $isApproved
+                        ? 'Your account has been approved by your barangay.'
+                        : 'Your account has been disapproved by your barangay.',
+                    'status'        => 'unread',
+                ]);
+            }
+        }
+
 
         // Load related data
         $targetUser->load(['barangay', 'verifier']);
@@ -281,6 +328,23 @@ class AuthController extends Controller
 
         // ✅ Load barangay and verifier relationships for UserResource
         $user->load(['barangay', 'verifier']);
+
+
+        $barangayUser = User::where('user_type', 'barangay')
+            ->where('barangay_id', $user->barangay_id)
+            ->first();
+
+        if ($barangayUser) {
+            SystemNotifications::create([
+                'sender_id'     => $user->id,                 // newly registered user
+                'receiver_id'   => $barangayUser->id,         // barangay account
+                'barangay_id'   => $user->barangay_id,
+                'receiver_role' => 'barangay',
+                'title'         => 'New User Registration',
+                'body'          => "A new user has registered in your barangay: {$user->first_name} {$user->last_name}.",
+                'status'        => 'unread',
+            ]);
+        }
 
         // 🔹 Step 7: Return success response using HttpResponses
         return $this->success([
@@ -582,6 +646,15 @@ class AuthController extends Controller
 
         // ✅ Load relationships for API response
         $user->load(['barangay', 'verifier']);
+
+        SystemNotifications::create([
+            'sender_id'      => $user->id,                       // the new barangay user
+            'receiver_id'    => null,                      // admin
+            'receiver_role'  => 'admin',
+            'title'          => 'New Barangay Registration',
+            'body'           => "A new barangay account has been registered: {$user->first_name} {$user->last_name}.",
+            'status'         => 'unread',
+        ]);
 
         // 🔹 Step 6: Return success response
         return $this->success([
