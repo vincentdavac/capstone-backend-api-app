@@ -386,16 +386,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/messages/send', [MessageController::class, 'send']);
     Route::get('/chat/{chatId}', [MessageController::class, 'getChat']);
     Route::patch('/chat/{id}/read', [MessageController::class, 'markChatAsRead']);
-
     Route::get('/admin/chats/barangays', [MessageController::class, 'getAllBarangayChats']);
     Route::get('/barangay/chats/users-admins', [MessageController::class, 'getAllUserAndAdminChats']);
 
-
     // User Side: Send message to Barangay
     Route::post('/user/message/send', [MessageController::class, 'sendMessageUserToBarangay']);
-
     // User Side: Get all Barangay Chats
     Route::get('/user/chats/barangays', [MessageController::class, 'getChatUserToBarangay']);
+    // Count unread chats
+    Route::get('/chats/unread/count', [MessageController::class, 'countUnreadChats']);
 });
 
 

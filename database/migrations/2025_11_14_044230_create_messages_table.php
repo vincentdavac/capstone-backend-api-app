@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('chat_id')->unsigned();
             $table->bigInteger('sender_id')->unsigned();
+            $table->bigInteger('receiver_id')->nullable();
             $table->text('message')->nullable();
             $table->text('attachment')->nullable(); // store image path
             $table->boolean('is_read')->default(false);

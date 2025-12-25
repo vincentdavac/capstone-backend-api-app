@@ -40,8 +40,23 @@ class SystemNotificationsController extends Controller
             ->latest()
             ->get();
 
+        // Base query for unread admin notifications
+        $query = SystemNotifications::with(['sender', 'barangay'])
+            ->where('receiver_role', 'admin')
+            ->where(function ($query) use ($user) {
+                $query->where('receiver_id', $user->id)
+                    ->orWhereNull('receiver_id'); // role-based broadcast
+            })
+            ->where('status', 'unread');
+
+        // Get unread count
+        $unreadCount = (clone $query)->count();
+
         return $this->success(
-            SystemNotificationsResource::collection($notifications),
+            [
+                'notifications' => SystemNotificationsResource::collection($notifications),
+                'unread_notifications' => $unreadCount,
+            ],
             'Unread admin notifications retrieved successfully.'
         );
     }
@@ -128,18 +143,27 @@ class SystemNotificationsController extends Controller
             return $this->error(null, 'Unauthenticated.', 401);
         }
 
-        $notifications = SystemNotifications::with(['sender', 'barangay'])
+        // Base query for unread notifications by role
+        $query = SystemNotifications::with(['sender', 'barangay'])
             ->where('receiver_id', $user->id)
             ->where('receiver_role', $user->user_type) // admin, barangay, user
-            ->where('status', 'unread')
-            ->latest()
-            ->get();
+            ->where('status', 'unread');
+
+        // Count unread notifications
+        $unreadCount = (clone $query)->count();
+
+        // Fetch notifications
+        $notifications = $query->latest()->get();
 
         return $this->success(
-            SystemNotificationsResource::collection($notifications),
+            [
+                'notifications' => SystemNotificationsResource::collection($notifications),
+                'unread_notifications' => $unreadCount,
+            ],
             'Unread notifications retrieved successfully.'
         );
     }
+
 
 
     public function markAsRead(SystemNotificationsRequest $request, $id)
