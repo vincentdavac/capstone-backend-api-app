@@ -18,8 +18,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\UserInformationResource;
-
+use App\Models\SystemNotifications;
 use Illuminate\Support\Facades\DB;
+use App\Events\SystemNotificationSent;
 
 
 class AuthController extends Controller
@@ -94,6 +95,55 @@ class AuthController extends Controller
         }
 
         $targetUser->update($validated);
+
+        //  CREATE APPROVAL NOTIFICATIONS
+        if (array_key_exists('registration_status', $validated)) {
+
+            $isApproved = (bool) $validated['registration_status'];
+
+            // ============================
+            // ADMIN → BARANGAY APPROVAL
+            // ============================
+            if ($authUser->user_type === 'admin' && $targetUser->user_type === 'barangay') {
+
+                $notification = SystemNotifications::create([
+                    'sender_id'     => $authUser->id,
+                    'receiver_id'   => $targetUser->id,
+                    'barangay_id'   => $targetUser->barangay_id,
+                    'receiver_role' => 'barangay',
+                    'title'         => $isApproved
+                        ? 'Barangay Registration Approved'
+                        : 'Barangay Registration Disapproved',
+                    'body'          => $isApproved
+                        ? 'Your barangay account has been approved by the administrator.'
+                        : 'Your barangay account has been disapproved by the administrator.',
+                    'status'        => 'unread',
+                ]);
+            }
+
+            // ============================
+            // BARANGAY → USER APPROVAL
+            // ============================
+            if ($authUser->user_type === 'barangay' && $targetUser->user_type === 'user') {
+
+                $notification = SystemNotifications::create([
+                    'sender_id'     => $authUser->id,
+                    'receiver_id'   => $targetUser->id,
+                    'barangay_id'   => $authUser->barangay_id,
+                    'receiver_role' => 'user',
+                    'title'         => $isApproved
+                        ? 'Account Approved'
+                        : 'Account Disapproved',
+                    'body'          => $isApproved
+                        ? 'Your account has been approved by your barangay.'
+                        : 'Your account has been disapproved by your barangay.',
+                    'status'        => 'unread',
+                ]);
+            }
+
+            broadcast(new SystemNotificationSent($notification))->toOthers();
+        }
+
 
         // Load related data
         $targetUser->load(['barangay', 'verifier']);
@@ -270,7 +320,7 @@ class AuthController extends Controller
             'verified_by'        => $request->verified_by ?? null,
         ]);
 
-        // ✅ Generate Sanctum token
+        // Generate Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         // Attach the token to the resource
@@ -279,8 +329,28 @@ class AuthController extends Controller
         // 🔹 Step 6: Send email verification
         $user->sendEmailVerificationNotification();
 
-        // ✅ Load barangay and verifier relationships for UserResource
+        // Load barangay and verifier relationships for UserResource
         $user->load(['barangay', 'verifier']);
+
+
+        $barangayUser = User::where('user_type', 'barangay')
+            ->where('barangay_id', $user->barangay_id)
+            ->first();
+
+        if ($barangayUser) {
+            $notification =  SystemNotifications::create([
+                'sender_id'     => $user->id,                 // newly registered user
+                'receiver_id'   => $barangayUser->id,         // barangay account
+                'barangay_id'   => $user->barangay_id,
+                'receiver_role' => 'barangay',
+                'title'         => 'New User Registration',
+                'body'          => "A new user has registered in your barangay: {$user->first_name} {$user->last_name}.",
+                'status'        => 'unread',
+            ]);
+        }
+
+        broadcast(new SystemNotificationSent($notification))->toOthers();
+
 
         // 🔹 Step 7: Return success response using HttpResponses
         return $this->success([
@@ -422,14 +492,14 @@ class AuthController extends Controller
             'verified_by'        => $request->verified_by ?? null,
         ]);
 
-        // ✅ Generate Sanctum token
+        // Generate Sanctum token
         $token = $user->createToken('admin_auth_token')->plainTextToken;
         $user->token = $token;
 
         // 🔹 Step 5: Send email verification
         $user->sendEmailVerificationNotification();
 
-        // ✅ Load relationships for UserResource
+        // Load relationships for UserResource
         $user->load(['barangay', 'verifier']);
 
         // 🔹 Step 6: Return success response
@@ -573,15 +643,27 @@ class AuthController extends Controller
             'verified_by'        => $request->verified_by ?? null,
         ]);
 
-        // ✅ Generate Sanctum token
+        // Generate Sanctum token
         $token = $user->createToken('barangay_auth_token')->plainTextToken;
         $user->token = $token;
 
         // 🔹 Step 5: Send email verification
         $user->sendEmailVerificationNotification();
 
-        // ✅ Load relationships for API response
+        // Load relationships for API response
         $user->load(['barangay', 'verifier']);
+
+        $notification = SystemNotifications::create([
+            'sender_id'      => $user->id,                       // the new barangay user
+            'receiver_id'    => null,                      // admin
+            'receiver_role'  => 'admin',
+            'title'          => 'New Barangay Registration',
+            'body'           => "A new barangay account has been registered: {$user->first_name} {$user->last_name}.",
+            'status'         => 'unread',
+        ]);
+
+        broadcast(new SystemNotificationSent($notification))->toOthers();
+
 
         // 🔹 Step 6: Return success response
         return $this->success([
@@ -602,26 +684,26 @@ class AuthController extends Controller
 
         $authUser = Auth::user();
 
-        // 🚫 Prevent barangay users from archiving admins or other barangay accounts
+        // Prevent barangay users from archiving admins or other barangay accounts
         if (in_array($user->user_type, ['admin', 'barangay'])) {
             return $this->error(null, 'Admin and Barangay accounts cannot be archived.', 403);
         }
 
-        // ✅ Allow barangay users to archive only users under their jurisdiction (or all, if global)
+        // Allow barangay users to archive only users under their jurisdiction (or all, if global)
         if ($authUser->user_type === 'barangay') {
             // Optional: If you track barangay_id in users table, enforce same barangay
             if ($authUser->barangay_id !== $user->barangay_id) {
                 return $this->error(null, 'You are not authorized to archive users from another barangay.', 403);
             }
         } else {
-            // 🚫 Non-admin/non-barangay users cannot archive anyone
+            // Non-admin/non-barangay users cannot archive anyone
             return $this->error(null, 'You are not authorized to perform this action.', 403);
         }
 
-        // ✅ Archive the user (deactivate account)
+        // Archive the user (deactivate account)
         $user->update(['is_active' => false]);
 
-        // 🧹 Remove personal access tokens (logout everywhere)
+        // Remove personal access tokens (logout everywhere)
         DB::table('personal_access_tokens')->where('tokenable_id', $user->id)->delete();
 
         return $this->success(
@@ -642,18 +724,18 @@ class AuthController extends Controller
 
         $authUser = Auth::user();
 
-        // ✅ Only the same user or an admin can restore the account
+        // Only the same user or an admin can restore the account
         if ($authUser->id !== $user->id && !in_array($authUser->user_type, ['admin', 'barangay'])) {
             return $this->error(null, 'You are not authorized to restore this user.', 403);
         }
 
 
-        // 🚫 Prevent restoring admin or barangay accounts using this function
+        // Prevent restoring admin or barangay accounts using this function
         if (in_array($user->user_type, ['admin', 'barangay'])) {
             return $this->error(null, 'Admin and Barangay accounts cannot be restored using this function.', 403);
         }
 
-        // ✅ Restore user account
+        // Restore user account
         $user->update(['is_active' => true]);
 
         return $this->success(
@@ -772,7 +854,7 @@ class AuthController extends Controller
             return $this->error(null, 'Unauthorized', 403);
         }
 
-        // ✅ Eager load barangay and its buoys
+        // Eager load barangay and its buoys
         $users->load(['barangay.buoys', 'verifier']);
 
         return $this->success(

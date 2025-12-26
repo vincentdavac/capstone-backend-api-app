@@ -86,6 +86,20 @@ class HomepageFeedbackController extends Controller
     /**
      * Display all active (not archived) feedbacks.
      */
+
+    public function publicActiveFeedbacks()
+    {
+        $feedback = HomepageFeedback::where('is_archived', false)
+            ->latest()
+            ->get();
+
+        return $this->success(
+            HomepageFeedbackResource::collection($feedback),
+            'Active feedbacks fetched successfully',
+            200
+        );
+    }
+
     public function activeFeedbacks()
     {
         $feedback = HomepageFeedback::where('is_archived', false)

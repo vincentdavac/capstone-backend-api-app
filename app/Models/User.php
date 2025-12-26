@@ -87,10 +87,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(User::class, 'verified_by');
     }
 
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
-    }
+    // public function notifications()
+    // {
+    //     return $this->hasMany(Notification::class);
+    // }
 
     public function sendPasswordResetNotification($token)
     {
@@ -100,5 +100,27 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail);
+    }
+
+    public function isAdmin()
+    {
+        return $this->user_type === 'admin';
+    }
+
+    public function isBarangay()
+    {
+        return $this->user_type === 'barangay';
+    }
+
+    // Notifications sent by user
+    public function sentNotifications()
+    {
+        return $this->hasMany(SystemNotifications::class, 'sender_id');
+    }
+
+    // Notifications received by user
+    public function receivedNotifications()
+    {
+        return $this->hasMany(SystemNotifications::class, 'receiver_id');
     }
 }

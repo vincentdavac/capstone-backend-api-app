@@ -14,6 +14,18 @@ class HomepageFooterController extends Controller
 {
     use HttpResponses;
 
+    public function publicFooters()
+    {
+        $footers = HomepageFooter::where('is_archived', false)->latest()->get();
+
+        return $this->success(
+            HomepageFooterResource::collection($footers),
+            'Homepage footers fetched successfully',
+            200
+        );
+    }
+
+
     public function index()
     {
         $footers = HomepageFooter::where('is_archived', false)->latest()->get();

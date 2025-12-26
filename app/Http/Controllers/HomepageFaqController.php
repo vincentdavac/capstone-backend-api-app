@@ -85,6 +85,18 @@ class HomepageFaqController extends Controller
     /**
      * Display all active FAQs.
      */
+
+    public function publicActiveFaqs()
+    {
+        $faqs = HomepageFaq::where('is_archived', false)->latest()->get();
+
+        return $this->success(
+            HomepageFaqResource::collection($faqs),
+            'Active FAQs fetched successfully',
+            200
+        );
+    }
+
     public function activeFaqs()
     {
         $faqs = HomepageFaq::where('is_archived', false)->latest()->get();

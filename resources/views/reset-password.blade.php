@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
@@ -19,24 +21,28 @@
             justify-content: center;
             padding: 20px;
         }
+
         .container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
             max-width: 500px;
             width: 100%;
         }
+
         h1 {
             color: #333;
             margin-bottom: 20px;
             font-size: 28px;
             text-align: center;
         }
+
         .form-group {
             margin-bottom: 20px;
             position: relative;
         }
+
         label {
             display: block;
             color: #555;
@@ -44,6 +50,7 @@
             margin-bottom: 8px;
             font-size: 14px;
         }
+
         input {
             width: 100%;
             padding: 12px 40px 12px 12px;
@@ -52,10 +59,12 @@
             font-size: 16px;
             transition: border-color 0.3s;
         }
+
         input:focus {
             outline: none;
             border-color: #0d6efd;
         }
+
         .toggle-password {
             position: absolute;
             right: 12px;
@@ -65,6 +74,7 @@
             font-size: 18px;
             user-select: none;
         }
+
         button {
             width: 100%;
             padding: 14px;
@@ -77,9 +87,11 @@
             cursor: pointer;
             transition: transform 0.3s;
         }
+
         button:hover {
             transform: translateY(-2px);
         }
+
         .error {
             background: #fff3f3;
             border-left: 4px solid #f44336;
@@ -89,6 +101,7 @@
             color: #d32f2f;
             font-size: 14px;
         }
+
         .logo {
             font-size: 12px;
             color: #999;
@@ -97,16 +110,17 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>🔐 Reset Your Password</h1>
-        
+        <h1>Reset Your Password</h1>
+
         @if ($errors->any())
-            <div class="error">
-                @foreach ($errors->all() as $error)
-                    {{ $error }}<br>
-                @endforeach
-            </div>
+        <div class="error">
+            @foreach ($errors->all() as $error)
+            {{ $error }}<br>
+            @endforeach
+        </div>
         @endif
 
         <form method="POST" action="{{ route('password.update') }}">
@@ -146,9 +160,9 @@
         function togglePassword(fieldId, iconElement) {
             const field = document.getElementById(fieldId);
             const isPassword = field.type === 'password';
-            
+
             field.type = isPassword ? 'text' : 'password';
-            
+
             // Toggle icon
             if (isPassword) {
                 // Show "visibility_off" icon
@@ -170,4 +184,5 @@
         }
     </script>
 </body>
+
 </html>

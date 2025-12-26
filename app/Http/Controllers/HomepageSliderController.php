@@ -14,6 +14,19 @@ class HomepageSliderController extends Controller
 {
     use HttpResponses;
 
+
+     public function publicSliders()
+    {
+        $sliders = HomepageSlider::latest()->get();
+        return $this->success(
+            HomepageSliderResource::collection($sliders),
+            'Homepage sliders fetched successfully',
+            200
+        );
+    }
+
+
+
     public function index()
     {
         $sliders = HomepageSlider::latest()->get();

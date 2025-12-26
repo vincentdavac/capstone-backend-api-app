@@ -66,6 +66,8 @@ use App\Http\Controllers\broadCastController;
 use App\Http\Controllers\alertMonitoring;
 use App\Http\Controllers\alertNotif;
 use App\Http\Controllers\currentConditionv2;
+use App\Http\Controllers\HotlinesController;
+use App\Http\Controllers\SystemNotificationsController;
 
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
 // Route::get('/prac', [alertNotif::class, 'getAlertNotif']);
@@ -136,7 +138,7 @@ Route::post('/barangay/register', [AuthController::class, 'registerBarangay']);
 
 Route::post('/email/resend', [VerificationController::class, 'resend']);
 
-// ✅ Forgot / Reset password routes
+// Forgot / Reset password routes
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
 
@@ -147,6 +149,18 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
 
 // Don't Include in the Protected routes -> It was used in the Register route
 Route::get('/barangays', [BarangayController::class, 'index']);
+
+
+// HOMEPAGE CONTENT
+Route::get('/public-sliders', [HomepageSliderController::class, 'publicSliders']);
+Route::get('/public-abouts', [HomepageAboutController::class, 'publicAbouts']);
+Route::get('/public-about-cards-active', [HomepageAboutController::class, 'publicGetActiveCards']);
+Route::get('/public-prototypes/left', [HomepagePrototypeController::class, 'publicFetchLeftPrototypes']);
+Route::get('/public-prototypes/right', [HomepagePrototypeController::class, 'publicFetchRightPrototypes']);
+Route::get('/public-active-teams', [HomepageTeamController::class, 'publicActiveTeams']);
+Route::get('/public-active-faqs', [HomepageFaqController::class, 'publicActiveFaqs']);
+Route::get('/public-active-feedbacks', [HomepageFeedbackController::class, 'publicActiveFeedbacks']);
+Route::get('/public-footers', [HomepageFooterController::class, 'publicFooters']);
 
 
 // Protected routes
@@ -337,10 +351,35 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/footers/{footer}', [HomepageFooterController::class, 'update']);
     Route::delete('/footers/{footer}', [HomepageFooterController::class, 'destroy']);
 
-
     // Deployed Buoy Routes
     Route::get('/deployed-buoy/{buoyCode}', [DeployedBuoyController::class, 'show']);
     Route::get('/get-all-data/{buoyCode}', [DeployedBuoyController::class, 'getAllData']);
+
+    // Hotlines
+    Route::get('/hotlines/archived', [HotlinesController::class, 'archived']);
+    Route::get('/hotlines', [HotlinesController::class, 'index']);
+    Route::post('/hotlines', [HotlinesController::class, 'store']);
+    Route::get('/hotlines/{hotline}', [HotlinesController::class, 'show']);
+    Route::patch('/hotlines/{hotline}', [HotlinesController::class, 'update']);
+    Route::patch('/hotlines/archive/{hotline}', [HotlinesController::class, 'archive']);
+
+    // User-specific hotlines
+    Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
+
+    // System Notifications Routes for Admin
+    Route::get('unread/admin', [SystemNotificationsController::class, 'unreadNotificationsAdmin']);
+    Route::patch('read/admin/{id}', [SystemNotificationsController::class, 'markAsReadAdmin']);
+    Route::patch('read-all/admin', [SystemNotificationsController::class, 'markAllAsReadAdmin']);
+
+    // System Notifications Routes for Barangay
+    Route::get('unread/barangay', [SystemNotificationsController::class, 'unreadByRole']);
+    Route::patch('read/barangay/{id}', [SystemNotificationsController::class, 'markAsRead']);
+    Route::patch('read-all/barangay', [SystemNotificationsController::class, 'markAllAsRead']);
+
+    // System Notifications Routes for User
+    Route::get('unread/user', [SystemNotificationsController::class, 'unreadByRole']);
+    Route::patch('read/user/{id}', [SystemNotificationsController::class, 'markAsRead']);
+    Route::patch('read-all/user', [SystemNotificationsController::class, 'markAllAsRead']);
 });
 
 // CHAT ROUTES: No throttle
@@ -348,16 +387,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/messages/send', [MessageController::class, 'send']);
     Route::get('/chat/{chatId}', [MessageController::class, 'getChat']);
     Route::patch('/chat/{id}/read', [MessageController::class, 'markChatAsRead']);
-
     Route::get('/admin/chats/barangays', [MessageController::class, 'getAllBarangayChats']);
     Route::get('/barangay/chats/users-admins', [MessageController::class, 'getAllUserAndAdminChats']);
 
-
     // User Side: Send message to Barangay
     Route::post('/user/message/send', [MessageController::class, 'sendMessageUserToBarangay']);
-
     // User Side: Get all Barangay Chats
     Route::get('/user/chats/barangays', [MessageController::class, 'getChatUserToBarangay']);
+    // Count unread chats
+    Route::get('/chats/unread/count', [MessageController::class, 'countUnreadChats']);
 });
 
 

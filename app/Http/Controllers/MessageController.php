@@ -25,73 +25,78 @@ class MessageController extends Controller
     public function send(MessageRequest $request)
     {
         $sender = Auth::user();
-        // $sender = User::findOrFail($request->sender_id);
         $receiver = User::findOrFail($request->receiver_id);
 
         /**
-         *  ROLE RESTRICTIONS
+         *  ROLE RESTRICTIONS BASED ON AUTHENTICATED USER
          */
-        // ALLOWED PAIRS
-        if (
-            ($sender->user_type === 'admin' && $receiver->user_type === 'admin') ||
-            ($sender->user_type === 'admin' && $receiver->user_type === 'barangay') ||
-            ($sender->user_type === 'barangay' && $receiver->user_type === 'admin') ||
-            ($sender->user_type === 'barangay' && $receiver->user_type === 'user' && $sender->barangay_id === $receiver->barangay_id) ||
-            ($sender->user_type === 'user' && $receiver->user_type === 'barangay' && $sender->barangay_id === $receiver->barangay_id)
-        ) {
+        $allowed = false;
 
-            /**
-             *  CHECK IF CHAT EXISTS OR CREATE NEW
-             */
-            $chat = Chat::where(function ($query) use ($sender, $receiver) {
-                $query->where('sender_id', $sender->id)
-                    ->where('receiver_id', $receiver->id);
-            })->orWhere(function ($query) use ($sender, $receiver) {
-                $query->where('sender_id', $receiver->id)
-                    ->where('receiver_id', $sender->id);
-            })->first();
+        if ($sender->user_type === 'admin') {
+            // Admin can message admin or barangay
+            $allowed = in_array($receiver->user_type, ['admin', 'barangay']);
+        }
 
-            if (!$chat) {
-                $chat = Chat::create([
-                    'sender_id'   => $sender->id,
-                    'receiver_id' => $receiver->id,
-                ]);
-            }
+        if ($sender->user_type === 'barangay') {
+            // Barangay can message admin or user in same barangay
+            $allowed = $receiver->user_type === 'admin' ||
+                ($receiver->user_type === 'user' && $sender->barangay_id === $receiver->barangay_id);
+        }
 
-            /**
-             *  MESSAGE DATA
-             */
-            $messageData = [
-                'chat_id'   => $chat->id,
-                'sender_id' => $sender->id,
-                'message'   => $request->message,
-            ];
-
-            /**
-             *  ATTACHMENT HANDLING (10MB MAX)
-             */
-            if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                $filename = Str::random(32) . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path('message_attachments'), $filename);
-                $messageData['attachment'] = $filename;
-            }
-
-            /**
-             *  CREATE MESSAGE
-             */
-            $message = Message::create($messageData);
-
-            broadcast(new MessageSent($message))->toOthers();
-
-
-            /**
-             *  RETURN RESOURCE
-             */
-            return new MessageSentResource($message->load('sender'));
-        } else {
+        if (! $allowed) {
             return $this->error(null, 'Chat not allowed between these user types', 403);
         }
+
+        /**
+         *  CHECK IF CHAT EXISTS OR CREATE NEW
+         */
+        $chat = Chat::where(function ($query) use ($sender, $receiver) {
+            $query->where('sender_id', $sender->id)
+                ->where('receiver_id', $receiver->id);
+        })->orWhere(function ($query) use ($sender, $receiver) {
+            $query->where('sender_id', $receiver->id)
+                ->where('receiver_id', $sender->id);
+        })->first();
+
+        if (!$chat) {
+            $chat = Chat::create([
+                'sender_id'   => $sender->id,
+                'receiver_id' => $receiver->id,
+            ]);
+        }
+
+        /**
+         *  MESSAGE DATA
+         */
+        $messageData = [
+            'chat_id'   => $chat->id,
+            'sender_id' => $sender->id,
+            'receiver_id' => $receiver->id, // Ensure receiver_id is stored
+            'message'   => $request->message,
+        ];
+
+        /**
+         *  ATTACHMENT HANDLING (10MB MAX)
+         */
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = Str::random(32) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('message_attachments'), $filename);
+            $messageData['attachment'] = $filename;
+        }
+
+        /**
+         *  CREATE MESSAGE
+         */
+        $message = Message::create($messageData);
+
+        // Broadcast message
+        broadcast(new MessageSent($message))->toOthers();
+
+        /**
+         *  RETURN RESOURCE
+         */
+        return new MessageSentResource($message->load('sender', 'receiver'));
     }
 
     // User Side: Send message to Barangay
@@ -318,9 +323,16 @@ class MessageController extends Controller
             return $this->error(null, 'Unauthorized', 403);
         }
 
-        // Get all users with user_type = admin or user AND SAME barangay_id
-        $users = User::whereIn('user_type', ['admin', 'user'])
-            ->where('barangay_id', $barangay->barangay_id)
+        // NEW RULES:
+        // - ALL admins (any barangay)
+        // - ONLY users from the same barangay
+        $users = User::where(function ($query) use ($barangay) {
+            $query->where('user_type', 'admin')
+                ->orWhere(function ($q) use ($barangay) {
+                    $q->where('user_type', 'user')
+                        ->where('barangay_id', $barangay->barangay_id);
+                });
+        })
             ->get();
 
         $data = $users->map(function ($user) use ($barangay) {
@@ -329,26 +341,27 @@ class MessageController extends Controller
             $chat = Chat::where(function ($query) use ($barangay, $user) {
                 $query->where('sender_id', $barangay->id)
                     ->where('receiver_id', $user->id);
-            })->orWhere(function ($query) use ($barangay, $user) {
-                $query->where('sender_id', $user->id)
-                    ->where('receiver_id', $barangay->id);
-            })->first();
+            })
+                ->orWhere(function ($query) use ($barangay, $user) {
+                    $query->where('sender_id', $user->id)
+                        ->where('receiver_id', $barangay->id);
+                })
+                ->first();
 
-            // If chat does not exist, create one
+            // Create chat if it doesn't exist
             if (!$chat) {
                 $chat = Chat::create([
-                    'sender_id' => $barangay->id,
+                    'sender_id'   => $barangay->id,
                     'receiver_id' => $user->id,
                 ]);
             }
 
-            // Load messages for the chat, descending
+            // Load latest messages
             $chat->load(['messages' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             }]);
 
-            // Get the latest message timestamp for sorting
-            $latestMessageTime = $chat->messages->first()?->created_at ?? null;
+            $latestMessageTime = $chat->messages->first()?->created_at;
 
             return [
                 'user' => new UserResource($user),
@@ -357,16 +370,19 @@ class MessageController extends Controller
             ];
         });
 
-        // Sort users by latest message time (DESC), so most recent chats appear first
+        // Sort by latest message
         $sortedData = $data
             ->sortByDesc('latest_message_time')
             ->map(function ($item) {
-                unset($item['latest_message_time']); // Remove temp sorting field
+                unset($item['latest_message_time']);
                 return $item;
             })
-            ->values(); // Reset array keys
+            ->values();
 
-        return $this->success($sortedData, 'All admin and regular users chats retrieved successfully');
+        return $this->success(
+            $sortedData,
+            'All admin and same-barangay user chats retrieved successfully'
+        );
     }
 
     // Mark all messages in a chat as read
@@ -397,5 +413,25 @@ class MessageController extends Controller
             ->update(['is_read' => true]);
 
         return $this->success(null, 'Messages marked as read successfully');
+    }
+
+
+    // Count chats with unread messages for authenticated user
+    public function countUnreadChats()
+    {
+        $user = Auth::user();
+
+        $unreadChatCount = Message::where('is_read', false)
+            ->where('sender_id', '!=', $user->id) // messages from other users
+            ->whereHas('chat', function ($query) use ($user) {
+                $query->where('sender_id', $user->id)
+                    ->orWhere('receiver_id', $user->id);
+            })
+            ->distinct('chat_id')
+            ->count('chat_id');
+
+        return $this->success([
+            'unread_chats' => $unreadChatCount
+        ], 'Unread chats count retrieved successfully');
     }
 }

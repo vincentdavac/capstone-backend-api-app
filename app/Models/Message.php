@@ -11,6 +11,7 @@ class Message extends Model
     protected $fillable = [
         'chat_id',
         'sender_id',
+        'receiver_id',
         'message',
         'attachment',
         'is_read',
@@ -30,5 +31,10 @@ class Message extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    public function receiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'receiver_id');
     }
 }
