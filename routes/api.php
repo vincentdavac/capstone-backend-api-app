@@ -68,7 +68,7 @@ use App\Http\Controllers\alertNotif;
 use App\Http\Controllers\currentConditionv2;
 
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
-
+// Route::get('/prac', [alertNotif::class, 'getAlertNotif']);
 
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
