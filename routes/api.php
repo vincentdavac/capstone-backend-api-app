@@ -68,8 +68,11 @@ use App\Http\Controllers\alertNotif;
 use App\Http\Controllers\currentConditionv2;
 use App\Http\Controllers\HotlinesController;
 use App\Http\Controllers\SystemNotificationsController;
+use App\Http\Controllers\updateProfile;
 
+Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
+// Route::get('/prac', [alertNotif::class, 'getAlertNotif']);
 
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);

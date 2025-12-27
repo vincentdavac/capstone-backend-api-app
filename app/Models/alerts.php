@@ -12,6 +12,7 @@ class alerts extends Model
     protected $fillable = [
         'alert_id',
         'broadcast_by',
+        'user_id',
         'is_read',
         'recorded_at',
     ];

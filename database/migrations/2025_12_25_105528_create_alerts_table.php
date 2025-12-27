@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('alerts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('alert_id');
-            $table->string('broadcast_by')->nullable(); 
+            $table->string('broadcast_by')->nullable();
+            $table->string('user_id')->nullable();
             $table->boolean('is_read')->default(false);
             $table->foreign('alert_id')->references('id')->on('recent_alerts')->onDelete('cascade');
             $table->timestamp('recorded_at')->nullable();
