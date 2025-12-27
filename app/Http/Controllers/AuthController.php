@@ -368,7 +368,7 @@ class AuthController extends Controller
         $email = (string) $request->email;
         $key = Str::lower($email) . '|' . $request->ip();
 
-        // ✅ Rate limit: max 3 attempts
+        //  Rate limit: max 3 attempts
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
             return response()->json([
@@ -378,7 +378,7 @@ class AuthController extends Controller
             ], 429);
         }
 
-        // ✅ Attempt login
+        //  Attempt login
         if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             RateLimiter::hit($key, 3);
             return $this->error('', 'Credentials do not match', 401);
@@ -386,7 +386,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // 🚨 Check if email is verified
+        // Check if email is verified
         if (is_null($user->email_verified_at)) {
             Auth::logout();
             return $this->error('', 'Please verify your email address before logging in.', 403);
@@ -394,23 +394,23 @@ class AuthController extends Controller
 
 
 
-        // 🚨 Ensure admin account
+        //  Ensure admin account
         if (!$user->is_admin || $user->user_type !== 'admin') {
             Auth::logout();
             return $this->error('', 'Access denied. Only admin accounts can log in here.', 403);
         }
 
-        // 🚨 Check registration status
+        //  Check registration status
         if (!$user->registration_status) {
             Auth::logout();
             return $this->error('', 'Your admin account is not activated. Please contact the system administrator.', 403);
         }
 
-        // ✅ Clear rate limit and issue token
+        // Clear rate limit and issue token
         RateLimiter::clear($key);
         $token = $user->createToken('admin_auth_token')->plainTextToken;
 
-        // ✅ Load relationships for API response
+        //  Load relationships for API response
         $user->load(['barangay', 'verifier']);
 
         return $this->success([
@@ -518,7 +518,7 @@ class AuthController extends Controller
         $email = (string) $request->email;
         $key = Str::lower($email) . '|' . $request->ip();
 
-        // ✅ Rate limit: max 3 attempts
+        //  Rate limit: max 3 attempts
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
             return response()->json([
@@ -528,7 +528,7 @@ class AuthController extends Controller
             ], 429);
         }
 
-        // ✅ Attempt login
+        // Attempt login
         if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             RateLimiter::hit($key, 3);
             return $this->error('', 'Credentials do not match', 401);
@@ -536,35 +536,35 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // 🚨 Check if email is verified
+        // Check if email is verified
         if (is_null($user->email_verified_at)) {
             Auth::logout();
             return $this->error('', 'Please verify your email address before logging in.', 403);
         }
 
-        // 🚨 Ensure barangay account
+        // Ensure barangay account
         if ($user->is_admin || $user->user_type !== 'barangay') {
             Auth::logout();
             return $this->error('', 'Access denied. Only barangay accounts can log in here.', 403);
         }
 
-        // 🚨 Step 4: Check if account is active
+        // Step 4: Check if account is active
         if (!$user->is_active) {
             Auth::logout();
             return $this->error('', 'Your account has been archived or deactivated. Please contact your administrator for assistance.', 403);
         }
 
-        // 🚨 Check registration status
+        // Check registration status
         if (!$user->registration_status) {
             Auth::logout();
             return $this->error('', 'Your barangay account is not activated. Please contact the system administrator.', 403);
         }
 
-        // ✅ Clear rate limit and issue token
+        // Clear rate limit and issue token
         RateLimiter::clear($key);
         $token = $user->createToken('barangay_auth_token')->plainTextToken;
 
-        // ✅ Load relationships for API response
+        // Load relationships for API response
         $user->load(['barangay', 'verifier']);
 
         return $this->success([
@@ -706,6 +706,24 @@ class AuthController extends Controller
         // Remove personal access tokens (logout everywhere)
         DB::table('personal_access_tokens')->where('tokenable_id', $user->id)->delete();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Notify User
+        |--------------------------------------------------------------------------
+        */
+        $notification = SystemNotifications::create([
+            'sender_id'     => $authUser->id,        // barangay admin
+            'receiver_id'   => $user->id,            // user account
+            'barangay_id'   => $authUser->barangay_id,
+            'receiver_role' => 'user',
+            'title'         => 'Account Archived',
+            'body'          => 'Your account has been archived by your barangay administrator. You have been logged out of the system.',
+            'status'        => 'unread',
+        ]);
+
+        // Broadcast notification
+        broadcast(new SystemNotificationSent($notification))->toOthers();
+
         return $this->success(
             null,
             'User account archived successfully. All active sessions have been logged out.',
@@ -738,6 +756,24 @@ class AuthController extends Controller
         // Restore user account
         $user->update(['is_active' => true]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Notify User
+        |--------------------------------------------------------------------------
+        */
+        $notification = SystemNotifications::create([
+            'sender_id'     => $authUser->id,        // admin or barangay
+            'receiver_id'   => $user->id,            // user account
+            'barangay_id'   => $user->barangay_id,
+            'receiver_role' => 'user',
+            'title'         => 'Account Restored',
+            'body'          => 'Your account has been restored and is now active. You may now log in and continue using the system.',
+            'status'        => 'unread',
+        ]);
+
+        // Broadcast notification
+        broadcast(new SystemNotificationSent($notification))->toOthers();
+
         return $this->success(
             new UserResource($user),
             'User account restored successfully. The account is now active.',
@@ -751,38 +787,56 @@ class AuthController extends Controller
         $authUser = Auth::user();
         $user = User::find($id);
 
-        // 🔸 Check if the user exists
+        // Check if the user exists
         if (!$user) {
             return $this->error(null, 'Barangay account not found.', 404);
         }
 
-        // 🔸 Only admins can archive barangay accounts
+        //  Only admins can archive barangay accounts
         if ($authUser->user_type !== 'admin') {
             return $this->error(null, 'Only administrators can archive barangay accounts.', 403);
         }
 
-        // 🔸 Prevent admin from archiving themselves
+        //  Prevent admin from archiving themselves
         if ($authUser->id === $user->id) {
             return $this->error(null, 'You cannot archive your own account while logged in.', 403);
         }
 
-        // 🔸 Prevent archiving if target is not a barangay account
+        //  Prevent archiving if target is not a barangay account
         if ($user->user_type !== 'barangay') {
             return $this->error(null, 'Only barangay accounts can be archived in this action.', 403);
         }
 
-        // 🔸 Prevent archiving any admin account (even if another admin tries)
+        //  Prevent archiving any admin account (even if another admin tries)
         if ($user->user_type === 'admin' || $user->is_admin) {
             return $this->error(null, 'Admin accounts cannot be archived.', 403);
         }
 
-        // ✅ Archive barangay account
+        // Archive barangay account
         $user->update(['is_active' => false]);
 
-        // 🧹 Remove all active tokens of the barangay account
+        //  Remove all active tokens of the barangay account
         DB::table('personal_access_tokens')
             ->where('tokenable_id', $user->id)
             ->delete();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notify Barangay Account
+        |--------------------------------------------------------------------------
+        */
+        $notification = SystemNotifications::create([
+            'sender_id'     => $authUser->id,        // admin who archived
+            'receiver_id'   => $user->id,            // barangay account
+            'barangay_id'   => $user->barangay_id,
+            'receiver_role' => 'barangay',
+            'title'         => 'Barangay Account Archived',
+            'body'          => 'Your barangay account has been archived by the system administrator. You have been logged out.',
+            'status'        => 'unread',
+        ]);
+
+        // Broadcast notification
+        broadcast(new SystemNotificationSent($notification))->toOthers();
 
         return $this->success(
             new UserResource($user),
@@ -797,33 +851,51 @@ class AuthController extends Controller
         $authUser = Auth::user();
         $user = User::find($id);
 
-        // 🔸 Check if the user exists
+        // Check if the user exists
         if (!$user) {
             return $this->error(null, 'Barangay account not found.', 404);
         }
 
-        // 🔸 Only admins can restore barangay accounts
+        //  Only admins can restore barangay accounts
         if ($authUser->user_type !== 'admin') {
             return $this->error(null, 'Only administrators can restore barangay accounts.', 403);
         }
 
-        // 🔸 Prevent admin from restoring themselves
+        // Prevent admin from restoring themselves
         if ($authUser->id === $user->id) {
             return $this->error(null, 'You cannot restore your own account while logged in.', 403);
         }
 
-        // 🔸 Ensure target is a barangay account
+        //  Ensure target is a barangay account
         if ($user->user_type !== 'barangay') {
             return $this->error(null, 'Only barangay accounts can be restored in this action.', 403);
         }
 
-        // 🔸 Prevent restoring admin accounts in this function
+        //  Prevent restoring admin accounts in this function
         if ($user->user_type === 'admin' || $user->is_admin) {
             return $this->error(null, 'Admin accounts cannot be restored using this function.', 403);
         }
 
-        // ✅ Restore barangay account
+        //  Restore barangay account
         $user->update(['is_active' => true]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notify Barangay Account
+        |--------------------------------------------------------------------------
+        */
+        $notification = SystemNotifications::create([
+            'sender_id'     => $authUser->id,        // admin who restored
+            'receiver_id'   => $user->id,            // barangay account
+            'barangay_id'   => $user->barangay_id,
+            'receiver_role' => 'barangay',
+            'title'         => 'Barangay Account Restored',
+            'body'          => 'Your barangay account has been restored by the system administrator. You may now log in and continue using the system.',
+            'status'        => 'unread',
+        ]);
+
+        // Broadcast notification
+        broadcast(new SystemNotificationSent($notification))->toOthers();
 
         return $this->success(
             new UserResource($user),
@@ -886,7 +958,7 @@ class AuthController extends Controller
             return $this->error(null, 'Unauthorized', 403);
         }
 
-        // ✅ Eager load barangay and its buoys
+        // Eager load barangay and its buoys
         $users->load(['barangay.buoys', 'verifier']);
 
         return $this->success(

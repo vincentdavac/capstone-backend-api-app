@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sender_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('receiver_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('barangay_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('barangay_id')->nullable();
 
             $table->string('receiver_role'); // admin, barangay, user
             $table->string('title');
