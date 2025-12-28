@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-
 use App\Models\User;
 use App\Models\Barangay;
 use Illuminate\Support\Facades\Hash;
@@ -21,7 +20,7 @@ use App\Http\Resources\UserInformationResource;
 use App\Models\SystemNotifications;
 use Illuminate\Support\Facades\DB;
 use App\Events\SystemNotificationSent;
-
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
