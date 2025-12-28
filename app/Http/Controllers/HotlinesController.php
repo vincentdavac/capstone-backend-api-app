@@ -162,9 +162,42 @@ class HotlinesController extends Controller
         );
     }
 
+    public function restoreArchive(Hotlines $hotline)
+    {
+        // Authenticate user first
+        $user = Auth::user();
+
+        if (!$user) {
+            return $this->error(null, 'Unauthenticated.', 401);
+        }
+
+        // Barangay: can only restore its own hotlines
+        if ($user->user_type === 'barangay') {
+            if ($hotline->created_by_role !== 'barangay' || $hotline->barangay_id !== $user->barangay_id) {
+                return $this->error(null, 'Unauthorized action.', 403);
+            }
+        }
+
+        // Admin: can only restore admin-created hotlines
+        if ($user->user_type === 'admin') {
+            if ($hotline->created_by_role !== 'admin') {
+                return $this->error(null, 'Unauthorized action.', 403);
+            }
+        }
+
+        // Mark as active (restore)
+        $hotline->update(['is_archived' => false]);
+
+        return $this->success(
+            new HotlinesResource($hotline->fresh()->load('barangay')),
+            'Hotline restored successfully.'
+        );
+    }
+
+
     public function archived(Request $request)
     {
-        Log::info('🔥 Archived hotlines endpoint HIT');
+        Log::info(' Archived hotlines endpoint HIT');
 
         // Check authentication
         $user = Auth::user();
