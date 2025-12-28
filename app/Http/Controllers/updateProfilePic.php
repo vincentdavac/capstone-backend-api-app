@@ -12,9 +12,9 @@ class updateProfilePic extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
         $user = $request->user();
-        if ($user->profile_image && file_exists(public_path('profile_images/' . $user->profile_image))) {
-            unlink(public_path('profile_images/' . $user->profile_image));
-        }
+        // if ($user->profile_image && file_exists(public_path('profile_images/' . $user->profile_image))) {
+        //     unlink(public_path('profile_images/' . $user->profile_image));
+        // }
         if ($request->hasFile('image')) {
             $imageFile = $request->file('image');
             $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
@@ -22,6 +22,6 @@ class updateProfilePic extends Controller
             $user->image = $imageName;
             $user->save();
         }
-        return response()->json(['success' => true,'message' => 'profile img updated successfully',],200);
+        return response()->json(['success' => true,'message' => 'profile img updated successfully','profile_image' => url('profile_images/' . $user->image)],200);
     }
 }
