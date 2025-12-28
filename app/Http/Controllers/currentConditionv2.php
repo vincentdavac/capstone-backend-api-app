@@ -4,13 +4,32 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class currentConditionv2 extends Controller
 {
-    public function getwindKh(){
+    public function getwindKh()
+    {
         $kh = DB::table('wind_readings')->select('wind_speed_k_h', 'recorded_at')->latest('recorded_at')->first();
-        $windKh = (int)$kh->wind_speed_k_h;
-        $recorded_at = $kh->recorded_at;
+        if ($kh) {
+            $windKh = (int)$kh->wind_speed_k_h;
+        } else {
+            $windKh = 0;
+        }
+        // $windKh = (int)$kh->wind_speed_k_h;
+        $recorded = null;
+
+        // $recorded_at = $kh->recorded_at;
+        if ($kh === null || !$kh) {
+            $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
+        } else {
+            $recorded_at = $kh->recorded_at;
+            if ($recorded_at == null) {
+                $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
+            } else {
+                $recorded = $recorded_at;
+            }
+        }
         $status = null;
         if ($windKh >= 39 && $windKh <= 61) {
             $status = "White";
@@ -21,12 +40,16 @@ class currentConditionv2 extends Controller
         } else {
             $status = "Red";
         }
-        return ['wind_speed_k_h' => $windKh, 'recorded_at'=>$recorded_at, 'status' => $status];
+        return ['wind_speed_k_h' => $windKh, 'recorded_at' => $recorded, 'status' => $status];
     }
-    public function getwindMs()
-    {
+    public function getwindMs(){
         $kh = DB::table('wind_readings')->select('wind_speed_m_s')->latest('recorded_at')->first();
-        $windMs = (int)$kh->wind_speed_m_s;
+        // $windMs = (int)$kh->wind_speed_m_s;
+        if ($kh) {
+            $windMs = (int)$kh->wind_speed_k_h;
+        } else {
+            $windMs = 0;
+        }
         $status = null;
         if ($windMs >= 39 && $windMs <= 61) {
             $status = "White";
@@ -39,9 +62,15 @@ class currentConditionv2 extends Controller
         }
         return ['wind_speed_m_s' => $windMs, 'status' => $status];
     }
-    public function getdepth(){
+    public function getdepth()
+    {
         $depth = DB::table('depth_readings')->select('depth_ft')->latest()->first();
-        $depthFeet = $depth->depth_ft;
+        // $depthFeet = $depth->depth_ft;
+        if ($depth) {
+            $depthFeet = $depth->depth_ft;
+        } else {
+            $depthFeet = 0;
+        }
         $div = $depthFeet / 17;
         $finalData = $div * 100;
         $status = null;
@@ -59,7 +88,12 @@ class currentConditionv2 extends Controller
     public function getHumidity()
     {
         $humidity = DB::table('bme280_humidity_readings')->select('humidity')->latest('recorded_at')->first();
-        $humidityData = $humidity->humidity;
+        // $humidityData = $humidity->humidity;
+        if ($humidity) {
+            $humidityData = $humidity->humidity;
+        } else {
+            $humidityData = 0;
+        }
         $status = null;
         if ($humidityData >= 30 && $humidityData <= 59) {
             $status = "White";
@@ -77,7 +111,12 @@ class currentConditionv2 extends Controller
     public function getRain()
     {
         $rain = DB::table('rain_gauge_readings')->select('rainfall_mm')->latest('recorded_at')->first();
-        $rainData = $rain->rainfall_mm;
+        // $rainData = $rain->rainfall_mm;
+        if ($rain) {
+            $rainData = $rain->rainfall_mm;
+        } else {
+            $rainData = 0;
+        }
         $status = null;
         if ($rainData < 1) {
             $status = "White";
@@ -90,9 +129,15 @@ class currentConditionv2 extends Controller
         }
         return ['rainFall' => $rainData, 'status' => $status];
     }
-    public function getSurrrounding(){
+    public function getSurrrounding()
+    {
         $surrounding = DB::table('bme280_temperature_readings')->select('temperature_celsius')->latest('recorded_at')->first();
-        $surroundingData = $surrounding->temperature_celsius;
+        // $surroundingData = $surrounding->temperature_celsius;
+        if($surrounding) {
+            $surroundingData = $surrounding->temperature_celsius;
+        }else {
+            $surroundingData = 0;
+        }
         $status = null;
         if ($surroundingData >= 27 && $surroundingData <= 32) {
             $status = 'White';
@@ -105,10 +150,16 @@ class currentConditionv2 extends Controller
         }
         return ['surrounding' => $surroundingData, 'status' => $status];
     }
-    public function getwaterData(){
+    public function getwaterData()
+    {
         $water = DB::table('water_temperature_readings')->select('temperature_celsius')->latest('recorded_at')->first();
-        $waterData = $water->temperature_celsius;
-        $status= null;
+        // $waterData = $water->temperature_celsius;
+        if($water) {
+            $waterData = $water->temperature_celsius;
+        }else {
+            $waterData = 0;
+        }
+        $status = null;
         if ($waterData >= 26 && $waterData <= 30) {
             $status = "White";
         } else if ($waterData >= 20 && $waterData <= 25) {
@@ -128,7 +179,7 @@ class currentConditionv2 extends Controller
                 'windms' => $this->getwindMs(),
                 'waterDepth' => $this->getdepth(),
                 'humidity' => $this->getHumidity(),
-                'rain'=>$this->getRain(),
+                'rain' => $this->getRain(),
                 'surrounding' => $this->getSurrrounding(),
                 'water_temp' => $this->getwaterData()
 

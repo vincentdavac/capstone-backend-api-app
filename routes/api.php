@@ -70,11 +70,11 @@ use App\Http\Controllers\HotlinesController;
 use App\Http\Controllers\SystemNotificationsController;
 use App\Http\Controllers\updateProfile;
 use App\Http\Controllers\updateProfilePic;
-
+use App\Http\Controllers\fetchUserInfo;
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
 Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
-// Route::get('/prac', [alertNotif::class, 'getAlertNotif']);
+// Route::get('/prac', [currentConditionv2::class, 'getCurrentCondition']);
 
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
