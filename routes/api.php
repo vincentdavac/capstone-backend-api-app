@@ -368,6 +368,8 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('/hotlines/{hotline}', [HotlinesController::class, 'show']);
     Route::patch('/hotlines/{hotline}', [HotlinesController::class, 'update']);
     Route::patch('/hotlines/archive/{hotline}', [HotlinesController::class, 'archive']);
+    Route::patch('/hotlines/restore/{hotline}', [HotlinesController::class, 'restoreArchive']);
+
 
     // User-specific hotlines
     Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
