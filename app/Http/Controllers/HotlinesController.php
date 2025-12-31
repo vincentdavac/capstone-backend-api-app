@@ -262,7 +262,7 @@ class HotlinesController extends Controller
         $hotlines = Hotlines::with('barangay')
             ->where('is_archived', false)
             ->when($user->user_type === 'barangay', function ($query) use ($user) {
-                $query->where(function ($q) use ($user) {
+                $query->where(column: function ($q) use ($user) {
                     // Admin-created hotlines (global)
                     $q->where('created_by_role', 'admin')
                         // Barangay's own hotlines

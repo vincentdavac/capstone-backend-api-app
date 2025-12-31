@@ -71,6 +71,7 @@ use App\Http\Controllers\SystemNotificationsController;
 use App\Http\Controllers\updateProfile;
 use App\Http\Controllers\updateProfilePic;
 use App\Http\Controllers\fetchUserInfo;
+//  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
 Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
 Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class, 'getUserInfo']);
