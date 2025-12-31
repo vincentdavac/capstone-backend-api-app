@@ -14,11 +14,12 @@ class alertMonitoring extends Controller
     public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function getActiveAlerts($buoyId){
-        $alert = DB::table('recent_alerts')->where('buoy_id', $buoyId)
-            ->whereIn('alert_level', ['Blue', 'Red'])->where('alert_shown', false)
-            ->orderBy('recorded_at', 'desc')->first();
-        return response()->json(['alerts' => $alert ? [$alert] : [], 'has_new_alerts' => $alert !== null]);
+    public function getActiveAlerts($buoyCode){
+        $alert = DB::table('recent_alerts')->join('buoys', 'recent_alerts.buoy_id', '=', 'buoys.id')
+            ->where('buoys.buoy_code', $buoyCode)->whereIn('alert_level', ['Blue', 'Red'])
+            ->where('recent_alerts.alert_shown', false)->orderBy('recent_alerts.recorded_at', 'desc')
+            ->select('recent_alerts.*','buoys.buoy_code') ->first();
+        return response()->json(['alerts' => $alert ? [$alert] : [],  'has_new_alerts' => $alert !== null]);
     }
     public function markAlertAsShown(Request $request){
         $validated = $request->validate(['alert_id' => 'required|exists:recent_alerts,id']);

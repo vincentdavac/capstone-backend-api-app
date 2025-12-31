@@ -82,9 +82,9 @@ Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCo
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
 // Route::get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
-Route::get('/{buoyId}/active', [alertMonitoring::class, 'getActiveAlerts']);
+// Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
 Route::post('/mark-shown', [alertMonitoring::class, 'markAlertAsShown']);
-Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
+// Route::get('/{buoyCode}/status', [alertMonitoring::class, 'checkAlertStatus']);
 Route::middleware('auth:sanctum')->post('/broadcast-monitoring', [alertMonitoring::class, 'sendAlert']);
 Route::middleware('auth:sanctum')->post('/reset-relay-modal', [alertMonitoring::class, 'resetRelayModal']);
 Route::middleware('auth:sanctum')->post('/broadcast-alert', [broadCastController::class, 'sendAlert']);
@@ -172,9 +172,10 @@ Route::get('/public-footers', [HomepageFooterController::class, 'publicFooters']
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
+    Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
+    Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
-
     Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
 
     Route::get('/active-users', [AuthController::class, 'activeUsers']);
