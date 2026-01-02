@@ -77,8 +77,8 @@ Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::c
 Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class, 'getUserInfo']);
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
 
-// Route::get('/prac', [currentConditionv2::class, 'getCurrentCondition']);
-
+// Route::get('/prac', [alertNotif::class, 'getCount']);
+Route::middleware('auth:sanctum')->get('/alert-count', [alertNotif::class, 'getCount']);
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
 // Route::get('/alert-notif', [alertNotif::class, 'getAlertNotif']);

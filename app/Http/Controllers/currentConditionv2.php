@@ -46,7 +46,7 @@ class currentConditionv2 extends Controller
         $kh = DB::table('wind_readings')->select('wind_speed_m_s')->latest('recorded_at')->first();
         // $windMs = (int)$kh->wind_speed_m_s;
         if ($kh) {
-            $windMs = (int)$kh->wind_speed_k_h;
+            $windMs = (int)$kh->wind_speed_m_s;
         } else {
             $windMs = 0;
         }
