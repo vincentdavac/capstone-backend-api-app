@@ -19,6 +19,9 @@ class HotlinesResource extends JsonResource
 
             'attributes' => [
                 'barangayId'  => $this->barangay_id,
+                // 🔹 Global hotline if admin-created AND barangay_id is null
+                'isGlobal'     => $this->created_by_role === 'admin'
+                    && is_null($this->barangay_id),
                 'number'      => $this->number,
                 'description' => $this->description,
                 'isArchived'   => (bool) $this->is_archived,

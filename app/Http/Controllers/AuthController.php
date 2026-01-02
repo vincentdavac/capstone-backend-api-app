@@ -234,11 +234,11 @@ class AuthController extends Controller
             return $this->error('', 'Only user accounts are allowed to log in here.', 403);
         }
 
-        // ✅ Step 7: Clear rate limit and issue token
+        // Step 7: Clear rate limit and issue token
         RateLimiter::clear($key);
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // ✅ Load relationships for API response
+        // Load relationships for API response
         $user->load(['barangay', 'verifier']);
 
         return $this->success([
@@ -336,6 +336,8 @@ class AuthController extends Controller
             ->where('barangay_id', $user->barangay_id)
             ->first();
 
+        $notification = null;
+
         if ($barangayUser) {
             $notification =  SystemNotifications::create([
                 'sender_id'     => $user->id,                 // newly registered user
@@ -346,10 +348,10 @@ class AuthController extends Controller
                 'body'          => "A new user has registered in your barangay: {$user->first_name} {$user->last_name}.",
                 'status'        => 'unread',
             ]);
+
+            broadcast(new SystemNotificationSent($notification))->toOthers();
+
         }
-
-        broadcast(new SystemNotificationSent($notification))->toOthers();
-
 
         // 🔹 Step 7: Return success response using HttpResponses
         return $this->success([

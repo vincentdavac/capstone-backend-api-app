@@ -71,6 +71,9 @@ use App\Http\Controllers\SystemNotificationsController;
 use App\Http\Controllers\updateProfile;
 use App\Http\Controllers\updateProfilePic;
 use App\Http\Controllers\fetchUserInfo;
+use App\Http\Controllers\AdminDashboardController;
+
+
 //  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
 Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
@@ -390,6 +393,10 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('unread/user', [SystemNotificationsController::class, 'unreadByRole']);
     Route::patch('read/user/{id}', [SystemNotificationsController::class, 'markAsRead']);
     Route::patch('read-all/user', [SystemNotificationsController::class, 'markAllAsRead']);
+
+    // Admin Dashboard Routes
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'dashboardStats']);
+
 });
 
 // CHAT ROUTES: No throttle

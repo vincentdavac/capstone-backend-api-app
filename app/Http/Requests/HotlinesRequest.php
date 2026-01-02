@@ -29,6 +29,8 @@ class HotlinesRequest extends FormRequest
                 'number'      => 'required|string|max:30',
                 'description' => 'nullable|string|max:255',
                 'is_archive'  => 'sometimes|boolean',
+                'is_global'    => 'sometimes|boolean',
+
             ];
         }
 
@@ -39,6 +41,8 @@ class HotlinesRequest extends FormRequest
                 'number'      => 'sometimes|string|max:30',
                 'description' => 'sometimes|string|max:255',
                 'is_archive'  => 'sometimes|boolean',
+                'is_global'    => 'sometimes|boolean',
+
             ];
         }
 

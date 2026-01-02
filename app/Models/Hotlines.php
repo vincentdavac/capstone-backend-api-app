@@ -17,9 +17,12 @@ class Hotlines extends Model
         'number',
         'description',
         'is_archived',
+        'is_global',
+
     ];
     protected $casts = [
         'is_archived' => 'boolean',
+        'is_global' => 'boolean',
     ];
 
     public function barangay()
