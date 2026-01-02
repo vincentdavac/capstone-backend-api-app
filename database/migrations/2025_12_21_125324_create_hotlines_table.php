@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->enum('created_by_role', ['admin', 'barangay']);
             $table->unsignedBigInteger('barangay_id')->nullable();
+            $table->boolean('is_global')->default(false);
             $table->string('number', 50);
             $table->string('description', 255);
             $table->boolean('is_archived')->default(false);

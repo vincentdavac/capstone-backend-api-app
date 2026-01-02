@@ -65,9 +65,13 @@ class HotlinesController extends Controller
 
         // Admin can create global or barangay-specific hotline
         if ($user->user_type === 'admin') {
-            $data['barangay_id'] =  null;
+            if (empty($data['barangay_id'])) {
+                $data['barangay_id'] = null;   // no barangay assigned
+                $data['is_global'] = true;     // mark as global
+            } else {
+                $data['is_global'] = false;    // assigned to a specific barangay
+            }
         }
-
         $hotline = Hotlines::create($data);
 
         return $this->success(
@@ -249,6 +253,7 @@ class HotlinesController extends Controller
     }
 
 
+
     public function userHotlines(Request $request)
     {
         // Authenticate user first
@@ -258,29 +263,22 @@ class HotlinesController extends Controller
             return $this->error(null, 'Unauthenticated.', 401);
         }
 
-        // Only active hotlines
+        // Get global hotlines + user's barangay hotlines (non-archived only)
         $hotlines = Hotlines::with('barangay')
             ->where('is_archived', false)
-            ->when($user->user_type === 'barangay', function ($query) use ($user) {
-                $query->where(column: function ($q) use ($user) {
-                    // Admin-created hotlines (global)
-                    $q->where('created_by_role', 'admin')
-                        // Barangay's own hotlines
-                        ->orWhere('barangay_id', $user->barangay_id);
-                });
-            })
-            ->when($user->user_type === 'admin', function ($query) use ($user) {
-                // Admin sees only admin-created hotlines
-                $query->where('created_by_role', 'admin');
+            ->where(function ($query) use ($user) {
+                $query->where('is_global', true) // Global hotlines
+                    ->orWhere('barangay_id', $user->barangay_id); // User's barangay hotlines
             })
             ->latest()
             ->get();
 
         return $this->success(
             HotlinesResource::collection($hotlines),
-            'Hotlines retrieved successfully.'
+            'User hotlines retrieved successfully.'
         );
     }
+
 
 
 
