@@ -72,7 +72,7 @@ use App\Http\Controllers\updateProfile;
 use App\Http\Controllers\updateProfilePic;
 use App\Http\Controllers\fetchUserInfo;
 use App\Http\Controllers\AdminDashboardController;
-
+use App\Http\Controllers\BarangayDashboardController;
 
 //  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
@@ -397,6 +397,8 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     // Admin Dashboard Routes
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'dashboardStats']);
 
+    // Barangay Dashboard – User Statistics
+    Route::get('/barangay/dashboard', [BarangayDashboardController::class, 'dashboardStats']);
 });
 
 // CHAT ROUTES: No throttle
