@@ -10,7 +10,7 @@ use App\Models\User;
 
 class ForgotPasswordController extends Controller
 {
-    // ✅ Step 1: Send reset link to email
+    //  Step 1: Send reset link to email
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
