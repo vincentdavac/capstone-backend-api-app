@@ -22,4 +22,10 @@ class alertNotif extends Controller{
         $count = DB::table('alerts')->where('user_id', $user->id)->where('is_read', 0)->count();
         return response()->json(['Success' =>true, 'data'=>$count], 200);
     }
+    public function isShown(Request $request){
+        $user= $request->user();
+        $isRead = 1;
+        DB::table('alerts')->where('user_id', $user->id)->where('is_read', 0)->update(['is_read' => $isRead]);
+        return response()->json(['Success' =>true,], 200);
+    }
 }
