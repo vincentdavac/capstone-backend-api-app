@@ -19,7 +19,7 @@ class alertNotif extends Controller{
 
     public function getCount(Request $request){
         $user =$request->user();
-        $count = DB::table('alerts')->where('user_id', $user->id ?? 8)->where('is_read', 0)->count();
+        $count = DB::table('alerts')->where('user_id', $user->id)->where('is_read', 0)->count();
         return response()->json(['Success' =>true, 'data'=>$count], 200);
     }
 }
