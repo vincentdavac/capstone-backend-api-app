@@ -73,6 +73,7 @@ use App\Http\Controllers\updateProfilePic;
 use App\Http\Controllers\fetchUserInfo;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\BarangayDashboardController;
+use App\Http\Controllers\getNotifCount;
 
 //  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
@@ -80,8 +81,9 @@ Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::c
 Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class, 'getUserInfo']);
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
 
-// Route::get('/prac', [alertNotif::class, 'getCount']);
-Route::middleware('auth:sanctum')->get('/alert-count', [alertNotif::class, 'getCount']);
+
+
+// Route::middleware('auth:sanctum')->get('/alert-count', [alertNotif::class, 'getCount']);
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
 Route::middleware('auth:sanctum')->post('/alert-read', [alertNotif::class, 'isShown']);
@@ -178,7 +180,7 @@ Route::get('/public-footers', [HomepageFooterController::class, 'publicFooters']
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
     Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
     Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
-
+    Route::get('/get-all-count', [getNotifCount::class, 'allCount']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
 
