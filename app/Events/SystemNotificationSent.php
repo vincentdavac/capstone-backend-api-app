@@ -41,9 +41,7 @@ class SystemNotificationSent implements ShouldBroadcastNow
         if ($this->notification->receiver_role === 'user') {
             $channels[] = new PrivateChannel('user.notifications');
         }
-
-
-
+ 
         return $channels;
     }
 
