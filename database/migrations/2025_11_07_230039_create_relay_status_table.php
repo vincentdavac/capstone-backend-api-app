@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('relay_status', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('buoy_id');
-            $table->boolean('relay_state')->default(false);
+            $table->enum('relay_state', ['on', 'off'])->default('off');
             $table->timestamps();
 
             // Optional: foreign key to buoys table

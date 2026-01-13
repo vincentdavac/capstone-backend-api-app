@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('battery_health', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('buoy_id');
-            $table->decimal('percentage', 10, 7);
-            $table->decimal('voltage', 10, 7);
+            $table->decimal('percentage', 5, 2);
+            $table->decimal('voltage', 5, 2);
             $table->timestamps();
 
             // Optional: add foreign key if buoy table exists
