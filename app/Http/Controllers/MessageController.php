@@ -143,6 +143,7 @@ class MessageController extends Controller
         $messageData = [
             'chat_id'   => $chat->id,
             'sender_id' => $sender->id,
+            'receiver_id' => $receiver->id, // REQUIRED
             'message'   => $request->message,
         ];
 

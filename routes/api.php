@@ -74,11 +74,14 @@ use App\Http\Controllers\fetchUserInfo;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\BarangayDashboardController;
 use App\Http\Controllers\getNotifCount;
+use App\Http\Controllers\BuoyMonitoringController;
+
 
 //  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
 Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
 Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class, 'getUserInfo']);
+
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
 
 
@@ -402,7 +405,19 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
 
     // Barangay Dashboard – User Statistics
     Route::get('/barangay/dashboard', [BarangayDashboardController::class, 'dashboardStats']);
+
+    // Buoy Monitoring Routes
+    Route::get('/deployment-point/{buoy}', [BuoyMonitoringController::class, 'show']);
+
+    // Relay Switch Route
+    Route::post('/relay/switch', [BuoyMonitoringController::class, 'relaySwitch']);
 });
+
+
+// ESP32 - No Auth, No Throttle
+Route::post('/gps/store', [BuoyMonitoringController::class, 'storeLongitudeAndLatitude'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/battery-health/store', [BuoyMonitoringController::class, 'storeBatteryHealth'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+
 
 // CHAT ROUTES: No throttle
 Route::middleware(['auth:sanctum'])->group(function () {
