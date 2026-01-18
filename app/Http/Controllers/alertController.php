@@ -58,7 +58,9 @@ class alertController extends Controller{
                 ->where('sensor_type', $sensorType)
                 ->orderBy('recorded_at', 'desc')
                 ->first();
-
+            if($surroundingTemp == 0|| is_null($surroundingTemp)){
+               return;
+            }
             $insert = false;
 
             if (!$lastAlert) {
@@ -132,7 +134,9 @@ class alertController extends Controller{
                 ->where('sensor_type', $sensorType)
                 ->orderBy('recorded_at', 'desc')
                 ->first();
-
+            if($waterTemp == 0|| is_null($waterTemp)){
+               return;
+            }
             $insert = false;
 
             if (!$lastAlert) {
@@ -209,7 +213,9 @@ class alertController extends Controller{
                 ->where('sensor_type', $sensorType)
                 ->orderBy('recorded_at', 'desc')
                 ->first();
-
+            if($humidityData == 0||is_null($humidityData)){
+               return;
+            }
             $insert = false;
 
             if (!$lastAlert) {
@@ -284,7 +290,9 @@ class alertController extends Controller{
                 ->where('sensor_type', $sensorType)
                 ->orderBy('recorded_at', 'desc')
                 ->first();
-
+            if($atmosphericData == 0||is_null($atmosphericData)){
+               return;
+            }
             $insert = false;
 
             if (!$lastAlert) {
@@ -363,7 +371,9 @@ class alertController extends Controller{
                 ->where('sensor_type', $sensorType)
                 ->orderBy('recorded_at', 'desc')
                 ->first();
-
+            if($windSpeedData == 0|| is_null($windSpeedData)){
+               return;
+            }
             $insert = false;
 
             if (!$lastAlert) {
@@ -437,7 +447,9 @@ class alertController extends Controller{
                 ->where('sensor_type', $sensorType)
                 ->orderBy('recorded_at', 'desc')
                 ->first();
-
+            if($rainData == 0|| is_null($rainData)){
+               return;
+            }
             $insert = false;
             if (!$lastAlert) {
                 $insert = true;
