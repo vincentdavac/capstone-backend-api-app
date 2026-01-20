@@ -574,7 +574,7 @@ class alertController extends Controller{
             $this->setAtmosphericAlert();
             $this->setWindAlert();
             $this->setRainPercentageAlert();
-            $this->insertSensorData($request);
+            // $this->insertSensorData($request);
         });
         return response()->json(['success' => true, 'message' => 'All alerts processed successfully'], 200);
     }
