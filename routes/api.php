@@ -111,8 +111,6 @@ Route::get('/get-surrounding', [getsurroundingdata::class, 'getsurroundingChart'
 Route::get('/get-atmospheric', [getAtmostphericdata::class, 'getAtmosphericChart']);
 Route::get('/get-sensor-monitoring', [getHistoricalData::class, 'fetchHistorical']);
 
-Route::get('/weather', [testingWeather::class, 'getWeather']);
-Route::get('/weatherHourly', [testingWeather::class, 'getHourlyTemperature']);
 
 // Route::get('/testingConnection', [getReceiverStatus::class, 'getStatus']); test lang to
 Route::get('/countUsers', [countUser::class, 'countUsers']);
@@ -434,6 +432,3 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Count unread chats
     Route::get('/chats/unread/count', [MessageController::class, 'countUnreadChats']);
 });
-
-
-Route::get('/test-pusher', [TestPusherController::class, 'testConnection']);

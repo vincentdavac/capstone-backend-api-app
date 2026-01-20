@@ -17,7 +17,6 @@ class StoreWindReadingRequest extends FormRequest
             'buoy_id' => 'required|exists:buoys,id',
             'wind_speed_m_s' => 'required|numeric|min:0',
             'wind_speed_k_h' => 'required|numeric|min:0',
-            'report_status' => 'required|string|max:50',
         ];
     }
 }
