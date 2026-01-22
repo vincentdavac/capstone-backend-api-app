@@ -14,11 +14,12 @@ class StoreGpsReadingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'buoy_id'     => 'required|exists:buoys,id',
+            'buoy_id'     => 'sometimes|exists:buoys,id',
             'latitude'    => 'required|numeric|between:-90,90',
             'longitude'   => 'required|numeric|between:-180,180',
             'altitude'    => 'nullable|numeric',
             'satellites'  => 'nullable|integer|min:0',
+            'buoy_code'   => 'required|string|exists:buoys,buoy_code',
         ];
     }
 }

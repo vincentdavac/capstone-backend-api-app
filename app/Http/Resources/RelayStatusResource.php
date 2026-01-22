@@ -11,11 +11,13 @@ class RelayStatusResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'buoy_id' => $this->buoy_id,
-            'relay_state' => (bool)$this->relay_state,
-            'report_status' => $this->report_status,
-            'recorded_at' => $this->recorded_at,
-            'updated_at' => $this->updated_at,
+            'buoyId' => $this->buoy_id,
+            'relayState' => $this->relay_state,
+            // Formatted date and time
+            'createdDate' => $this->created_at?->format('F d, Y') ?? null,
+            'createdTime' => $this->created_at?->format('h:i:s A') ?? null,
+            'updatedDate' => $this->updated_at?->format('F d, Y') ?? null,
+            'updatedTime' => $this->updated_at?->format('h:i:s A') ?? null,
         ];
     }
 }

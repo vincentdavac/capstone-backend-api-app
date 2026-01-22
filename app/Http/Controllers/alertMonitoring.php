@@ -50,11 +50,9 @@ class alertMonitoring extends Controller
     public function sendAlert(Request $request){
         $validated =$request->validate(['alert_id' => 'required|integer|exists:recent_alerts,id', 'buoy_code' => 'required|string', 'sensor_stype' => 'required|string',]);
         $user = $request->user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
-        }
         $recentAlert = recent_alerts::find($request->alert_id);
         $resetTime = null;
+        // $url = 'https://www.iprogsms.com/api/v1/sms_messages';
         if ($recentAlert->alert_level === "Blue") {
             $resetTime = 5;
         } elseif ($recentAlert->alert_level ==="Red") {
@@ -86,9 +84,6 @@ class alertMonitoring extends Controller
     }
     public function resetRelayModal(Request $request){
         $user = $request->user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
-        }
         $request->validate(['buoy_code' => 'required|string',]);
         $this->firebase->getReference($request->buoy_code . '/RELAY_STATE')->set(false);
         return response()->json(['message' => 'RELAY reset successfully'], 200);

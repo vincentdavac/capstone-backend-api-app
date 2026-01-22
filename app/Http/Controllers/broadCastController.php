@@ -33,7 +33,7 @@ class broadCastController extends Controller
             $resetTime = 10;
         }
         $firebaseData = $this->firebase->getReference()->getValue();
-        
+        $testData = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['RELAY_STATE'])) {
                 continue;
@@ -41,21 +41,25 @@ class broadCastController extends Controller
             if ($prototypeName === $request->buoy_code) {
                 $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                 $users = User::where('is_admin', 0)->get();
+                $usersContact = DB::table("users")->select("contact_number")->get();
                 foreach ($users as $userId) {
-                    alerts::create([
+                    foreach($usersContact as $contactNo){
+                        alerts::create([
                         'alert_id' => $request->alert_id,
                         'broadcast_by' => $user->last_name . ", " . $user->first_name,
                         'user_id' => $userId->id,
                         'is_read' => false,
                         'recorded_at' => now(),
                     ]);
+                   $testData= $contactNo->contact_number;
+                    }
                 }
             } else {
                 $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(false);
             }
         }
         DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
-        return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime,], 201);
+        return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime,"dadadadada"=>$testData], 201);
     }
     public function resetRelay(Request $request)
     {

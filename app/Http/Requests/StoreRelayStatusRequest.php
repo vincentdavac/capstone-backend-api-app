@@ -14,8 +14,9 @@ class StoreRelayStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'buoy_id'     => 'required|exists:buoys,id',
-            'relay_state' => 'required|boolean',
+            'buoy_id'     => 'sometimes|exists:buoys,id',
+            'relay_state' => 'required|string|in:on,off',
+            'buoy_code'   => 'required|string|exists:buoys,buoy_code',
         ];
     }
 }

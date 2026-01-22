@@ -21,12 +21,6 @@ class RelayStatus extends Model
      */
     public $timestamps = true;
 
-    /**
-     * Cast attributes to correct data types
-     */
-    protected $casts = [
-        'relay_state' => 'boolean',
-    ];
 
     /**
      * Relationship: Each relay status belongs to a specific buoy
