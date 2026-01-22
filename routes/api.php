@@ -358,6 +358,7 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'show']);
     Route::patch('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'update']);
     Route::delete('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'destroy']);
+    Route::post('/submit-feedback', [HomepageFeedbackController::class, 'submitFeedback']);
 
     // Footers Routes
     Route::get('/footers', [HomepageFooterController::class, 'index']);

@@ -8,6 +8,7 @@ use App\Http\Requests\StoreHomepageFeedbackRequest;
 use App\Http\Requests\UpdateHomepageFeedbackRequest;
 use App\Http\Resources\HomepageFeedbackResource;
 use App\Traits\HttpResponses;
+use Illuminate\Support\Facades\Validator;
 
 class HomepageFeedbackController extends Controller
 {
@@ -40,6 +41,48 @@ class HomepageFeedbackController extends Controller
             'Feedback created successfully',
             201
         );
+    }
+
+    // ✅ ADD THIS NEW METHOD FOR MOBILE APP
+    /**
+     * Submit feedback from mobile app
+     */
+    public function submitFeedback(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'rating' => 'required|integer|min:1|max:5',
+            'feedback' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $feedback = HomepageFeedback::create([
+                'user_id' => $request->user()->id,
+                'rate' => $request->rating,
+                'feedback' => $request->feedback,
+                'is_archived' => 0,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Thank you for your feedback!',
+                'data' => $feedback
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save feedback',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -86,7 +129,6 @@ class HomepageFeedbackController extends Controller
     /**
      * Display all active (not archived) feedbacks.
      */
-
     public function publicActiveFeedbacks()
     {
         $feedback = HomepageFeedback::where('is_archived', false)
