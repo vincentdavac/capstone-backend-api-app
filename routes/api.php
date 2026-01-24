@@ -111,8 +111,6 @@ Route::get('/get-surrounding', [getsurroundingdata::class, 'getsurroundingChart'
 Route::get('/get-atmospheric', [getAtmostphericdata::class, 'getAtmosphericChart']);
 Route::get('/get-sensor-monitoring', [getHistoricalData::class, 'fetchHistorical']);
 
-Route::get('/weather', [testingWeather::class, 'getWeather']);
-Route::get('/weatherHourly', [testingWeather::class, 'getHourlyTemperature']);
 
 // Route::get('/testingConnection', [getReceiverStatus::class, 'getStatus']); test lang to
 Route::get('/countUsers', [countUser::class, 'countUsers']);
@@ -361,6 +359,7 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'show']);
     Route::patch('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'update']);
     Route::delete('/feedbacks/{feedback}', [HomepageFeedbackController::class, 'destroy']);
+    Route::post('/submit-feedback', [HomepageFeedbackController::class, 'submitFeedback']);
 
     // Footers Routes
     Route::get('/footers', [HomepageFooterController::class, 'index']);
@@ -434,6 +433,3 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Count unread chats
     Route::get('/chats/unread/count', [MessageController::class, 'countUnreadChats']);
 });
-
-
-Route::get('/test-pusher', [TestPusherController::class, 'testConnection']);
