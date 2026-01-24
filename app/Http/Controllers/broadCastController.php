@@ -14,12 +14,10 @@ class broadCastController extends Controller
 {
     protected $firebase;
     protected string $reftblName;
-    public function __construct(FirebaseServices $firebaseService)
-    {
+    public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function sendAlert(Request $request)
-    {
+    public function sendAlert(Request $request){
         $user = $request->user();
         $request->validate(['alert_id' => 'required|integer|exists:recent_alerts,id', 'buoy_code' => 'required|string', 'sensorTypes' => 'required|string']);
         $recentAlert = recent_alerts::find($request->alert_id);
@@ -33,42 +31,69 @@ class broadCastController extends Controller
             $resetTime = 10;
         }
         $firebaseData = $this->firebase->getReference()->getValue();
-        $testData = null;
+        $smsToken = base_path(env('SMS_TOKEN'));
+        $message = "";
+        $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
+        $httpCode = null;
+        $error = null;
+        $numbers = [];
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['RELAY_STATE'])) {
                 continue;
             }
             if ($prototypeName === $request->buoy_code) {
                 $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
-                $users = User::where('is_admin', 0)->get();
-                $usersContact = DB::table("users")->select("contact_number")->get();
+                $users = User::where('user_type', 'user')->get();
                 foreach ($users as $userId) {
-                    foreach($usersContact as $contactNo){
-                        alerts::create([
+                    $normalized = $this->normalizePHNumber($userId->contact_number);
+                    alerts::create([
                         'alert_id' => $request->alert_id,
                         'broadcast_by' => $user->last_name . ", " . $user->first_name,
                         'user_id' => $userId->id,
                         'is_read' => false,
                         'recorded_at' => now(),
                     ]);
-                   $testData= $contactNo->contact_number;
+                    if ($normalized) {
+                        $numbers[] = $normalized;
                     }
                 }
             } else {
                 $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(false);
             }
         }
+        $phoneNumbers = implode(',', array_unique($numbers));
+        $message = "Hello, this is a test message.";
+        $data = [
+            'api_token' => '',
+            'message' => $message,
+            'phone_number' => $phoneNumbers
+        ];
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/x-www-form-urlencoded'
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
         DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
-        return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime,"dadadadada"=>$testData], 201);
+        return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime, 'test data' => $data], 201);
     }
-    public function resetRelay(Request $request)
-    {
+    public function resetRelay(Request $request){
         $user = $request->user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
-        }
         $request->validate(['buoy_code' => 'required|string',]);
         $this->firebase->getReference($request->buoy_code . '/RELAY_STATE')->set(false);
-        return response()->json(['message' => 'RELAY reset successfully'], 200);
+        return response()->json(['message' => 'reset success'], 200);
+    }
+    public function normalizePHNumber($number){
+        $number = preg_replace('/[^0-9]/', '', $number);
+        if (preg_match('/^09\d{9}$/', $number)) {
+            return '63' . substr($number, 1);
+        }
+        if (preg_match('/^639\d{9}$/', $number)) {
+            return $number;
+        }
+        return null;
     }
 }
