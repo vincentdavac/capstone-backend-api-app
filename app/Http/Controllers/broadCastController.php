@@ -9,15 +9,18 @@ use App\Services\FirebaseServices;
 use App\Models\recent_alerts;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Events\AlertBroadcast;
 
 class broadCastController extends Controller
 {
     protected $firebase;
     protected string $reftblName;
-    public function __construct(FirebaseServices $firebaseService){
+    public function __construct(FirebaseServices $firebaseService)
+    {
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function sendAlert(Request $request){
+    public function sendAlert(Request $request)
+    {
         $user = $request->user();
         $request->validate(['alert_id' => 'required|integer|exists:recent_alerts,id', 'buoy_code' => 'required|string', 'sensorTypes' => 'required|string']);
         $recentAlert = recent_alerts::find($request->alert_id);
@@ -46,13 +49,23 @@ class broadCastController extends Controller
                 $users = User::where('user_type', 'user')->get();
                 foreach ($users as $userId) {
                     $normalized = $this->normalizePHNumber($userId->contact_number);
-                    alerts::create([
+                    $alert = alerts::create([
                         'alert_id' => $request->alert_id,
                         'broadcast_by' => $user->last_name . ", " . $user->first_name,
                         'user_id' => $userId->id,
                         'is_read' => false,
                         'recorded_at' => now(),
                     ]);
+                    $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
+                    $message = DB::table('recent_alerts')->where('id', $request->alert_id)->value('description');
+                    broadcast(new AlertBroadcast([
+                        'description' => $alertInfo->description,
+                        'alert_level' => $alertInfo->alert_level,
+                        'broadcast_by' => $alert->broadcast_by,
+                        'sensor_type' => $alertInfo->sensor_type,
+                        'recorded_at' => $alert->recorded_at,
+                    ]));
+
                     if ($normalized) {
                         $numbers[] = $normalized;
                     }
@@ -62,7 +75,7 @@ class broadCastController extends Controller
             }
         }
         $phoneNumbers = implode(',', array_unique($numbers));
-        $message = "Hello, this is a test message.";
+        // $message = "Hello, this is a test message.";
         $data = [
             'api_token' => '',
             'message' => $message,
@@ -78,15 +91,17 @@ class broadCastController extends Controller
         curl_exec($ch);
         curl_close($ch);
         DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
-        return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime, 'test data' => $data], 201);
+        return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime], 201);
     }
-    public function resetRelay(Request $request){
+    public function resetRelay(Request $request)
+    {
         $user = $request->user();
         $request->validate(['buoy_code' => 'required|string',]);
         $this->firebase->getReference($request->buoy_code . '/RELAY_STATE')->set(false);
         return response()->json(['message' => 'reset success'], 200);
     }
-    public function normalizePHNumber($number){
+    public function normalizePHNumber($number)
+    {
         $number = preg_replace('/[^0-9]/', '', $number);
         if (preg_match('/^09\d{9}$/', $number)) {
             return '63' . substr($number, 1);

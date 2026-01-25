@@ -27,7 +27,7 @@ class alertMonitoring extends Controller
         return response()->json(['success' => true]);
     }
     public function checkAlertStatus($buoyId){
-        $sensorTypes = ['SURROUNDING TEMPERATURE','WATER TEMPERATURE','HUMIDITY','ATMOSPHERIC PRESSURE','WIND SPEED','RAIN GAUGE',];
+        $sensorTypes = ['SURROUNDING TEMPERATURE','WATER TEMPERATURE','HUMIDITY','ATMOSPHERIC PRESSURE','WIND SPEED','RAIN GAUGE','WATER LEVEL'];
         $currentLvl = [];
         $reset = false;
         foreach ($sensorTypes as $sensorType) {
