@@ -10,7 +10,7 @@ class alertNotif extends Controller{
         $user = $request->user();
         $alerts = DB::table('alerts')->join('recent_alerts', 'alerts.alert_id', '=', 'recent_alerts.id')
             ->join('buoys', 'recent_alerts.buoy_id', '=', 'buoys.id')
-            ->where('buoys.barangay_id', $user->barangay_id ?? 2)->where('alerts.user_id', $user->id ?? 8)
+            ->where('buoys.barangay_id', $user->barangay_id)->where('alerts.user_id', $user->id)
             ->select('alerts.*','recent_alerts.description', 'recent_alerts.alert_level','recent_alerts.sensor_type','recent_alerts.recorded_at as alert_time',)
             ->orderBy('recent_alerts.recorded_at', 'desc')
             ->first();
