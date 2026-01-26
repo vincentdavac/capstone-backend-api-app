@@ -79,20 +79,19 @@ class ResetPassword extends Notification
     |--------------------------------------------------------------------------
     | Uses frontend admin web app
     */
-        if ($userType === 'admin') {
+if ($userType === 'admin') {
+    $baseUrl = rtrim(config('app.frontend_admin_url'), '/');
+    
+    $resetUrl = $baseUrl . '/reset-password?token='
+        . $this->token . '&email=' . urlencode($notifiable->email);
 
-            $baseUrl = config('app.frontend_admin_url'); // http://127.0.0.1:5173
-
-            $resetUrl = $baseUrl . '/reset-password?token='
-                . $this->token . '&email=' . urlencode($notifiable->email);
-
-            return (new MailMessage)
-                ->subject('Reset Your Password - X-STREAM Admin')
-                ->view('emails.reset-password', [
-                    'resetUrl' => $resetUrl,
-                    'email'    => $notifiable->email,
-                ]);
-        }
+    return (new MailMessage)
+        ->subject('Reset Your Password - X-STREAM Admin')
+        ->view('emails.reset-password', [
+            'resetUrl' => $resetUrl,
+            'email'    => $notifiable->email,
+        ]);
+}
 
         /*
     |--------------------------------------------------------------------------

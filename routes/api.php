@@ -85,13 +85,11 @@ Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
 
 
-
+// Route::get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 // Route::middleware('auth:sanctum')->get('/alert-count', [alertNotif::class, 'getCount']);
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
 Route::middleware('auth:sanctum')->post('/alert-read', [alertNotif::class, 'isShown']);
-// Route::get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
-// Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
 Route::post('/mark-shown', [alertMonitoring::class, 'markAlertAsShown']);
 // Route::get('/{buoyCode}/status', [alertMonitoring::class, 'checkAlertStatus']);
 Route::middleware('auth:sanctum')->post('/broadcast-monitoring', [alertMonitoring::class, 'sendAlert']);
