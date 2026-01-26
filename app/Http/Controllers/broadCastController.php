@@ -37,8 +37,6 @@ class broadCastController extends Controller
         $smsToken = base_path(env('SMS_TOKEN'));
         $message = "";
         $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
-        $httpCode = null;
-        $error = null;
         $numbers = [];
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['RELAY_STATE'])) {
@@ -75,7 +73,6 @@ class broadCastController extends Controller
             }
         }
         $phoneNumbers = implode(',', array_unique($numbers));
-        // $message = "Hello, this is a test message.";
         $data = [
             'api_token' => '',
             'message' => $message,

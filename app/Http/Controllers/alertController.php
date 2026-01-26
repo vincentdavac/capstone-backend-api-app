@@ -513,20 +513,21 @@ class alertController extends Controller{
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'WATER LEVEL';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-            $maxWaterLevel = 13;
-            $percentage = ($waterlevelData / $maxWaterLevel) * 100;
+            $brgyWhiteLevel= DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')->where('users.barangay_id', $user->barangay_id)
+            ->value('barangays.white_level_alert');
+            $brgBlueLevel= DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')->where('users.barangay_id', $user->barangay_id)
+            ->value('barangays.blue_level_alert');
+            $brgRedLevel= DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')->where('users.barangay_id', $user->barangay_id)
+            ->value('barangays.red_level_alert');
 
-            if ($percentage < 40) {
-                $description = "WHITE Alert: Maging alerto sa lebel ng tubig! Naitala ang $percentage% kapasidad sa $barangay ($currentTime). Bantayan ang tubig at mag-ingat sa posibleng pagbaha.";
+            if ($waterlevelData < $brgyWhiteLevel) {
+                $description = "WHITE Alert: Maging alerto sa lebel ng tubig! Naitala ang $waterlevelData feet kapasidad sa $barangay ($currentTime). Bantayan ang tubig at mag-ingat sa posibleng pagbaha.";
                 $alert = "White";
-            }else if($percentage >=  41 && $percentage <= 60){
-                $description = "BLUE Alert: Maging alarma at mapanuri sa lebel ng tubig! Naitala ang $percentage% kapasidad sa $barangay ($currentTime). Malaki ang posibilidad ng pag-apaw ng tubig.";
+            }else if($waterlevelData <= $brgBlueLevel){
+                $description = "BLUE Alert: Maging alarma at mapanuri sa lebel ng tubig! Naitala ang $waterlevelData feet kapasidad sa $barangay ($currentTime). Malaki ang posibilidad ng pag-apaw ng tubig.";
                 $alert ="Blue";
-            }else if($percentage >=  61 && $percentage <= 99){
-                $description = "BLUE Alert: Maging alarma at mapanuri sa lebel ng tubig! Naitala ang $percentage% kapasidad sa $barangay ($currentTime). Malaki ang posibilidad ng pag-apaw ng tubig.";
-                $alert ="Blue";
-            }else if($percentage == 100){
-                $description= "RED Alert: Maging mapanuri sa lebel ng tubig! Naitala ang $percentage% kapasidad sa $barangay ($currentTime). Agad na lumikas upang maiwasan ang panganib ng pagbaha.";
+            }else if($waterlevelData >= $brgRedLevel){
+                $description= "RED Alert: Maging mapanuri sa lebel ng tubig! Naitala ang $waterlevelData feet kapasidad sa $barangay ($currentTime). Agad na lumikas upang maiwasan ang panganib ng pagbaha.";
                  $alert ="Red";
             }
             if (is_null($description)) {
