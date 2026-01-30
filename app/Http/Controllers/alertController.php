@@ -14,12 +14,14 @@ class alertController extends Controller{
     public function __construct(FirebaseServices $firebaseService){
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function setTemperatureAlert(){
+    public function setTemperatureAlert(Request $request){
+        $user= $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
         }
-
+        $barangay = DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')
+        ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['BME280']['SURROUNDING_TEMPERATURE'])) {
                 continue;
@@ -38,17 +40,17 @@ class alertController extends Controller{
             $sensorType = 'SURROUNDING TEMPERATURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
             if ($surroundingTemp >= 27 && $surroundingTemp <= 32) {
-                $description = "WHITE Alert: Mag-ingat sa init! Naitala ang $surroundingTemp °C sa Brgy Zone A ($currentTime). Mag-ingat dahil maaaring magdulot ng pagkapagod ang matagal na pananatili sa labas.";
+                $description = "WHITE Alert: Mag-ingat sa init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mag-ingat dahil maaaring magdulot ng pagkapagod ang matagal na pananatili sa labas.";
                 $alert = 'White';
             } else if ($surroundingTemp >= 33 && $surroundingTemp <= 41) {
-                $description = "BLUE Alert: Labis na mag-ingat sa init! Naitala ang $surroundingTemp °C sa Brgy Zone B ($currentTime). Mag-ingat dahil posibleng makaramdam ng muscle cramps.";
+                $description = "BLUE Alert: Labis na mag-ingat sa init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mag-ingat dahil posibleng makaramdam ng muscle cramps.";
                 $alert = 'Blue';
             } else if ($surroundingTemp >= 42 && $surroundingTemp <= 51) {
-                $description = "RED Alert: Mapanganib na init! Naitala ang $surroundingTemp °C sa Brgy Zone C ($currentTime). Mataas ang posibilidad ng pagkapagod kaya manatili sa lilim at uminom ng tubig.";
+                $description = "RED Alert: Mapanganib na init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mataas ang posibilidad ng pagkapagod kaya manatili sa lilim at uminom ng tubig.";
                 $alert = 'Red';
             } else if ($surroundingTemp > 52) {
                 $alert = 'Red';
-                $description = "RED Alert: Matinding init! Naitala ang $surroundingTemp °C sa Brgy Zone D ($currentTime). Mataas ang posibilidad ng heat stroke kaya manatili sa lilim at uminom ng tubig.";
+                $description = "RED Alert: Matinding init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mataas ang posibilidad ng heat stroke kaya manatili sa lilim at uminom ng tubig.";
             }
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
@@ -70,7 +72,7 @@ class alertController extends Controller{
                 $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true; 
-                } elseif ($minutesDiff >= 5) {
+                } elseif ($minutesDiff >= 15) {
                     $insert = true; 
                 }
             }
@@ -89,12 +91,14 @@ class alertController extends Controller{
             }
         }
     }
-    public function setWaterTemperatureAlert(){
+    public function setWaterTemperatureAlert(Request $request){
+        $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
         }
-
+        $barangay = DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')
+        ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['MS5837']['WATER_TEMPERATURE'])) {
                 continue;
@@ -114,17 +118,17 @@ class alertController extends Controller{
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
             if ($waterTemp >= 26 && $waterTemp <= 30) {
-                $description = "WHITE Alert: Katamtamang temperatura ng tubig! Naitala ang $waterTemp °C sa Brgy Zone C ($currentTime). Ligtas ang tubig para sa aktibidad at mababa ang panganib na dala nito.";
+                $description = "WHITE Alert: Katamtamang temperatura ng tubig! Naitala ang $waterTemp °C sa $barangay ($currentTime). Ligtas ang tubig para sa aktibidad at mababa ang panganib na dala nito.";
                 $alert = "White";
             } else if ($waterTemp >= 20 && $waterTemp <= 25) {
                 $alert = "Blue";
-                $description = "BLUE Alert: Malamig ang tubig! Naitala ang $waterTemp °C sa Brgy Zone B ($currentTime). Malamig ang tubig kaya dapat mag-ingat ang bawat isa lalo na ang mga bata at matatanda.";
+                $description = "BLUE Alert: Malamig ang tubig! Naitala ang $waterTemp °C sa $barangay ($currentTime). Malamig ang tubig kaya dapat mag-ingat ang bawat isa lalo na ang mga bata at matatanda.";
             } else if ($waterTemp < 20) {
                 $alert = "Red";
-                $description = "RED Alert: Matinding lamig ng tubig! Naitala ang $waterTemp °C sa Brgy Zone A ($currentTime); Possible ang biglaang lamig sa katawan kaya iwasan ang matagal na pananatili sa tubig.";
+                $description = "RED Alert: Matinding lamig ng tubig! Naitala ang $waterTemp °C sa $barangay ($currentTime); Possible ang biglaang lamig sa katawan kaya iwasan ang matagal na pananatili sa tubig.";
             } else if ($waterTemp > 30) {
                 $alert = "Red";
-                $description = "RED Alert: Matinding init ng tubig! Naitala ang $waterTemp °C sa Brgy. Zone D ($currentTime). Posibleng magdulot ng sobrang init sa katawan at pagkapagod habang nasa tubig.";
+                $description = "RED Alert: Matinding init ng tubig! Naitala ang $waterTemp °C sa $barangay ($currentTime). Posibleng magdulot ng sobrang init sa katawan at pagkapagod habang nasa tubig.";
             }
             if (is_null($description)) {
                 return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
@@ -146,7 +150,7 @@ class alertController extends Controller{
                 $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true; 
-                } elseif ($minutesDiff >= 5) {
+                } elseif ($minutesDiff >= 15) {
                     $insert = true; 
                 }
             }
@@ -165,12 +169,14 @@ class alertController extends Controller{
             }
         }
     }
-    public function setHumidityAlert(){
+    public function setHumidityAlert(Request $request){
+        $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
         }
-
+        $barangay = DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')
+        ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['BME280']['HUMIDITY'])) {
                 continue;
@@ -190,19 +196,19 @@ class alertController extends Controller{
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
             if ($humidityData >= 30 && $humidityData <= 59) {
-                $description = "WHITE Alert: Normal na antas ng alinsangan! Naitala ang $humidityData% sa Brgy Zone C ($currentTime), na itinuturing na ligtas at komportable sa karamihan ng residente. ";
+                $description = "WHITE Alert: Normal na antas ng alinsangan! Naitala ang $humidityData% sa $barangay ($currentTime), na itinuturing na ligtas at komportable sa karamihan ng residente. ";
                 $alertLevel = "White";
             } else if ($humidityData >= 60 && $humidityData <= 69) {
-                $description = "BLUE Alert:  Patas o mataas na alinsangan! Naitala ang $humidityData% sa Brgy Zone D ($currentTime). Bahagyang maalinsangan ang hangin kaya tiyaking maayos ang daloy ng hangin.";
+                $description = "BLUE Alert:  Patas o mataas na alinsangan! Naitala ang $humidityData% sa $barangay ($currentTime). Bahagyang maalinsangan ang hangin kaya tiyaking maayos ang daloy ng hangin.";
                 $alertLevel = "Blue";
             } else if ($humidityData >= 25 && $humidityData <= 29) {
                 $alertLevel = "Blue";
-                $description = "BLUE Alert: Patas o mababang alinsangan! Naitala ang $humidityData% sa Brgy Zone B ($currentTime). Bahagyang tuyo ang hangin kaya posibleng maging hindi komportable.";
+                $description = "BLUE Alert: Patas o mababang alinsangan! Naitala ang $humidityData% sa $barangay ($currentTime). Bahagyang tuyo ang hangin kaya posibleng maging hindi komportable.";
             } else if ($humidityData < 25) {
-                $description = "RED Alert: Mahina o mababang alinsangan! Naitala ang $humidityData% sa Brgy Zone A ($currentTime). Mag-ingat sa tuyong hangin na posibleng makairita sa balat o mata.";
+                $description = "RED Alert: Mahina o mababang alinsangan! Naitala ang $humidityData% sa $barangay ($currentTime). Mag-ingat sa tuyong hangin na posibleng makairita sa balat o mata.";
                 $alertLevel = "Red";
             } else if ($humidityData > 70) {
-                $description = "RED Alert: Mahina o mataas na alinsangan! Naitala ang $humidityData% sa Brgy Zone E ($currentTime). Mag-ingat sa labis na kahalumigmigan na posibleng magdulot ng bacteria.";
+                $description = "RED Alert: Mahina o mataas na alinsangan! Naitala ang $humidityData% sa $barangay ($currentTime). Mag-ingat sa labis na kahalumigmigan na posibleng magdulot ng bacteria.";
                 $alertLevel = "Red";
             }
             if (is_null($description)) {
@@ -225,7 +231,7 @@ class alertController extends Controller{
                 $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alertLevel) {
                     $insert = true; 
-                } elseif ($minutesDiff >= 5) {
+                } elseif ($minutesDiff >= 15) {
                     $insert = true; 
                 }
             }
@@ -244,12 +250,14 @@ class alertController extends Controller{
             }
         }
     }
-    public function setAtmosphericAlert(){
+    public function setAtmosphericAlert(Request $request){
+        $user= $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
         }
-
+        $barangay = DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')
+        ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['BME280']['ATMOSPHERIC_PRESSURE'])) {
                 continue;
@@ -269,16 +277,16 @@ class alertController extends Controller{
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
             if ($atmosphericData > 1013.2) {
-                $description = "WHITE Alert: Mataas na lakas ng hangin! Naitala ang $atmosphericData hPa sa Brgy. Zone A ($currentTime). Inaasahan ang malinaw na kalangitan at mahinahong panahon.";
+                $description = "WHITE Alert: Mataas na lakas ng hangin! Naitala ang $atmosphericData hPa sa $barangay ($currentTime). Inaasahan ang malinaw na kalangitan at mahinahong panahon.";
                 $alert = "White";
             } else if ($atmosphericData >= 1010 && $atmosphericData <= 1012) {
-                $description = "WHITE Alert: Katamtamang lakas ng hangin! Naitala ang $atmosphericData hPa sa Brgy Zone B ($currentTime). Maaayos at payapa ang panahon na may banayad na kondisyon.";
+                $description = "WHITE Alert: Katamtamang lakas ng hangin! Naitala ang $atmosphericData hPa sa $barangay ($currentTime). Maaayos at payapa ang panahon na may banayad na kondisyon.";
                 $alert = "White";
             } else if ($atmosphericData >= 1007 && $atmosphericData <= 1009) {
-                $description = "BLUE Alert: Mababang lakas ng hangin! Naitala ang $atmosphericData hPa sa Brgy Zone C ($currentTime). Dumarami ang mga ulap at posibleng umulan nang bahagya.";
+                $description = "BLUE Alert: Mababang lakas ng hangin! Naitala ang $atmosphericData hPa sa $barangay ($currentTime). Dumarami ang mga ulap at posibleng umulan nang bahagya.";
                 $alert = "Blue";
             } else if ($atmosphericData < 1006) {
-                $description = "RED Alert: Napakababang lakas ng hangin! Naitala ang $atmosphericData hPa sa Brgy Zone D ($currentTime). Bagyo na may malakas na ulan at malakas na hangin ang inaasahan.";
+                $description = "RED Alert: Napakababang lakas ng hangin! Naitala ang $atmosphericData hPa sa $barangay ($currentTime). Bagyo na may malakas na ulan at malakas na hangin ang inaasahan.";
                 $alert = "Red";
             }
 
@@ -302,7 +310,7 @@ class alertController extends Controller{
                 $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true; 
-                } elseif ($minutesDiff >= 5) {
+                } elseif ($minutesDiff >= 15) {
                     $insert = true; 
                 }
             }
@@ -321,12 +329,14 @@ class alertController extends Controller{
             }
         }
     }
-    public function setWindAlert(){
+    public function setWindAlert(Request $request){
+        $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
         }
-
+        $barangay = DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')
+        ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['ANEMOMETER']['WIND_SPEED_km_h'])) {
                 continue;
@@ -346,19 +356,19 @@ class alertController extends Controller{
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
             if ($windSpeedData >= 39 && $windSpeedData <= 61) {
-                $description = "WHITE Alert: Wind Signal No.1! Naitala ang $windSpeedData km/h sa Brgy Zone A ($currentTime). Posibleng magdulot ng kaunting pinsala sa mga bahay, puno, o ari-arian, mag-ingat.";
+                $description = "WHITE Alert: Wind Signal No.1! Naitala ang $windSpeedData km/h sa $barangay ($currentTime). Posibleng magdulot ng kaunting pinsala sa mga bahay, puno, o ari-arian, mag-ingat.";
                 $alert = "White";
             } else if ($windSpeedData >= 62 && $windSpeedData <= 88) {
-                $description = "BLUE Alert: Wind Signal No.2! Naitala ang $windSpeedData km/h sa Brgy Zone B ($currentTime). Posibleng magdulot ng kaunti hanggang katamtamang pinsala sa bahay kaya mag-ingat.";
+                $description = "BLUE Alert: Wind Signal No.2! Naitala ang $windSpeedData km/h sa $barangay ($currentTime). Posibleng magdulot ng kaunti hanggang katamtamang pinsala sa bahay kaya mag-ingat.";
                 $alert = "Blue";
             } else if ($windSpeedData >= 89 && $windSpeedData <= 117) {
-                $description = "BLUE Alert: Wind Signal No.3! Naitala ang $windSpeedData km/h sa Brgy Zone C ($currentTime). Mag-ingat sa lumilipad na debris na maaaring makasugat o makasira ng ari-arian.";
+                $description = "BLUE Alert: Wind Signal No.3! Naitala ang $windSpeedData km/h sa $barangay ($currentTime). Mag-ingat sa lumilipad na debris na maaaring makasugat o makasira ng ari-arian.";
                 $alert = "Blue";
             } else if ($windSpeedData >= 118 && $windSpeedData <= 184) {
-                $description = "RED Alert: Wind Signal No.4! Naitala ang $windSpeedData km/h sa Brgy Zone D ($currentTime). Mag-ingat sa posibleng pagbagsak ng pader na maaaring makasugat o makasira ng bahay.";
+                $description = "RED Alert: Wind Signal No.4! Naitala ang $windSpeedData km/h sa $barangay ($currentTime). Mag-ingat sa posibleng pagbagsak ng pader na maaaring makasugat o makasira ng bahay.";
                 $alert = "Red";
             } else if ($windSpeedData > 185) {
-                $description = "RED Alert: Wind Signal No.5! Naitala ang $windSpeedData km/h sa Brgy Zone E ($currentTime). Manatili sa ligtas na lugar dahil posibleng magdulot ito ng matinding pinsala.";
+                $description = "RED Alert: Wind Signal No.5! Naitala ang $windSpeedData km/h sa $barangay ($currentTime). Manatili sa ligtas na lugar dahil posibleng magdulot ito ng matinding pinsala.";
                 $alert = "Red";
             }
 
@@ -383,7 +393,7 @@ class alertController extends Controller{
                 $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true; 
-                } elseif ($minutesDiff >= 5) {
+                } elseif ($minutesDiff >= 15) {
                     $insert = true; 
                 }
             }
@@ -402,12 +412,14 @@ class alertController extends Controller{
             }
         }
     }
-    public function setRainPercentageAlert(){
+    public function setRainPercentageAlert(Request $request){
+        $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
         }
-
+        $barangay = DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')
+        ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['RAIN_GAUGE']['FALL_COUNT_MILIMETERS'])) {
                 continue;
@@ -427,16 +439,16 @@ class alertController extends Controller{
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
 
             if ($rainData < 1) {
-                $description = "WHITE Alert: Napakahinang pag-ulan! Naitala ang < $rainData mm/hr sa Brgy Zone A ($currentTime). May Pabugso-bugsong patak ng ulan pero hindi pa nababasa ang karamihan ng lugar.";
+                $description = "WHITE Alert: Napakahinang pag-ulan! Naitala ang < $rainData mm/hr sa $barangay ($currentTime). May Pabugso-bugsong patak ng ulan pero hindi pa nababasa ang karamihan ng lugar.";
                 $alert = "White";
             } else if ($rainData >= 1 && $rainData <= 3) {
-                $description = "WHITE Alert: Mahinang ulan! Naitala ang $rainData mm/hr sa Brgy Zone B ($currentTime). Unti-unti nang nababasa ang mga kalsada at lupa.";
+                $description = "WHITE Alert: Mahinang ulan! Naitala ang $rainData mm/hr sa $barangay ($currentTime). Unti-unti nang nababasa ang mga kalsada at lupa.";
                 $alert = "White";
             } else if ($rainData >= 4 && $rainData <= 8) {
-                $description = "BLUE Alert: Katamtamang ulan! Naitala ang $rainData mm/hr sa Brgy Zone C ($currentTime). Mabilis na naiipon ang tubig sa paligid kaya mag-ingat sa paglakad o pagmamaneho.";
+                $description = "BLUE Alert: Katamtamang ulan! Naitala ang $rainData mm/hr sa $barangay ($currentTime). Mabilis na naiipon ang tubig sa paligid kaya mag-ingat sa paglakad o pagmamaneho.";
                 $alert = "Blue";
             } else if ($rainData > 8) {
-                $description = "RED Alert: Malakas na ulan! Naitala ang $rainData mm/hr sa Brgy Zone D ($currentTime). Matindi ang pag-ulan na maaaring magdulot ng malakas na ingay at abala sa bahay.";
+                $description = "RED Alert: Malakas na ulan! Naitala ang $rainData mm/hr sa $barangay ($currentTime). Matindi ang pag-ulan na maaaring magdulot ng malakas na ingay at abala sa bahay.";
                 $alert = "Red";
             }
             if (is_null($description)) {
@@ -458,7 +470,86 @@ class alertController extends Controller{
                 $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true; 
-                } elseif ($minutesDiff >= 5) {
+                } elseif ($minutesDiff >= 15) {
+                    $insert = true; 
+                }
+            }
+            if ($insert) {
+                $uuid = Str::uuid();
+                $alertId = 'ALERT' . $uuid;
+                DB::table('recent_alerts')->insert([
+                    'alertId' => $alertId,
+                    'buoy_id' => $prototype->id,
+                    'description' => $description,
+                    'alert_level' => $alert,
+                    'sensor_type' => $sensorType,
+                    'recorded_at' => $recorded
+                ]);
+            }
+        }
+    }
+    public function setWaterLevel(Request $request){
+        $user = $request->user();
+        $firebaseData = $this->firebase->getReference()->getValue();
+        if (empty($firebaseData)) {
+            return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
+        }
+        $barangay = DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')
+        ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
+        foreach ($firebaseData as $prototypeName => $buoyData) {
+            if (!isset($buoyData['MS5837']['WATER_LEVEL_FEET'])) {
+                continue;
+            }
+            $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
+            if (!$prototype) {
+                continue;
+            }
+            $waterlevel = $buoyData['MS5837'];
+            $waterlevelData  = $waterlevel['WATER_LEVEL_FEET'];
+            $description = null;
+            $alert = null;
+            $uuid = Str::uuid();
+            $alertId = 'ALERT' . $uuid;
+            $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
+            $sensorType = 'WATER LEVEL';
+            $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
+            $brgyWhiteLevel= DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')->where('users.barangay_id', $user->barangay_id)
+            ->value('barangays.white_level_alert');
+            $brgBlueLevel= DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')->where('users.barangay_id', $user->barangay_id)
+            ->value('barangays.blue_level_alert');
+            $brgRedLevel= DB::table('users')->join('barangays', 'users.barangay_id', '=','barangays.id')->where('users.barangay_id', $user->barangay_id)
+            ->value('barangays.red_level_alert');
+
+            if ($waterlevelData < $brgyWhiteLevel) {
+                $description = "WHITE Alert: Maging alerto sa lebel ng tubig! Naitala ang $waterlevelData feet kapasidad sa $barangay ($currentTime). Bantayan ang tubig at mag-ingat sa posibleng pagbaha.";
+                $alert = "White";
+            }else if($waterlevelData <= $brgBlueLevel){
+                $description = "BLUE Alert: Maging alarma at mapanuri sa lebel ng tubig! Naitala ang $waterlevelData feet kapasidad sa $barangay ($currentTime). Malaki ang posibilidad ng pag-apaw ng tubig.";
+                $alert ="Blue";
+            }else if($waterlevelData >= $brgRedLevel){
+                $description= "RED Alert: Maging mapanuri sa lebel ng tubig! Naitala ang $waterlevelData feet kapasidad sa $barangay ($currentTime). Agad na lumikas upang maiwasan ang panganib ng pagbaha.";
+                 $alert ="Red";
+            }
+            if (is_null($description)) {
+                return response()->json(['status' => 'error', 'message' => 'No valid temperature data found', 'data' => []], 404);
+            }
+            $lastAlert = DB::table('recent_alerts')
+                ->where('buoy_id', $prototype->id)
+                ->where('sensor_type', $sensorType)
+                ->orderBy('recorded_at', 'desc')
+                ->first();
+            if($waterlevelData == 0|| is_null($waterlevelData)){
+               return;
+            }
+            $insert = false;
+            if (!$lastAlert) {
+                $insert = true;
+            } else {
+                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
+                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+                if ($lastAlert->alert_level !== $alert) {
+                    $insert = true; 
+                } elseif ($minutesDiff >= 15) {
                     $insert = true; 
                 }
             }
@@ -568,12 +659,13 @@ class alertController extends Controller{
     public function allAlerts(){
         DB::transaction(function () {
             $request = request();
-            $this->setTemperatureAlert();
-            $this->setWaterTemperatureAlert();
-            $this->setHumidityAlert();
-            $this->setAtmosphericAlert();
-            $this->setWindAlert();
-            $this->setRainPercentageAlert();
+            $this->setTemperatureAlert($request);
+            $this->setWaterTemperatureAlert($request);
+            $this->setHumidityAlert($request);
+            $this->setAtmosphericAlert($request);
+            $this->setWindAlert($request);
+            $this->setRainPercentageAlert($request);
+            $this->setWaterLevel($request);
             // $this->insertSensorData($request);
         });
         return response()->json(['success' => true, 'message' => 'All alerts processed successfully'], 200);

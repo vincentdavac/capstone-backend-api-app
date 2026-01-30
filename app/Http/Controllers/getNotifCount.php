@@ -9,12 +9,12 @@ class getNotifCount extends Controller
 {
     public function getCount(Request $request){
         $user = $request->user();
-        $count = DB::table('alerts')->where('user_id', $user->id ?? 8)->where('is_read', 0)->get()->count();;
+        $count = DB::table('alerts')->where('user_id', $user->id)->where('is_read', 0)->get()->count();;
         return $count;
     }
     public function getCountNotif(Request $request){
         $user = $request->user();
-        $countNotif =  DB::table('system_notifications')->where('receiver_id', $user->id ?? 8)->where('status', 'unread')->get()->count();
+        $countNotif =  DB::table('system_notifications')->where('receiver_id', $user->id)->where('status', 'unread')->get()->count();
         return $countNotif;
     }
     public function allCount(){

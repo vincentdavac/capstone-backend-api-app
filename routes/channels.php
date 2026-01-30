@@ -58,3 +58,6 @@ Broadcast::channel('barangay.notifications', function ($user) {
 Broadcast::channel('user.notifications', function ($user) {
     return $user->user_type === 'user';
 });
+Broadcast::channel('user.alerts', function ($user) {
+    return $user->user_type === 'user';
+});
