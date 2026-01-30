@@ -147,7 +147,7 @@ class SystemNotificationsController extends Controller
         $query = SystemNotifications::with(['sender', 'barangay'])
             ->where('receiver_id', $user->id)
             ->where('receiver_role', $user->user_type) // admin, barangay, user
-            ->where('status', 'unread');
+           ;
 
         // Count unread notifications
         $unreadCount = (clone $query)->count();
