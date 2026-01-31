@@ -19,13 +19,17 @@ class UserResource extends JsonResource
                 'houseNo'       => $this->house_no,
                 'street'        => $this->street,
 
-                // ✅ Barangay relationship
                 'barangay' => $this->whenLoaded('barangay', function () {
-                    return [
-                        'id'   => $this->barangay->id,
-                        'name' => $this->barangay->name ?? null,
-                    ];
-                }),
+                return [
+                    'id' => $this->barangay->id,
+                    'name' => $this->barangay->name,
+                    'buoys' => $this->barangay->buoys->map(function ($buoy) {
+                        return [
+                            'buoyCode' => $buoy->buoy_code,
+                        ];
+                    }),
+                ];
+            }),
 
                 'municipality' => $this->municipality,
                 'userType'     => $this->user_type,

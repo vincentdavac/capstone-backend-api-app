@@ -13,7 +13,7 @@ class fetchAlerts extends Controller{
     $user =  $request->query('barangay_id');
     $getAllAlerts = DB::table('recent_alerts')->join('buoys', 'recent_alerts.buoy_id', '=', 'buoys.id')
       ->where('buoys.barangay_id', $user)->where('recent_alerts.alert_level', '!=', 'White')
-      ->select('recent_alerts.*')->orderBy('recent_alerts.created_at', 'desc')->get();
+      ->select('recent_alerts.*')->orderBy('recent_alerts.id', 'desc')->get();
     return response()->json(['status' => 'success', 'data' => $getAllAlerts], 200, [], JSON_PRETTY_PRINT);
   }
 }
