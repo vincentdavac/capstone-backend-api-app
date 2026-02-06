@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Verified - X-STREAM</title>
 
-    <link rel="icon" type="image/svg+xml" href="/favicon-white-bg.svg">
+    <link rel="icon" type="image/svg+xml" href="favicon-white-bg.svg">
 
     <style>
         * {
@@ -219,7 +219,7 @@
                 <p><strong>✓</strong> Receive river monitoring alerts</p>
             </div>
 
-            <a href="#" class="btn">Go to App Login</a>
+            <a href="https://x-stream.ucc.bsit4c.com/admin/signin" class="btn">Go to App Login</a>
 
             <p class="logo">© 2025 X-STREAM. All rights reserved.</p>
 

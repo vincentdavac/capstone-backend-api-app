@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password - X-STREAM</title>
 
+    <link rel="icon" type="image/svg+xml" href="/favicon-white-bg.svg">
+
     <style>
         * {
             margin: 0;
