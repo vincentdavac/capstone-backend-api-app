@@ -120,17 +120,6 @@ Route::get('/gps-data', [gpsController::class, 'getGpsData']);
 Route::get('/rain-gauge', [raingaugeController::class, 'getRainGauge']);
 Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 
-
-// Route::post('/set-alert-surrounding', [surroundingtemperatureAlertController::class, 'setTemperatureAlert']);
-// Route::post('/set-alert-water-temp', [waterTemperatureAlert::class, 'setWaterTemperatureAlert']);
-// Route::post('/set-alert-humidity', [humidityAlertController::class, 'setHumidityAlert']);
-// Route::post('/set-alert-atmospheric', [atmosphericAlertController::class, 'setAtmosphericAlert']);
-// Route::post('/set-alert-wind', [windAlertController::class, 'setWindAlert']);
-// Route::post('/set-alert-rain', [rainAlertController::class, 'setRainPercentageAlert']);
-// Route::post('/set-alert-water-pressure', [waterPressureController::class, 'setWaterPressure']);
-// Route::post('/add-historical', [insertSensorReadings::class, 'insertSensorData']);
-
-
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 // USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
@@ -396,7 +385,7 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('unread/user', [SystemNotificationsController::class, 'unreadByRole']);
     Route::patch('read/user/{id}', [SystemNotificationsController::class, 'markAsRead']);
     Route::patch('read-all/user', [SystemNotificationsController::class, 'markAllAsRead']);
-
+    Route::get('unread-user', [SystemNotificationsController::class, 'notifUser']);
     // Admin Dashboard Routes
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'dashboardStats']);
 
