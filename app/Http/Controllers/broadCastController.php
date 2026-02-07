@@ -56,12 +56,14 @@ class broadCastController extends Controller
                     ]);
                     $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                     $message = DB::table('recent_alerts')->where('id', $request->alert_id)->value('description');
+                    $counts  = DB::table('alerts')->where('user_id', $user->id)->where('is_read', 0)->get()->count();
                     broadcast(new AlertBroadcast([
                         'description' => $alertInfo->description,
                         'alert_level' => $alertInfo->alert_level,
-                        'broadcast_by' => $alert->broadcast_by,
+                        'send_by' => $alert->broadcast_by,
                         'sensor_type' => $alertInfo->sensor_type,
                         'recorded_at' => $alert->recorded_at,
+                        'counts' => $counts,
                     ]));
 
                     if ($normalized) {

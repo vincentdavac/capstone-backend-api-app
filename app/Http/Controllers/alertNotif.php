@@ -14,7 +14,8 @@ class alertNotif extends Controller{
             ->select('alerts.*','recent_alerts.description', 'recent_alerts.alert_level','recent_alerts.sensor_type','recent_alerts.recorded_at as alert_time',)
             ->latest('alerts.recorded_at')
             ->first();
-         return response()->json(['Success' =>true, 'data'=>$alerts], 200);
+        $counts  = DB::table('alerts')->where('user_id', $user->id)->where('is_read', 0)->get()->count();
+         return response()->json(['Success' =>true, 'data'=>$alerts, 'alertcounts'=>$counts], 200);
     }
 
     public function getCount(Request $request){

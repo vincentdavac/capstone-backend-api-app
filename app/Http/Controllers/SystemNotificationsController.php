@@ -7,6 +7,7 @@ use App\Models\SystemNotifications;
 use App\Http\Resources\SystemNotificationsResource;
 use App\Http\Requests\SystemNotificationsRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SystemNotificationsController extends Controller
 {
@@ -147,10 +148,10 @@ class SystemNotificationsController extends Controller
         $query = SystemNotifications::with(['sender', 'barangay'])
             ->where('receiver_id', $user->id)
             ->where('receiver_role', $user->user_type) // admin, barangay, user
-           ;
-
+        ;
+        $unreadCount = DB::table('system_notifications')->where('receiver_id', $user->id)->where('status', 'unread')->get()->count();
         // Count unread notifications
-        $unreadCount = (clone $query)->count();
+
 
         // Fetch notifications
         $notifications = $query->latest()->get();
@@ -224,5 +225,14 @@ class SystemNotificationsController extends Controller
             ['updated_count' => $updatedCount],
             'All notifications marked as read successfully.'
         );
+    }
+
+    public function notifUser(SystemNotificationsRequest $request){
+        $user = Auth::user();
+        $query = SystemNotifications::with(['sender', 'barangay'])->where('receiver_id', $user->id)
+            ->where('receiver_role', $user->user_type);
+        $unreadCount = DB::table('system_notifications')->where('receiver_id', $user->id)->where('status', 'unread')->get()->count();
+        $notifications = $query->latest()->get();
+        return $this->success(['notifications' => SystemNotificationsResource::collection($notifications),'unread_notifications' => $unreadCount,]);
     }
 }
