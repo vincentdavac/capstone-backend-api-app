@@ -263,40 +263,44 @@ class AuthController extends Controller
             );
         }
 
-        // 🔹 Step 1: Handle image upload
-        $imageName = null;
-        if ($request->hasFile('image')) {
-            $imageFile = $request->file('image');
-            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
-            $imageFile->move(public_path('profile_images'), $imageName);
-        }
+// 🔹 Step 1: Handle image upload
+$imageName = null;
+if ($request->hasFile('image')) {
+    $imageFile = $request->file('image');
+    $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+    $imageFile->move(public_path('profile_images'), $imageName);
+    // ✅ ADD THIS LINE:
+    //$imageName = 'profile_images/' . $imageName;
+}
 
-        // 🔹 Step 2: Handle ID document upload
-        $idDocumentName = null;
-        if ($request->hasFile('id_document')) {
-            $idDocumentFile = $request->file('id_document');
-            $idDocumentName = Str::random(32) . '.' . $idDocumentFile->getClientOriginalExtension();
-            $idDocumentFile->move(public_path('id_documents'), $idDocumentName);
-        }
+// 🔹 Step 2: Handle ID document upload
+$idDocumentName = null;
+if ($request->hasFile('id_document')) {
+    $idDocumentFile = $request->file('id_document');
+    $idDocumentName = Str::random(32) . '.' . $idDocumentFile->getClientOriginalExtension();
+    $idDocumentFile->move(public_path('id_documents'), $idDocumentName);
+    // ✅ ADD THIS LINE:
+    //$idDocumentName = 'id_documents/' . $idDocumentName;
+}
 
         // 🔹 Step 3: Verify Google reCAPTCHA (skip for local/testing)
-        if (!app()->environment(['local', 'testing'])) {
-            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                'secret'   => env('RECAPTCHA_SECRET_KEY'),
-                'response' => $request->input('g-recaptcha-response'),
-                'remoteip' => $request->ip(),
-            ]);
+        // if (!app()->environment(['local', 'testing'])) {
+        //     $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+        //         'secret'   => env('RECAPTCHA_SECRET_KEY'),
+        //         'response' => $request->input('g-recaptcha-response'),
+        //         'remoteip' => $request->ip(),
+        //     ]);
 
-            $recaptchaData = $response->json();
+        //     $recaptchaData = $response->json();
 
-            if (!($recaptchaData['success'] ?? false)) {
-                return $this->error(
-                    'Captcha verification failed',
-                    $recaptchaData['error-codes'] ?? [],
-                    422
-                );
-            }
-        }
+        //     if (!($recaptchaData['success'] ?? false)) {
+        //         return $this->error(
+        //             'Captcha verification failed',
+        //             $recaptchaData['error-codes'] ?? [],
+        //             422
+        //         );
+        //     }
+        // }
 
 
         // 🔹 Step 5: Create new user
