@@ -15,10 +15,11 @@ class BatteryHealth extends Model
         'buoy_id',
         'percentage',
         'voltage',
+        'recorded_at', // added
     ];
 
     /**
-     * Enable timestamps for created_at and updated_at
+     * Enable timestamps (created_at & updated_at)
      */
     public $timestamps = true;
 
@@ -26,8 +27,9 @@ class BatteryHealth extends Model
      * Cast attributes to appropriate types
      */
     protected $casts = [
-        'percentage' => 'float',
-        'voltage'    => 'float',
+        'percentage'  => 'float',
+        'voltage'     => 'float',
+        'recorded_at' => 'datetime', //  added
     ];
 
     /**

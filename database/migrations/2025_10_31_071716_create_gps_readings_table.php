@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('buoy_id'); // foreign key reference to buoys table (optional)
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
+            $table->timestamp('recorded_at');
             $table->timestamps();
 
             // Optional: if you have a buoys table and want to enforce FK constraint

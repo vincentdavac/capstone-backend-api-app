@@ -11,8 +11,8 @@ use App\Models\RelayStatus;
 
 use App\Traits\HttpResponses;
 use App\Http\Resources\BuoyResource;
-use App\Http\Requests\StoreGpsReadingRequest;
-use App\Http\Requests\StoreBatteryHealthRequest;
+use App\Http\Requests\GpsReadingRequest;
+use App\Http\Requests\BatteryHealthRequest;
 use App\Http\Requests\StoreRelayStatusRequest;
 
 use App\Http\Resources\RelayStatusResource;
@@ -40,99 +40,6 @@ class BuoyMonitoringController extends Controller
         );
     }
 
-    public function storeLongitudeAndLatitude(StoreGpsReadingRequest $request)
-    {
-        $validated = $request->validated();
-
-        // Find buoy by buoy_code
-        $buoy = Buoy::where('buoy_code', $validated['buoy_code'])->first();
-
-        if (!$buoy) {
-            return $this->error(
-                null,
-                'Buoy not found',
-                404
-            );
-        }
-
-        // Prevent duplicate GPS entries (same location)
-        $lastReading = GpsReading::where('buoy_id', $buoy->id)
-            ->latest()
-            ->first();
-
-        if (
-            $lastReading &&
-            $lastReading->latitude == $validated['latitude'] &&
-            $lastReading->longitude == $validated['longitude']
-        ) {
-            return $this->success(
-                null,
-                'GPS location unchanged'
-            );
-        }
-
-        // Store GPS reading
-        $gps = GpsReading::create([
-            'buoy_id'   => $buoy->id,
-            'latitude'  => $validated['latitude'],
-            'longitude' => $validated['longitude'],
-        ]);
-
-        return $this->success(
-            $gps,
-            'GPS reading stored successfully',
-            201
-        );
-    }
-
-    public function storeBatteryHealth(StoreBatteryHealthRequest $request)
-    {
-        $validated = $request->validated();
-
-        // Find buoy by buoy_code (like storeGPS)
-        $buoy = Buoy::where('buoy_code', $validated['buoy_code'] ?? null)->first();
-
-        if (!$buoy) {
-            return $this->error(
-                null,
-                'Buoy not found',
-                404
-            );
-        }
-
-        // Round values to 2 decimal places
-        $percentage = round($validated['percentage'], 2);
-        $voltage    = round($validated['voltage'], 2);
-
-        // Prevent duplicate consecutive entries with same battery data
-        $lastBattery = BatteryHealth::where('buoy_id', $buoy->id)
-            ->latest()
-            ->first();
-
-        if (
-            $lastBattery &&
-            $lastBattery->percentage == $percentage &&
-            $lastBattery->voltage == $voltage
-        ) {
-            return $this->success(
-                null,
-                'Battery health unchanged'
-            );
-        }
-
-        // Store new battery health reading
-        $battery = BatteryHealth::create([
-            'buoy_id'    => $buoy->id,
-            'percentage' => $percentage,
-            'voltage'    => $voltage,
-        ]);
-
-        return $this->success(
-            $battery,
-            'Battery health stored successfully',
-            201
-        );
-    }
 
 
     public function relaySwitch(StoreRelayStatusRequest $request)
