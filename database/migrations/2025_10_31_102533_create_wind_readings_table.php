@@ -13,14 +13,20 @@ return new class extends Migration
     {
         Schema::create('wind_readings', function (Blueprint $table) {
             $table->id();
+
             $table->unsignedBigInteger('buoy_id');
+
+            // Wind speed
             $table->decimal('wind_speed_m_s', 6, 2);
             $table->decimal('wind_speed_k_h', 6, 2);
+
+            // Sensor timestamp
             $table->timestamp('recorded_at');
-            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+
+            // Laravel timestamps
+            $table->timestamps(); // creates `created_at` and `updated_at` with automatic current timestamps
         });
     }
-
     /**
      * Reverse the migrations.
      */

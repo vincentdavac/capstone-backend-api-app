@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\BuoyResource;
 
 class BME280DataResource extends JsonResource
 {
@@ -43,6 +44,8 @@ class BME280DataResource extends JsonResource
 
                 'updatedDate' => $this->updated_at?->format('F d, Y') ?? ' ',
                 'updatedTime' => $this->updated_at?->format('h:i:s A') ?? ' ',
+                // Include related buoy (only if loaded)
+                'buoy' => new BuoyResource($this->whenLoaded('buoy')),
             ],
         ];
     }

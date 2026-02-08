@@ -15,10 +15,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('buoy_id');
             $table->enum('relay_state', ['on', 'off'])->default('off');
+            $table->unsignedBigInteger('triggered_by')->nullable(); // Admin who toggled the relay
+            $table->timestamp('recorded_at'); // When the action was recorded
             $table->timestamps();
 
-            // Optional: foreign key to buoys table
+            // Optional: foreign keys
             // $table->foreign('buoy_id')->references('id')->on('buoys')->onDelete('cascade');
+            // $table->foreign('triggered_by')->references('id')->on('admins')->onDelete('set null');
         });
     }
 
