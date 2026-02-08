@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\GpsReading;
+use App\Models\Buoy;
 use App\Http\Requests\GpsReadingRequest;
 use App\Http\Resources\GpsReadingResource;
 use App\Traits\HttpResponses;
-use App\Models\Buoy;
 
 class GpsReadingController extends Controller
 {
@@ -14,14 +14,16 @@ class GpsReadingController extends Controller
 
     public function index()
     {
-        return GpsReadingResource::collection(GpsReading::all());
+        return GpsReadingResource::collection(
+            GpsReading::with('buoy')->get()
+        );
     }
 
-    public function storeLongitudeAndLatitude(GpsReadingRequest $request)
+    public function store(GpsReadingRequest $request)
     {
         $validated = $request->validated();
 
-        // Find buoy by buoy_id only
+        // Find buoy
         $buoy = Buoy::find($validated['buoy_id']);
 
         if (!$buoy) {
@@ -31,9 +33,6 @@ class GpsReadingController extends Controller
                 404
             );
         }
-
-        // Optional recorded_at (or default to now)
-        $recordedAt = $validated['recorded_at'] ?? now();
 
         // Prevent duplicate GPS entries (same location)
         $lastReading = GpsReading::where('buoy_id', $buoy->id)
@@ -57,24 +56,14 @@ class GpsReadingController extends Controller
             'buoy_id'     => $buoy->id,
             'latitude'    => $validated['latitude'],
             'longitude'   => $validated['longitude'],
-            'recorded_at' => now(),
+            'recorded_at' => now(), // server-handled
         ]);
 
-        // Return using resource
+        // Return response WITH buoy info
         return $this->success(
-            new GpsReadingResource($gps),
+            new GpsReadingResource($gps->load('buoy')),
             'GPS reading stored successfully',
             201
         );
-    }
-
-    public function store(GpsReadingRequest $request)
-    {
-        $validated = $request->validated();
-        $gps = GpsReading::create($validated);
-
-        return (new GpsReadingResource($gps))
-            ->response()
-            ->setStatusCode(201);
     }
 }

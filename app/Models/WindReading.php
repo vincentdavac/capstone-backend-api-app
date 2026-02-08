@@ -15,12 +15,10 @@ class WindReading extends Model
         'buoy_id',
         'wind_speed_m_s',
         'wind_speed_k_h',
-        'report_status',
-        'recorded_at',
-        'updated_at',
+        'recorded_at',   // Sensor-provided timestamp
     ];
 
-    public $timestamps = true; // since 'updated_at' is managed in the table
+    public $timestamps = true; // Uses created_at and updated_at automatically
 
     /**
      * Relationship: A wind reading belongs to a buoy.

@@ -37,6 +37,6 @@ class BatteryHealth extends Model
      */
     public function buoy()
     {
-        return $this->belongsTo(Buoy::class, 'buoy_id');
+        return $this->belongsTo(Buoy::class);
     }
 }

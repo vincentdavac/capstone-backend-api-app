@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('buoy_id');
             $table->decimal('percentage', 10, 2);
-            $table->timestamp('recorded_at')->nullable();
+            $table->timestamp('recorded_at');
             $table->timestamps();
         });
     }

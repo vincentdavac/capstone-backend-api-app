@@ -3,8 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WindReading;
-use App\Http\Requests\StoreWindReadingRequest;
-use App\Http\Requests\UpdateWindReadingRequest;
+use App\Http\Requests\WindReadingRequest;
 use App\Http\Resources\WindReadingResource;
 use App\Traits\HttpResponses;
 
@@ -12,35 +11,55 @@ class WindReadingController extends Controller
 {
     use HttpResponses;
 
+    /**
+     * List all wind readings with optional buoy info.
+     */
     public function index()
     {
-        return WindReadingResource::collection(WindReading::all());
+        return WindReadingResource::collection(WindReading::with('buoy')->get());
     }
 
-    public function store(StoreWindReadingRequest $request)
+    /**
+     * Store a new wind reading.
+     */
+    public function store(WindReadingRequest $request)
     {
-        $validated = $request->validated();
-        $reading = WindReading::create($validated);
+        // Normalize and round values
+        $windM_s = round($request->wind_speed_m_s, 2);
+        $windK_h = round($request->wind_speed_k_h, 2);
 
-        return (new WindReadingResource($reading))
-            ->response()
-            ->setStatusCode(201);
-    }
+        // Get last reading for this buoy
+        $lastReading = WindReading::where('buoy_id', $request->buoy_id)
+            ->latest('recorded_at')
+            ->first();
 
-    public function show(WindReading $windReading)
-    {
-        return new WindReadingResource($windReading);
-    }
+        // Reject if unchanged
+        if (
+            $lastReading &&
+            $lastReading->wind_speed_m_s == $windM_s &&
+            $lastReading->wind_speed_k_h == $windK_h
+        ) {
+            return $this->success(
+                null,
+                'Wind reading unchanged',
+                200
+            );
+        }
 
-    public function update(UpdateWindReadingRequest $request, WindReading $windReading)
-    {
-        $windReading->update($request->validated());
-        return new WindReadingResource($windReading);
-    }
+        // Save new reading
+        $reading = WindReading::create([
+            'buoy_id'        => $request->buoy_id,
+            'wind_speed_m_s' => $windM_s,
+            'wind_speed_k_h' => $windK_h,
+            'report_status'  => $request->report_status ?? 'Pending',
+            'recorded_at'    => now(), // server-handled
+        ]);
 
-    public function destroy(WindReading $windReading)
-    {
-        $windReading->delete();
-        return $this->success('', 'Wind reading deleted successfully', 200);
+        // Return resource with buoy info
+        return $this->success(
+            new WindReadingResource($reading->load('buoy')),
+            'Wind reading recorded successfully',
+            201
+        );
     }
 }

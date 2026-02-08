@@ -17,8 +17,18 @@ class RainSensorReading extends Model
         'recorded_at',
     ];
 
-    // Enable created_at and updated_at
+    /**
+     * Enable created_at and updated_at
+     */
     public $timestamps = true;
+
+    /**
+     * Cast attributes to proper types
+     */
+    protected $casts = [
+        'percentage'  => 'float',
+        'recorded_at' => 'datetime',
+    ];
 
     /**
      * Relationship: A rain sensor reading belongs to a buoy.

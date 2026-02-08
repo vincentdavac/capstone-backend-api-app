@@ -16,9 +16,7 @@ use App\Http\Controllers\BuoyController;
 use App\Http\Controllers\GpsReadingController;
 use App\Http\Controllers\BatteryHealthController;
 use App\Http\Controllers\RelayStatusController;
-use App\Http\Controllers\WaterTemperatureReadingController;
 use App\Http\Controllers\RainSensorReadingController;
-use App\Http\Controllers\DepthReadingController;
 use App\Http\Controllers\WindReadingController;
 use App\Http\Controllers\RainGaugeReadingController;
 use App\Http\Controllers\VerificationController;
@@ -60,6 +58,7 @@ use App\Http\Controllers\BarangayDashboardController;
 use App\Http\Controllers\getNotifCount;
 use App\Http\Controllers\BuoyMonitoringController;
 use App\Http\Controllers\BME280DataController;
+use App\Http\Controllers\MS5837DataController;
 
 
 //  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
@@ -201,40 +200,19 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/relay-status/{relayStatus}', [RelayStatusController::class, 'update']);
     Route::delete('/relay-status/{relayStatus}', [RelayStatusController::class, 'destroy']);
 
-    // temperature-readings
-    Route::get('/water-temperature-readings', [WaterTemperatureReadingController::class, 'index']);
-    Route::post('/water-temperature-readings', [WaterTemperatureReadingController::class, 'store']);
-    Route::get('/water-temperature-readings/{waterTemperatureReading}', [WaterTemperatureReadingController::class, 'show']);
-    Route::patch('/water-temperature-readings/{waterTemperatureReading}', [WaterTemperatureReadingController::class, 'update']);
-    Route::delete('/water-temperature-readings/{waterTemperatureReading}', [WaterTemperatureReadingController::class, 'destroy']);
-
     // Rain Reading Routes
     Route::get('/rain-readings', [RainSensorReadingController::class, 'index']);
-    Route::post('/rain-readings', [RainSensorReadingController::class, 'store']);
     Route::get('/rain-readings/{rainReading}', [RainSensorReadingController::class, 'show']);
     Route::patch('/rain-readings/{rainReading}', [RainSensorReadingController::class, 'update']);
     Route::delete('/rain-readings/{rainReading}', [RainSensorReadingController::class, 'destroy']);
 
-    // Depth Reading Routes
-    Route::get('/depth-readings', [DepthReadingController::class, 'index']);
-    Route::post('/depth-readings', [DepthReadingController::class, 'store']);
-    Route::get('/depth-readings/{depthReading}', [DepthReadingController::class, 'show']);
-    Route::patch('/depth-readings/{depthReading}', [DepthReadingController::class, 'update']);
-    Route::delete('/depth-readings/{depthReading}', [DepthReadingController::class, 'destroy']);
 
     // Wind Reading Routes
     Route::get('/wind-readings', [WindReadingController::class, 'index']);
-    Route::post('/wind-readings', [WindReadingController::class, 'store']);
-    Route::get('/wind-readings/{windReading}', [WindReadingController::class, 'show']);
-    Route::patch('/wind-readings/{windReading}', [WindReadingController::class, 'update']);
-    Route::delete('/wind-readings/{windReading}', [WindReadingController::class, 'destroy']);
 
-
+    // Rain Gauge Reading Routes
     Route::get('/rain-gauge-readings', [RainGaugeReadingController::class, 'index']);
-    Route::post('/rain-gauge-readings', [RainGaugeReadingController::class, 'store']);
-    Route::get('/rain-gauge-readings/{rainGaugeReading}', [RainGaugeReadingController::class, 'show']);
-    Route::patch('/rain-gauge-readings/{rainGaugeReading}', [RainGaugeReadingController::class, 'update']);
-    Route::delete('/rain-gauge-readings/{rainGaugeReading}', [RainGaugeReadingController::class, 'destroy']);
+
 
 
     // HOMEPAGE CONTENT MANAGEMENT ROUTES
@@ -360,14 +338,18 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('/deployment-point/{buoy}', [BuoyMonitoringController::class, 'show']);
 
     // Relay Switch Route
-    Route::post('/relay/switch', [BuoyMonitoringController::class, 'relaySwitch']);
+    Route::post('/relay/switch', [RelayStatusController::class, 'relaySwitch']);
 });
 
 
 // ESP32 - No Auth, No Throttle
-Route::post('/gps/store', [GpsReadingController::class, 'storeLongitudeAndLatitude'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
-Route::post('/battery-health/store', [BatteryHealthController::class, 'storeBatteryHealth'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/gps/store', [GpsReadingController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/battery-health/store', [BatteryHealthController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
 Route::post('/bme280-data', [BME280DataController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/rain-readings', [RainSensorReadingController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/ms5837-data', [MS5837DataController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/wind-readings', [WindReadingController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/rain-gauge-readings', [RainGaugeReadingController::class, 'store']);
 
 
 

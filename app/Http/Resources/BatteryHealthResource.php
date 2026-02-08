@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\BuoyResource;
 
 class BatteryHealthResource extends JsonResource
 {
@@ -17,11 +18,11 @@ class BatteryHealthResource extends JsonResource
         return [
             'id' => $this->id,
             'attributes' => [
-                'buoyId' => $this->buoy_id,
+                'buoyId'    => $this->buoy_id,
                 'percentage' => $this->percentage,
-                'voltage' => $this->voltage,
+                'voltage'   => $this->voltage,
 
-                'recordedAt' => $this->recorded_at?->toISOString(),
+                'recordedAt'   => $this->recorded_at?->toISOString(),
                 'recordedDate' => $this->recorded_at?->format('F d, Y') ?? ' ',
                 'recordedTime' => $this->recorded_at?->format('h:i:s A') ?? ' ',
 
@@ -29,6 +30,9 @@ class BatteryHealthResource extends JsonResource
                 'createdTime' => $this->created_at?->format('h:i:s A') ?? ' ',
                 'updatedDate' => $this->updated_at?->format('F d, Y') ?? ' ',
                 'updatedTime' => $this->updated_at?->format('h:i:s A') ?? ' ',
+
+                // Include related buoy (only if loaded)
+                'buoy' => new BuoyResource($this->whenLoaded('buoy')),
             ],
         ];
     }

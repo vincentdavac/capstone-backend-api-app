@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Buoy extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'buoy_code',
         'river_name',
@@ -21,65 +22,88 @@ class Buoy extends Model
         'maintenance_at',
     ];
 
-    public $timestamps = true; // Keeps created_at and updated_at timestamps
+    public $timestamps = true;
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
+    // GPS readings
     public function gpsReadings()
     {
         return $this->hasMany(GpsReading::class, 'buoy_id');
     }
 
+    public function latestGpsReading()
+    {
+        return $this->hasOne(GpsReading::class, 'buoy_id')
+            ->latestOfMany('recorded_at');
+    }
+
+    // Battery health
     public function batteryHealth()
     {
         return $this->hasMany(BatteryHealth::class, 'buoy_id');
     }
 
-    public function relayStatus()
+    public function latestBatteryHealth()
+    {
+        return $this->hasOne(BatteryHealth::class, 'buoy_id')
+            ->latestOfMany('recorded_at');
+    }
+
+    // Relay status
+    public function relayStatuses()
     {
         return $this->hasMany(RelayStatus::class, 'buoy_id');
     }
 
-    // Relationship: A buoy belongs to one barangay
+    public function latestRelayStatus()
+    {
+        return $this->hasOne(RelayStatus::class, 'buoy_id')
+            ->latestOfMany('recorded_at');
+    }
+
+    // Barangay
     public function barangay()
     {
-        return $this->belongsTo(Barangay::class, 'barangay_id', 'id');
+        return $this->belongsTo(Barangay::class, 'barangay_id');
     }
+
     public function alerts()
     {
         return $this->hasMany(recent_alerts::class, 'buoy_id', 'id');
     }
 
-    public function bme280_atmospheric_readings()
+    // Rain gauge
+    public function rainGaugeReadings()
     {
-        return $this->hasmany(Bme280AtmosphericReading::class, 'buoy_id', 'id');
+        return $this->hasMany(RainGaugeReading::class, 'buoy_id');
     }
 
-    public function Bme280TemperatureReading()
+    public function latestRainGaugeReading()
     {
-        return $this->hasMany(Bme280TemperatureReading::class, 'buoy_id', 'id');
+        return $this->hasOne(RainGaugeReading::class, 'buoy_id')
+            ->latestOfMany('recorded_at');
     }
-    public function DepthReading()
+
+    // Rain sensor
+    public function rainSensorReadings()
     {
-        return $this->hasMany(DepthReading::class, 'buoy_id', 'id');
+        return $this->hasMany(RainSensorReading::class, 'buoy_id');
     }
-    public function RainGaugeReading()
+
+    // Wind
+    public function windReadings()
     {
-        return $this->hasMany(RainGaugeReading::class, 'buoy_id', 'id');
+        return $this->hasMany(WindReading::class, 'buoy_id');
     }
-    public function RainSensorReading()
+
+    public function latestWindReading()
     {
-        return $this->hasMany(RainSensorReading::class, 'buoy_id', 'id');
-    }
-    public function WaterTemperatureReading()
-    {
-        return $this->hasMany(WaterTemperatureReading::class, 'buoy_id', 'id');
-    }
-    public function WindReading()
-    {
-        return $this->hasMany(WindReading::class, 'buoy_id', 'id');
-    }
-    public function Bme280HumidityReading()
-    {
-        return $this->hasMany(Bme280HumidityReading::class, 'buoy_id', 'id');
+        return $this->hasOne(WindReading::class, 'buoy_id')
+            ->latestOfMany('recorded_at');
     }
 }
