@@ -32,7 +32,7 @@ class alertController extends Controller
                 continue;
             }
             if ($buoyCode !== $prototypeName) {
-                break;
+                continue;
             }
             $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
             if (!$prototype) {
@@ -115,7 +115,7 @@ class alertController extends Controller
                 continue;
             }
             if ($buoyCode !== $prototypeName) {
-                break;
+                continue;
             }
             $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
             if (!$prototype) {
@@ -199,7 +199,7 @@ class alertController extends Controller
                 continue;
             }
             if ($buoyCode !== $prototypeName) {
-                break;
+                continue;
             }
             $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
             if (!$prototype) {
@@ -286,7 +286,7 @@ class alertController extends Controller
                 continue;
             }
             if ($buoyCode !== $prototypeName) {
-                break;
+                continue;
             }
             $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
             if (!$prototype) {
@@ -371,7 +371,7 @@ class alertController extends Controller
                 continue;
             }
             if ($buoyCode !== $prototypeName) {
-                break;
+                continue;
             }
             $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
             if (!$prototype) {
@@ -460,7 +460,7 @@ class alertController extends Controller
                 continue;
             }
             if ($buoyCode !== $prototypeName) {
-                break;
+                continue;
             }
             $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
             if (!$prototype) {
@@ -542,7 +542,7 @@ class alertController extends Controller
                 continue;
             }
             if ($buoyCode !== $prototypeName) {
-                break;
+                continue;
             }
             $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
             if (!$prototype) {
