@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Models\Message;
-
 use App\Http\Controllers\HomepageSliderController;
 use App\Http\Controllers\HomepageAboutController;
 use App\Http\Controllers\HomepagePrototypeController;
@@ -17,17 +16,12 @@ use App\Http\Controllers\BuoyController;
 use App\Http\Controllers\GpsReadingController;
 use App\Http\Controllers\BatteryHealthController;
 use App\Http\Controllers\RelayStatusController;
-use App\Http\Controllers\Bme280TemperatureReadingController;
-use App\Http\Controllers\Bme280HumidityReadingController;
-use App\Http\Controllers\Bme280AtmosphericReadingController;
 use App\Http\Controllers\WaterTemperatureReadingController;
 use App\Http\Controllers\RainSensorReadingController;
 use App\Http\Controllers\DepthReadingController;
 use App\Http\Controllers\WindReadingController;
 use App\Http\Controllers\RainGaugeReadingController;
 use App\Http\Controllers\VerificationController;
-use App\Http\Controllers\testingWeather;
-use App\Http\Controllers\getReceiverStatus;
 use App\Http\Controllers\countUser;
 use App\Http\Controllers\windController;
 use App\Http\Controllers\waterController;
@@ -36,18 +30,9 @@ use App\Http\Controllers\surroundingController;
 use App\Http\Controllers\gpsController;
 use App\Http\Controllers\raingaugeController;
 use App\Http\Controllers\rainSensorController;
-use App\Http\Controllers\surroundingtemperatureAlertController;
-use App\Http\Controllers\humidityAlertController;
-use App\Http\Controllers\atmosphericAlertController;
-use App\Http\Controllers\windAlertController;
-use App\Http\Controllers\rainAlertController;
-use App\Http\Controllers\waterTemperatureAlert;
 use App\Http\Controllers\fetchAlerts;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BarangayController;
-use App\Http\Controllers\waterPressureController;
 use App\Http\Controllers\PrototypeFileController;
-use App\Http\Controllers\insertSensorReadings;
 use App\Http\Controllers\getHistoricalData;
 use App\Http\Controllers\getAtmostphericdata;
 use App\Http\Controllers\getsurroundingdata;
@@ -61,7 +46,6 @@ use App\Http\Controllers\alertController;
 use App\Http\Controllers\currentCondition;
 use App\Http\Controllers\DeployedBuoyController;
 use App\Http\Controllers\MessageController;
-use App\Http\Controllers\TestPusherController;
 use App\Http\Controllers\broadCastController;
 use App\Http\Controllers\alertMonitoring;
 use App\Http\Controllers\alertNotif;
@@ -75,6 +59,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\BarangayDashboardController;
 use App\Http\Controllers\getNotifCount;
 use App\Http\Controllers\BuoyMonitoringController;
+use App\Http\Controllers\BME280DataController;
 
 
 //  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
@@ -215,27 +200,6 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('/relay-status/{relayStatus}', [RelayStatusController::class, 'show']);
     Route::patch('/relay-status/{relayStatus}', [RelayStatusController::class, 'update']);
     Route::delete('/relay-status/{relayStatus}', [RelayStatusController::class, 'destroy']);
-
-    // Temperature Readings
-    Route::get('/bme280-temperature-readings', [Bme280TemperatureReadingController::class, 'index']);
-    Route::post('/bme280-temperature-readings', [Bme280TemperatureReadingController::class, 'store']);
-    Route::get('/bme280-temperature-readings/{bme280TemperatureReading}', [Bme280TemperatureReadingController::class, 'show']);
-    Route::patch('/bme280-temperature-readings/{bme280TemperatureReading}', [Bme280TemperatureReadingController::class, 'update']);
-    Route::delete('/bme280-temperature-readings/{bme280TemperatureReading}', [Bme280TemperatureReadingController::class, 'destroy']);
-
-    // Humidity Readings
-    Route::get('/bme280-humidity-readings', [Bme280HumidityReadingController::class, 'index']);
-    Route::post('/bme280-humidity-readings', [Bme280HumidityReadingController::class, 'store']);
-    Route::get('/bme280-humidity-readings/{bme280HumidityReading}', [Bme280HumidityReadingController::class, 'show']);
-    Route::patch('/bme280-humidity-readings/{bme280HumidityReading}', [Bme280HumidityReadingController::class, 'update']);
-    Route::delete('/bme280-humidity-readings/{bme280HumidityReading}', [Bme280HumidityReadingController::class, 'destroy']);
-
-    // atmospheric-readings
-    Route::get('/bme280-atmospheric-readings', [Bme280AtmosphericReadingController::class, 'index']);
-    Route::post('/bme280-atmospheric-readings', [Bme280AtmosphericReadingController::class, 'store']);
-    Route::get('/bme280-atmospheric-readings/{bme280AtmosphericReading}', [Bme280AtmosphericReadingController::class, 'show']);
-    Route::patch('/bme280-atmospheric-readings/{bme280AtmosphericReading}', [Bme280AtmosphericReadingController::class, 'update']);
-    Route::delete('/bme280-atmospheric-readings/{bme280AtmosphericReading}', [Bme280AtmosphericReadingController::class, 'destroy']);
 
     // temperature-readings
     Route::get('/water-temperature-readings', [WaterTemperatureReadingController::class, 'index']);
@@ -401,8 +365,10 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
 
 
 // ESP32 - No Auth, No Throttle
-Route::post('/gps/store', [BuoyMonitoringController::class, 'storeLongitudeAndLatitude'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
-Route::post('/battery-health/store', [BuoyMonitoringController::class, 'storeBatteryHealth'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/gps/store', [GpsReadingController::class, 'storeLongitudeAndLatitude'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/battery-health/store', [BatteryHealthController::class, 'storeBatteryHealth'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+Route::post('/bme280-data', [BME280DataController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
+
 
 
 // CHAT ROUTES: No throttle

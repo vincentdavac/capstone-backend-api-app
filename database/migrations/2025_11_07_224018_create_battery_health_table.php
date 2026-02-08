@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('buoy_id');
             $table->decimal('percentage', 5, 2);
             $table->decimal('voltage', 5, 2);
+            $table->timestamp('recorded_at');
             $table->timestamps();
-
             // Optional: add foreign key if buoy table exists
             // $table->foreign('buoy_id')->references('id')->on('buoys')->onDelete('cascade');
         });
