@@ -611,98 +611,8 @@ class alertController extends Controller
             }
         }
     }
-    public function insertSensorData(Request $request)
-    {
-        $firebaseData = $this->firebase->getReference()->getValue();
-        $request->validate(['alert_id' => 'required|integer', 'buoy_code' => 'required|string',]);
-        if (empty($firebaseData)) {
-            return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
-        }
-        foreach ($firebaseData as $prototypeName => $buoyData) {
-            $prototype = DB::table('buoys')->where('buoy_code', operator: $prototypeName)->first();
-            if ($prototypeName === $request->buoy_code) {
-                if (!$prototype) {
-                    continue;
-                }
-                $bme280 = $buoyData['BME280'];
-                $waterData = $buoyData['MS5837'];
-                $windData = $buoyData['ANEMOMETER'];
-                $RAIN_GAUGE = $buoyData['RAIN_GAUGE'];
-                $RAIN_SENSOR = $buoyData['RAIN_SENSOR'];
-                $ALTITUDE = $bme280['ALTITUDE'];
-                $ATMOSPHERIC_PRESSURE = $bme280['ATMOSPHERIC_PRESSURE'];
-                $surrounding_temp = $bme280['SURROUNDING_TEMPERATURE'];
-                $humidity = $bme280['HUMIDITY'];
-                $WATER_LEVEL_METER = $waterData['WATER_LEVEL_METER'];
-                $WATER_LEVEL_FEET = $waterData['WATER_LEVEL_FEET'];
-                $WATER_TEMPERATURE = $waterData['WATER_TEMPERATURE'];
-                $WATER_ALTITUDE = $waterData['WATER_ALTITUDE'];
-                $WATER_PRESSURE = $waterData['WATER_PRESSURE'];
-                $WIND_SPEED_km_h = $windData['WIND_SPEED_km_h'];
-                $WIND_SPEED_m_s = $windData['WIND_SPEED_m_s'];
-                $FALL_COUNT_MILIMETERS = $RAIN_GAUGE['FALL_COUNT_MILIMETERS'];
-                $TIP_COUNT = $RAIN_GAUGE['TIP_COUNT'];
-                $RAIN_PERCENTAGE = $RAIN_SENSOR['RAIN_PERCENTAGE'];
-                $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-                $f = $surrounding_temp * 1.8 + 32;
-
-                $wf = $WATER_TEMPERATURE * 1.8 + 32;
-                DB::table('bme280_atmospheric_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'pressure_hpa' => $ATMOSPHERIC_PRESSURE,
-                    'pressure_mbar' => $ATMOSPHERIC_PRESSURE,
-                    'altitude' => $ALTITUDE,
-                    'recorded_at' => $recorded
-                ]);
-
-                DB::table('bme280_humidity_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'humidity' => $humidity,
-                ]);
-
-                DB::table('bme280_temperature_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'temperature_celsius' => $surrounding_temp,
-                    'temperature_fahrenheit' => $f,
-                ]);
-
-                DB::table('depth_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'pressure_mbar' => $WATER_PRESSURE,
-                    'pressure_hpa' => $WATER_PRESSURE,
-                    'depth_m' => $WATER_LEVEL_METER,
-                    'depth_ft' => $WATER_LEVEL_FEET,
-                    'water_altitude' => $WATER_ALTITUDE,
-                    'recorded_at' => $recorded
-                ]);
-
-                DB::table('water_temperature_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'temperature_celsius' => $WATER_TEMPERATURE,
-                    'temperature_fahrenheit' => $wf,
-                ]);
-
-                DB::table('wind_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'wind_speed_m_s' => $WIND_SPEED_m_s,
-                    'wind_speed_k_h' => $WIND_SPEED_km_h,
-                ]);
-                DB::table('rain_gauge_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'rainfall_mm' => $FALL_COUNT_MILIMETERS,
-                    'tip_count' => $TIP_COUNT,
-                ]);
-                DB::table('rain_sensor_readings')->insert([
-                    'buoy_id' =>  $request->alert_id,
-                    'percentage' => $RAIN_PERCENTAGE,
-                    'recorded_at' => $recorded
-                ]);
-            }
-        }
-        // return response()->json(['status' => 'success', 'data' => $id], 200, [], JSON_PRETTY_PRINT);
-    }
-    public function allAlerts()
-    {
+   
+    public function allAlerts(){
         try {
             DB::transaction(function () {
                 $request = request();
@@ -713,15 +623,10 @@ class alertController extends Controller
                 $this->setWindAlert($request);
                 $this->setRainPercentageAlert($request);
                 $this->setWaterLevel($request);
-                // $this->insertSensorData($request);
             });
-            return response()->json(['success' => true, 'message' => 'All alerts processed successfully'], 200);
+            return response()->json(['success' => true, 'message' => 'all alerts processed successfully'], 200);
         } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Processing failed',
-                'error'   => $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false,'message' => 'processing failed','error'=> $e->getMessage()], 500);
         }
     }
 }
