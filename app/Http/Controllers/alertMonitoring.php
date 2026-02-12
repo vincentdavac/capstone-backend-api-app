@@ -9,7 +9,7 @@ use App\Services\FirebaseServices;
 use App\Models\recent_alerts;
 use App\Models\User;
 use App\Events\AlertBroadcast;
-
+use Carbon\Carbon;
 class alertMonitoring extends Controller
 {
     protected $firebase;
@@ -92,6 +92,9 @@ class alertMonitoring extends Controller
                     ]);
                     $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                     $message = DB::table('recent_alerts')->where('id', $request->alert_id)->value('description');
+                    $buoyID = DB::table('recent_alerts')->where('id', $request->alert_id)->value('buoy_id');
+                    $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
+                    $relayState = 'on';
                     broadcast(new AlertBroadcast([
                         'description' => $alertInfo->description,
                         'alert_level' => $alertInfo->alert_level,
@@ -99,7 +102,12 @@ class alertMonitoring extends Controller
                         'sensor_type' => $alertInfo->sensor_type,
                         'recorded_at' => $alert->recorded_at,
                     ]));
-
+                    DB::table('relay_status')->insert([
+                        'buoy_id'=> $buoyID,
+                        'relay_state'=>$relayState,
+                        'triggered_by'=>$user->id,
+                        'recorded_at'=>$recorded
+                    ]);
                     if ($normalized) {
                         $numbers[] = $normalized;
                     }
