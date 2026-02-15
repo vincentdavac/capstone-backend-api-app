@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Events\SystemNotificationSent;
+use App\Models\SystemNotifications;
 class updateProfile extends Controller
 {
     public function updateProfile(Request $request){
@@ -46,10 +48,16 @@ class updateProfile extends Controller
         $body = "Your profile details have been updated successfully";
         $status = "unread";
         $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-        DB::table('system_notifications')->insert([
-            'receiver_id' => $userData->id,'barangay_id' => $userData->barangay_id,'receiver_role' => $userData->user_type,
-            'title' => $title,'body' => $body,'status' => $status,'created_at'=>$recorded,
+        $notification = SystemNotifications::create([
+            'receiver_id' => $userData->id,
+            'barangay_id' => $userData->barangay_id,
+            'receiver_role' => $userData->user_type,
+            'title' => $title,
+            'body' => $body,
+            'status' => $status,
+            'created_at' => $recorded,
         ]);
+        broadcast(new SystemNotificationSent($notification))->toOthers();
         return response()->json(['success' => true, 'message' => 'updated successfully', 'date'=>$recorded], 200);
     }
 }
