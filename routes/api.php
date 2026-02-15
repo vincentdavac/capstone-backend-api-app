@@ -178,14 +178,6 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/buoys/{buoy}', [BuoyController::class, 'update']);
     Route::delete('/buoys/{buoy}', [BuoyController::class, 'destroy']);
 
-
-    // GPS Reading Routes
-    Route::get('/gps-readings', [GpsReadingController::class, 'index']);
-    Route::post('/gps-readings', [GpsReadingController::class, 'store']);
-    Route::get('/gps-readings/{gpsReading}', [GpsReadingController::class, 'show']);
-    Route::patch('/gps-readings/{gpsReading}', [GpsReadingController::class, 'update']);
-    Route::delete('/gps-readings/{gpsReading}', [GpsReadingController::class, 'destroy']);
-
     // Voltage Reading Routes
     Route::get('/voltage-readings', [BatteryHealthController::class, 'index']);
     Route::post('/voltage-readings', [BatteryHealthController::class, 'store']);
@@ -339,6 +331,10 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
 
     // Relay Switch Route
     Route::post('/relay/switch', [RelayStatusController::class, 'relaySwitch']);
+
+    // GPS Report Route
+    Route::get('/gps-report', [GpsReadingController::class, 'generateReport']);
+    Route::get('/gps-readings', [GpsReadingController::class, 'fetchAllReadings']);
 });
 
 
