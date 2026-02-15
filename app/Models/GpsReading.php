@@ -15,6 +15,16 @@ class GpsReading extends Model
         'buoy_id',
         'latitude',
         'longitude',
+        'recorded_at',
+    ];
+
+    /**
+     * Cast attributes to appropriate types
+     */
+    protected $casts = [
+        'latitude'    => 'float',
+        'longitude'   => 'float',
+        'recorded_at' => 'datetime',
     ];
 
     /**
@@ -22,6 +32,6 @@ class GpsReading extends Model
      */
     public function buoy()
     {
-        return $this->belongsTo(Buoy::class, 'buoy_id');
+        return $this->belongsTo(Buoy::class);
     }
 }

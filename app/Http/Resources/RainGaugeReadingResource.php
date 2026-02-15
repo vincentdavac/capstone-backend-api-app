@@ -4,19 +4,38 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\BuoyResource;
 
 class RainGaugeReadingResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'buoy_id' => $this->buoy_id,
-            'rainfall_mm' => $this->rainfall_mm,
-            'tip_count' => $this->tip_count,
-            'report_status' => $this->report_status,
-            'recorded_at' => $this->recorded_at,
-            'updated_at' => $this->updated_at,
+            'attributes' => [
+                'buoyId'      => $this->buoy_id,
+                'rainfallMm'  => $this->rainfall_mm,
+                'tipCount'    => $this->tip_count,
+                'reportStatus' => $this->report_status ?? null,
+
+                'recordedAt'   => $this->recorded_at?->toISOString(),
+                'recordedDate' => $this->recorded_at?->format('F d, Y') ?? ' ',
+                'recordedTime' => $this->recorded_at?->format('h:i:s A') ?? ' ',
+
+                'createdDate'  => $this->created_at?->format('F d, Y') ?? ' ',
+                'createdTime'  => $this->created_at?->format('h:i:s A') ?? ' ',
+
+                'updatedDate'  => $this->updated_at?->format('F d, Y') ?? ' ',
+                'updatedTime'  => $this->updated_at?->format('h:i:s A') ?? ' ',
+
+                // Include related buoy information (only if loaded)
+                'buoy' => new BuoyResource($this->whenLoaded('buoy')),
+            ],
         ];
     }
 }

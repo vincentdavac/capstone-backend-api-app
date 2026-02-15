@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\BuoyResource;
 
-class WindReadingResource extends JsonResource
+class BME280DataResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -20,11 +20,22 @@ class WindReadingResource extends JsonResource
             'attributes' => [
                 'buoyId' => $this->buoy_id,
 
-                'windSpeedM_s' => $this->wind_speed_m_s,
-                'windSpeedK_h' => $this->wind_speed_k_h,
-                'reportStatus' => $this->report_status,
+                'temperature' => [
+                    'celsius' => $this->temperature_celsius,
+                    'fahrenheit' => $this->temperature_fahrenheit,
+                ],
 
-                'recordedAt'   => $this->recorded_at?->toISOString(),
+                'humidity' => $this->humidity,
+
+                'pressure' => [
+                    'mbar' => $this->pressure_mbar,
+                    'hpa' => $this->pressure_hpa,
+                ],
+
+                'altitude' => $this->altitude,
+
+                'recordedAt' => $this->recorded_at?->toISOString(),
+
                 'recordedDate' => $this->recorded_at?->format('F d, Y') ?? ' ',
                 'recordedTime' => $this->recorded_at?->format('h:i:s A') ?? ' ',
 
@@ -33,8 +44,7 @@ class WindReadingResource extends JsonResource
 
                 'updatedDate' => $this->updated_at?->format('F d, Y') ?? ' ',
                 'updatedTime' => $this->updated_at?->format('h:i:s A') ?? ' ',
-
-                // Include related buoy information if loaded
+                // Include related buoy (only if loaded)
                 'buoy' => new BuoyResource($this->whenLoaded('buoy')),
             ],
         ];

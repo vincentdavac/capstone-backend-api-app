@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\BatteryHealth;
-use App\Http\Requests\StoreBatteryHealthRequest;
-use App\Http\Requests\UpdateVoltageReadingRequest;
-use App\Http\Resources\VoltageReadingResource;
+use App\Models\Buoy;
+use App\Http\Requests\BatteryHealthRequest;
+use App\Http\Resources\BatteryHealthResource;
 use App\Traits\HttpResponses;
 
 class BatteryHealthController extends Controller
@@ -14,33 +14,63 @@ class BatteryHealthController extends Controller
 
     public function index()
     {
-        return VoltageReadingResource::collection(BatteryHealth::all());
+        return BatteryHealthResource::collection(
+            BatteryHealth::with('buoy')->get()
+        );
     }
 
-    public function store(StoreBatteryHealthRequest $request)
+    public function store(BatteryHealthRequest $request)
     {
         $validated = $request->validated();
-        $reading = BatteryHealth::create($validated);
 
-        return (new VoltageReadingResource($reading))
-            ->response()
-            ->setStatusCode(201);
-    }
+        // Find buoy
+        $buoy = Buoy::find($validated['buoy_id']);
 
-    public function show(BatteryHealth $voltageReading)
-    {
-        return new VoltageReadingResource($voltageReading);
-    }
+        if (!$buoy) {
+            return $this->error(
+                null,
+                'Buoy not found',
+                404
+            );
+        }
 
-    public function update(UpdateVoltageReadingRequest $request, BatteryHealth $voltageReading)
-    {
-        $voltageReading->update($request->validated());
-        return new VoltageReadingResource($voltageReading);
-    }
+        // Normalize values
+        $percentage = round($validated['percentage'], 2);
+        $voltage    = round($validated['voltage'], 2);
 
-    public function destroy(BatteryHealth $voltageReading)
-    {
-        $voltageReading->delete();
-        return $this->success('', 'Voltage reading deleted successfully', 200);
+        // Server-handled timestamp
+        $recordedAt = $validated['recorded_at'] ?? now();
+
+        // Prevent duplicate consecutive entries
+        $lastBattery = BatteryHealth::where('buoy_id', $buoy->id)
+            ->latest('recorded_at')
+            ->first();
+
+        if (
+            $lastBattery &&
+            $lastBattery->percentage == $percentage &&
+            $lastBattery->voltage == $voltage
+        ) {
+            return $this->success(
+                null,
+                'Battery health unchanged',
+                200
+            );
+        }
+
+        // Store battery health
+        $battery = BatteryHealth::create([
+            'buoy_id'     => $buoy->id,
+            'percentage'  => $percentage,
+            'voltage'     => $voltage,
+            'recorded_at' => $recordedAt,
+        ]);
+
+        // Return response WITH buoy info
+        return $this->success(
+            new BatteryHealthResource($battery->load('buoy')),
+            'Battery health stored successfully',
+            201
+        );
     }
 }

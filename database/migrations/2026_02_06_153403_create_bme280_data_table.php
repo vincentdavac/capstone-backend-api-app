@@ -11,15 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('gps_readings', function (Blueprint $table) {
+        Schema::create('bme280_data', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('buoy_id'); // foreign key reference to buoys table (optional)
-            $table->decimal('latitude', 10, 7);
-            $table->decimal('longitude', 10, 7);
+
+            $table->unsignedBigInteger('buoy_id');
+
+            $table->float('temperature_celsius', 8, 2);
+            $table->float('temperature_fahrenheit', 8, 2);
+            $table->float('humidity', 8, 2);
+
+            $table->float('pressure_mbar', 10, 2);
+            $table->float('pressure_hpa', 10, 2);
+
+            $table->float('altitude', 10, 2);
+
             $table->timestamp('recorded_at');
+
             $table->timestamps();
 
-            // Optional: if you have a buoys table and want to enforce FK constraint
+            // Optional: foreign key if you have a buoys table
             // $table->foreign('buoy_id')->references('id')->on('buoys')->onDelete('cascade');
         });
     }
@@ -29,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('gps_readings');
+        Schema::dropIfExists('bme280_data');
     }
 };

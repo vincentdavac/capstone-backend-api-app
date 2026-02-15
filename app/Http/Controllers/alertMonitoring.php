@@ -9,7 +9,7 @@ use App\Services\FirebaseServices;
 use App\Models\recent_alerts;
 use App\Models\User;
 use App\Events\AlertBroadcast;
-
+use Carbon\Carbon;
 class alertMonitoring extends Controller
 {
     protected $firebase;
@@ -18,19 +18,22 @@ class alertMonitoring extends Controller
     {
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function getActiveAlerts($buoyCode){
+    public function getActiveAlerts($buoyCode)
+    {
         $alert = DB::table('recent_alerts')->join('buoys', 'recent_alerts.buoy_id', '=', 'buoys.id')
             ->where('buoys.buoy_code', $buoyCode)->whereIn('alert_level', ['Blue', 'Red'])
             ->where('recent_alerts.alert_shown', false)->orderBy('recent_alerts.recorded_at', 'desc')
             ->select('recent_alerts.*', 'buoys.buoy_code')->first();
         return response()->json(['alerts' => $alert ? [$alert] : [],  'has_new_alerts' => $alert !== null]);
     }
-    public function markAlertAsShown(Request $request){
+    public function markAlertAsShown(Request $request)
+    {
         $validated = $request->validate(['alert_id' => 'required|exists:recent_alerts,id']);
         DB::table('recent_alerts')->where('id', $validated['alert_id'])->update(['alert_shown' => true]);
         return response()->json(['success' => true]);
     }
-    public function checkAlertStatus($buoyId){
+    public function checkAlertStatus($buoyId)
+    {
         $sensorTypes = ['SURROUNDING TEMPERATURE', 'WATER TEMPERATURE', 'HUMIDITY', 'ATMOSPHERIC PRESSURE', 'WIND SPEED', 'RAIN GAUGE', 'WATER LEVEL'];
         $currentLvl = [];
         $reset = false;
@@ -51,7 +54,8 @@ class alertMonitoring extends Controller
         }
         return response()->json(['current_levels' => $currentLvl, 'reset_triggered' => $reset]);
     }
-    public function sendAlert(Request $request){
+    public function sendAlert(Request $request)
+    {
         $user = $request->user();
         $validated = $request->validate(['alert_id' => 'required|integer|exists:recent_alerts,id', 'buoy_code' => 'required|string', 'sensor_stype' => 'required|string',]);
         $user = $request->user();
@@ -88,6 +92,9 @@ class alertMonitoring extends Controller
                     ]);
                     $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                     $message = DB::table('recent_alerts')->where('id', $request->alert_id)->value('description');
+                    $buoyID = DB::table('recent_alerts')->where('id', $request->alert_id)->value('buoy_id');
+                    $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
+                    $relayState = 'on';
                     broadcast(new AlertBroadcast([
                         'description' => $alertInfo->description,
                         'alert_level' => $alertInfo->alert_level,
@@ -95,7 +102,12 @@ class alertMonitoring extends Controller
                         'sensor_type' => $alertInfo->sensor_type,
                         'recorded_at' => $alert->recorded_at,
                     ]));
-
+                    DB::table('relay_status')->insert([
+                        'buoy_id'=> $buoyID,
+                        'relay_state'=>$relayState,
+                        'triggered_by'=>$user->id,
+                        'recorded_at'=>$recorded
+                    ]);
                     if ($normalized) {
                         $numbers[] = $normalized;
                     }
@@ -104,7 +116,7 @@ class alertMonitoring extends Controller
                 $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(false);
             }
         }
-         $phoneNumbers = implode(',', array_unique($numbers));
+        $phoneNumbers = implode(',', array_unique($numbers));
         $data = [
             'api_token' => '',
             'message' => $message,
@@ -122,13 +134,15 @@ class alertMonitoring extends Controller
         DB::table('recent_alerts')->where('sensor_type', $validated['sensor_stype'])->update(['alert_shown' => true]);
         return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime,], 201);
     }
-    public function resetRelayModal(Request $request){
+    public function resetRelayModal(Request $request)
+    {
         $user = $request->user();
         $request->validate(['buoy_code' => 'required|string',]);
         $this->firebase->getReference($request->buoy_code . '/RELAY_STATE')->set(false);
         return response()->json(['message' => 'RELAY reset successfully'], 200);
     }
-    public function normalizePHNumber($number){
+    public function normalizePHNumber($number)
+    {
         $number = preg_replace('/[^0-9]/', '', $number);
         if (preg_match('/^09\d{9}$/', $number)) {
             return '63' . substr($number, 1);

@@ -4,21 +4,37 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\BuoyResource;
 
 class GpsReadingResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'buoy_id' => $this->buoy_id,
-            'latitude' => $this->latitude,
-            'longitude' => $this->longitude,
-            'altitude' => $this->altitude,
-            'satellites' => $this->satellites,
-            'report_status' => $this->report_status,
-            'recorded_at' => $this->recorded_at,
-            'updated_at' => $this->updated_at,
+            'attributes' => [
+                'buoyId'    => $this->buoy_id,
+                'latitude'  => $this->latitude,
+                'longitude' => $this->longitude,
+
+                'recordedAt'   => $this->recorded_at?->toISOString(),
+                'recordedDate' => $this->recorded_at?->format('F d, Y') ?? ' ',
+                'recordedTime' => $this->recorded_at?->format('h:i:s A') ?? ' ',
+
+                'createdDate' => $this->created_at?->format('F d, Y') ?? ' ',
+                'createdTime' => $this->created_at?->format('h:i:s A') ?? ' ',
+
+                'updatedDate' => $this->updated_at?->format('F d, Y') ?? ' ',
+                'updatedTime' => $this->updated_at?->format('h:i:s A') ?? ' ',
+
+                // Include related buoy info (only if loaded)
+                'buoy' => new BuoyResource($this->whenLoaded('buoy')),
+            ],
         ];
     }
 }
