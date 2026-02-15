@@ -21,6 +21,14 @@ class RainGaugeReading extends Model
 
     public $timestamps = true; // created_at and updated_at managed automatically
 
+
+    protected $casts = [
+        'recorded_at' => 'datetime',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
+    ];
+
+
     /**
      * Relationship: a rain gauge reading belongs to a buoy
      */

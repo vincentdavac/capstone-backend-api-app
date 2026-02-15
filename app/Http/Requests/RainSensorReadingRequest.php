@@ -35,6 +35,14 @@ class RainSensorReadingRequest extends FormRequest
             ];
         }
 
+        // For GET / fetch requests
+        if ($this->isMethod('get')) {
+            return [
+                'from'     => 'nullable|date_format:Y-m-d\TH:i',
+                'to'       => 'nullable|date_format:Y-m-d\TH:i|after_or_equal:from',
+                'buoy_id'  => 'required|integer|exists:buoys,id',
+            ];
+        }
         // Fallback
         return [];
     }
@@ -49,6 +57,11 @@ class RainSensorReadingRequest extends FormRequest
             'percentage.between' => 'Rain percentage must be between 0 and 100.',
 
             'recorded_at.date'   => 'Recorded time must be a valid date.',
+
+            // Messages for GET filters
+            'from.date' => 'The "from" field must be a valid date.',
+            'to.date'   => 'The "to" field must be a valid date.',
+            'to.after_or_equal' => 'The "to" date must be after or equal to the "from" date.',
         ];
     }
 }

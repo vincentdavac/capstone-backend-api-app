@@ -22,6 +22,14 @@ class RelayStatus extends Model
     /**
      * Enable automatic timestamps (created_at and updated_at)
      */
+
+    protected $casts = [
+        'recorded_at' => 'datetime',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
+    ];
+
+
     public $timestamps = true;
 
     /**

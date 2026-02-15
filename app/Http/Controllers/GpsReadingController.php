@@ -117,43 +117,46 @@ class GpsReadingController extends Controller
 
             Log::info('fetchAllReadings request validated data', $validated);
 
-            $query = GpsReading::with('buoy')->orderBy('recorded_at', 'asc');
+            $query = GpsReading::with('buoy')
+                ->orderBy('recorded_at', 'asc');
 
-            // Filter by buoy_id if provided
-            if (isset($validated['buoy_id'])) {
+            if (!empty($validated['buoy_id'])) {
                 $query->where('buoy_id', $validated['buoy_id']);
             }
 
-            // Filter by datetime range if both from/to provided
-            if (isset($validated['from']) && isset($validated['to'])) {
-                $from = Carbon::createFromFormat('Y-m-d\TH:i', $validated['from']);
-                $to   = Carbon::createFromFormat('Y-m-d\TH:i', $validated['to']);
-
-                $query->whereBetween('recorded_at', [$from, $to]);
+            if (!empty($validated['from'])) {
+                $from = Carbon::parse($validated['from']);
+                $query->where('recorded_at', '>=', $from);
             }
 
-            // Log the raw SQL query (for debugging)
-            Log::info('fetchAllReadings SQL query', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
+            if (!empty($validated['to'])) {
+                $to = Carbon::parse($validated['to']);
+                $query->where('recorded_at', '<=', $to);
+            }
+
+            Log::info('fetchAllReadings SQL query', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
 
             $readings = $query->get();
 
-            // Optional: Log if data has unexpected issues
             foreach ($readings as $reading) {
                 if (!$reading->buoy) {
                     Log::warning("GPS reading has missing buoy relation", [
-                        'reading_id' => $reading->id,
-                        'latitude'   => $reading->latitude,
-                        'longitude'  => $reading->longitude,
+                        'reading_id'  => $reading->id,
+                        'latitude'    => $reading->latitude,
+                        'longitude'   => $reading->longitude,
                         'recorded_at' => $reading->recorded_at,
                     ]);
                 }
             }
-
             return $this->success(
                 GpsReadingResource::collection($readings),
                 'GPS readings fetched successfully'
             );
         } catch (\Exception $e) {
+
             Log::error('fetchAllReadings failed', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),

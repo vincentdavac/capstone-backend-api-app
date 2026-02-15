@@ -21,7 +21,6 @@ class RainGaugeReadingResource extends JsonResource
                 'buoyId'      => $this->buoy_id,
                 'rainfallMm'  => $this->rainfall_mm,
                 'tipCount'    => $this->tip_count,
-                'reportStatus' => $this->report_status ?? null,
 
                 'recordedAt'   => $this->recorded_at?->toISOString(),
                 'recordedDate' => $this->recorded_at?->format('F d, Y') ?? ' ',

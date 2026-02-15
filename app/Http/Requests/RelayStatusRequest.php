@@ -39,6 +39,15 @@ class RelayStatusRequest extends FormRequest
             ];
         }
 
+        // For GET / fetch requests
+        if ($this->isMethod('get')) {
+            return [
+                'from'     => 'nullable|date_format:Y-m-d\TH:i',
+                'to'       => 'nullable|date_format:Y-m-d\TH:i|after_or_equal:from',
+                'buoy_id'  => 'required|integer|exists:buoys,id',
+            ];
+        }
+
         // Fallback
         return [];
     }
@@ -58,6 +67,11 @@ class RelayStatusRequest extends FormRequest
             'triggered_by.prohibited' => 'Triggered_by is set automatically by the server.',
             'recorded_at.prohibited'  => 'Recorded_at is set automatically by the server.',
             'recorded_at.date'        => 'Recorded_at must be a valid date.',
+
+            // Messages for GET filters
+            'from.date' => 'The "from" field must be a valid date.',
+            'to.date'   => 'The "to" field must be a valid date.',
+            'to.after_or_equal' => 'The "to" date must be after or equal to the "from" date.',
         ];
     }
 }

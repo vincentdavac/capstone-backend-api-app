@@ -29,6 +29,13 @@ class MS5837Data extends Model
     // Table has created_at & updated_at
     public $timestamps = true;
 
+    protected $casts = [
+        'recorded_at' => 'datetime',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
+    ];
+
+
     /**
      * Relationship: MS5837 data belongs to a buoy
      */

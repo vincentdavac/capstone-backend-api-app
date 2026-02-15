@@ -136,18 +136,6 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
 Route::get('/barangays', [BarangayController::class, 'index']);
 
 
-// HOMEPAGE CONTENT
-Route::get('/public-sliders', [HomepageSliderController::class, 'publicSliders']);
-Route::get('/public-abouts', [HomepageAboutController::class, 'publicAbouts']);
-Route::get('/public-about-cards-active', [HomepageAboutController::class, 'publicGetActiveCards']);
-Route::get('/public-prototypes/left', [HomepagePrototypeController::class, 'publicFetchLeftPrototypes']);
-Route::get('/public-prototypes/right', [HomepagePrototypeController::class, 'publicFetchRightPrototypes']);
-Route::get('/public-active-teams', [HomepageTeamController::class, 'publicActiveTeams']);
-Route::get('/public-active-faqs', [HomepageFaqController::class, 'publicActiveFaqs']);
-Route::get('/public-active-feedbacks', [HomepageFeedbackController::class, 'publicActiveFeedbacks']);
-Route::get('/public-footers', [HomepageFooterController::class, 'publicFooters']);
-
-
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
     Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
@@ -178,13 +166,6 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/buoys/{buoy}', [BuoyController::class, 'update']);
     Route::delete('/buoys/{buoy}', [BuoyController::class, 'destroy']);
 
-    // Voltage Reading Routes
-    Route::get('/voltage-readings', [BatteryHealthController::class, 'index']);
-    Route::post('/voltage-readings', [BatteryHealthController::class, 'store']);
-    Route::get('/voltage-readings/{voltageReading}', [BatteryHealthController::class, 'show']);
-    Route::patch('/voltage-readings/{voltageReading}', [BatteryHealthController::class, 'update']);
-    Route::delete('/voltage-readings/{voltageReading}', [BatteryHealthController::class, 'destroy']);
-
     // Relay Status Routes
     Route::get('/relay-status', [RelayStatusController::class, 'index']);
     Route::post('/relay-status', [RelayStatusController::class, 'store']);
@@ -192,23 +173,13 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/relay-status/{relayStatus}', [RelayStatusController::class, 'update']);
     Route::delete('/relay-status/{relayStatus}', [RelayStatusController::class, 'destroy']);
 
-    // Rain Reading Routes
-    Route::get('/rain-readings', [RainSensorReadingController::class, 'index']);
-    Route::get('/rain-readings/{rainReading}', [RainSensorReadingController::class, 'show']);
-    Route::patch('/rain-readings/{rainReading}', [RainSensorReadingController::class, 'update']);
-    Route::delete('/rain-readings/{rainReading}', [RainSensorReadingController::class, 'destroy']);
-
-
     // Wind Reading Routes
     Route::get('/wind-readings', [WindReadingController::class, 'index']);
 
     // Rain Gauge Reading Routes
     Route::get('/rain-gauge-readings', [RainGaugeReadingController::class, 'index']);
 
-
-
     // HOMEPAGE CONTENT MANAGEMENT ROUTES
-
     // Slider Routes
     Route::get('/sliders', [HomepageSliderController::class, 'index']);
     Route::post('/sliders', [HomepageSliderController::class, 'store']);
@@ -232,7 +203,6 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::post('about-cards', [HomepageAboutController::class, 'storeCard']);
     Route::patch('about-cards/{card}', [HomepageAboutController::class, 'updateCard']);
     Route::delete('about-cards/{card}', [HomepageAboutController::class, 'destroyCard']);
-
 
     // Prototype Routes
     Route::get('/prototypes', [HomepagePrototypeController::class, 'index']);
@@ -301,7 +271,6 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::patch('/hotlines/archive/{hotline}', [HotlinesController::class, 'archive']);
     Route::patch('/hotlines/restore/{hotline}', [HotlinesController::class, 'restoreArchive']);
 
-
     // User-specific hotlines
     Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
 
@@ -335,6 +304,27 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     // GPS Report Route
     Route::get('/gps-report', [GpsReadingController::class, 'generateReport']);
     Route::get('/gps-readings', [GpsReadingController::class, 'fetchAllReadings']);
+
+    // Battery Health Routes
+    Route::get('/battery-health', [BatteryHealthController::class, 'fetchAllBatteryHealth']);
+
+    // BME280 Data Routes
+    Route::get('/bme280-data', [BME280DataController::class, 'fetchAllBME280Data']);
+
+    // Rain Sensor Reading Routes
+    Route::get('/rain-sensor-data', [RainSensorReadingController::class, 'fetchAllRainSensorData']);
+
+    // MS5837 Data Routes
+    Route::get('/ms5837-data', [MS5837DataController::class, 'fetchAllMS5837Data']);
+
+    // Wind Reading Routes
+    Route::get('/wind-readings', [WindReadingController::class, 'fetchAllWindReading']);
+
+    // Rain Gauge Reading Routes
+    Route::get('/rain-gauge-readings', [RainGaugeReadingController::class, 'fetchAllRainGaugeReading']);
+
+    // Relay Status Routes
+    Route::get('/relay-statuses', [RelayStatusController::class, 'fetchAllRelayStatus']);
 });
 
 
@@ -347,6 +337,17 @@ Route::post('/ms5837-data', [MS5837DataController::class, 'store'])->withoutMidd
 Route::post('/wind-readings', [WindReadingController::class, 'store'])->withoutMiddleware(['auth:sanctum', 'throttle:api',]);
 Route::post('/rain-gauge-readings', [RainGaugeReadingController::class, 'store']);
 
+
+//  Unprotected for Homepage Content
+Route::get('/public-sliders', [HomepageSliderController::class, 'publicSliders']);
+Route::get('/public-abouts', [HomepageAboutController::class, 'publicAbouts']);
+Route::get('/public-about-cards-active', [HomepageAboutController::class, 'publicGetActiveCards']);
+Route::get('/public-prototypes/left', [HomepagePrototypeController::class, 'publicFetchLeftPrototypes']);
+Route::get('/public-prototypes/right', [HomepagePrototypeController::class, 'publicFetchRightPrototypes']);
+Route::get('/public-active-teams', [HomepageTeamController::class, 'publicActiveTeams']);
+Route::get('/public-active-faqs', [HomepageFaqController::class, 'publicActiveFaqs']);
+Route::get('/public-active-feedbacks', [HomepageFeedbackController::class, 'publicActiveFeedbacks']);
+Route::get('/public-footers', [HomepageFooterController::class, 'publicFooters']);
 
 
 // CHAT ROUTES: No throttle

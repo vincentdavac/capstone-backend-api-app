@@ -87,4 +87,69 @@ class RelayStatusController extends Controller
         $relayStatus->load('buoy', 'triggeredBy');
         return new RelayStatusResource($relayStatus);
     }
+
+    public function fetchAllRelayStatus(RelayStatusRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+
+            Log::info('fetchAllRelayStatus request validated data', $validated);
+
+            $query = RelayStatus::with('buoy', 'triggeredBy')
+                ->orderBy('recorded_at', 'asc');
+
+            // Filter by buoy_id if provided
+            if (!empty($validated['buoy_id'])) {
+                $query->where('buoy_id', $validated['buoy_id']);
+            }
+
+            // Filter by from date
+            if (!empty($validated['from'])) {
+                $from = Carbon::parse($validated['from']);
+                $query->where('recorded_at', '>=', $from);
+            }
+
+            // Filter by to date
+            if (!empty($validated['to'])) {
+                $to = Carbon::parse($validated['to']);
+                $query->where('recorded_at', '<=', $to);
+            }
+
+            Log::info('fetchAllRelayStatus SQL query', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            $statuses = $query->get();
+
+            foreach ($statuses as $status) {
+                if (!$status->buoy) {
+                    Log::warning("RelayStatus reading has missing buoy relation", [
+                        'status_id'    => $status->id,
+                        'relay_state'  => $status->relay_state,
+                        'triggered_by' => $status->triggered_by,
+                        'recorded_at'  => $status->recorded_at,
+                    ]);
+                }
+            }
+
+            return $this->success(
+                RelayStatusResource::collection($statuses),
+                'Relay statuses fetched successfully'
+            );
+        } catch (\Exception $e) {
+
+            Log::error('fetchAllRelayStatus failed', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            return $this->error(
+                null,
+                'Failed to fetch relay statuses: ' . $e->getMessage(),
+                500
+            );
+        }
+    }
 }

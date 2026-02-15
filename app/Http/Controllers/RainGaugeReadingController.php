@@ -6,6 +6,10 @@ use App\Models\RainGaugeReading;
 use App\Http\Requests\RainGaugeReadingRequest;
 use App\Http\Resources\RainGaugeReadingResource;
 use App\Traits\HttpResponses;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 
 class RainGaugeReadingController extends Controller
 {
@@ -54,5 +58,70 @@ class RainGaugeReadingController extends Controller
             'Rain gauge data recorded successfully',
             201
         );
+    }
+
+    public function fetchAllRainGaugeReading(RainGaugeReadingRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+
+            Log::info('fetchAllRainGaugeReading request validated data', $validated);
+
+            $query = RainGaugeReading::with('buoy')
+                ->orderBy('recorded_at', 'asc');
+
+            // Filter by buoy_id if provided
+            if (!empty($validated['buoy_id'])) {
+                $query->where('buoy_id', $validated['buoy_id']);
+            }
+
+            // Filter by from date
+            if (!empty($validated['from'])) {
+                $from = Carbon::parse($validated['from']);
+                $query->where('recorded_at', '>=', $from);
+            }
+
+            // Filter by to date
+            if (!empty($validated['to'])) {
+                $to = Carbon::parse($validated['to']);
+                $query->where('recorded_at', '<=', $to);
+            }
+
+            Log::info('fetchAllRainGaugeReading SQL query', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            $readings = $query->get();
+
+            foreach ($readings as $reading) {
+                if (!$reading->buoy) {
+                    Log::warning("RainGauge reading has missing buoy relation", [
+                        'reading_id'  => $reading->id,
+                        'rainfall_mm' => $reading->rainfall_mm,
+                        'tip_count'   => $reading->tip_count,
+                        'recorded_at' => $reading->recorded_at,
+                    ]);
+                }
+            }
+
+            return $this->success(
+                RainGaugeReadingResource::collection($readings),
+                'Rain gauge readings fetched successfully'
+            );
+        } catch (\Exception $e) {
+
+            Log::error('fetchAllRainGaugeReading failed', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            return $this->error(
+                null,
+                'Failed to fetch rain gauge readings: ' . $e->getMessage(),
+                500
+            );
+        }
     }
 }

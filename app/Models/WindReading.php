@@ -20,6 +20,12 @@ class WindReading extends Model
 
     public $timestamps = true; // Uses created_at and updated_at automatically
 
+    protected $casts = [
+        'recorded_at' => 'datetime',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
+    ];
+
     /**
      * Relationship: A wind reading belongs to a buoy.
      */
