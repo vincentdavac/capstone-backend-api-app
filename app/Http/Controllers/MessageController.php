@@ -167,6 +167,7 @@ class MessageController extends Controller
     }
 
     // User Side: Get chat with Barangay
+    // ✅ FIXED: Changed to include image-only messages
     public function getChatUserToBarangay()
     {
         $user = Auth::user();
@@ -188,7 +189,11 @@ class MessageController extends Controller
         // Get the chat with messages only
         $chat = Chat::with([
             'messages' => function ($query) {
-                $query->whereNotNull('message')->orderBy('created_at', 'asc');
+                // ✅ FIX: Include messages with text OR attachment (not just text)
+                $query->where(function ($q) {
+                    $q->whereNotNull('message')
+                      ->orWhereNotNull('attachment');
+                })->orderBy('created_at', 'asc');
             },
             'messages.sender',
             'sender',
