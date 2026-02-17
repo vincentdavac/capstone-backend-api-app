@@ -16,7 +16,7 @@ class GpsReadingRequest extends FormRequest
     {
         if ($this->isMethod('post')) {
             return [
-                // Required inputs only
+                // Required inputs for creating readings
                 'buoy_id'   => 'required|integer|exists:buoys,id',
                 'latitude'  => 'required|numeric|between:-90,90',
                 'longitude' => 'required|numeric|between:-180,180',
@@ -43,6 +43,14 @@ class GpsReadingRequest extends FormRequest
             ];
         }
 
+        // For GET / fetch requests
+        if ($this->isMethod('get')) {
+            return [
+                'from'     => 'nullable|date_format:Y-m-d\TH:i',
+                'to'       => 'nullable|date_format:Y-m-d\TH:i|after_or_equal:from',
+                'buoy_id'  => 'required|integer|exists:buoys,id',
+            ];
+        }
         // Default fallback
         return [];
     }
@@ -64,6 +72,11 @@ class GpsReadingRequest extends FormRequest
             'satellites.min'     => 'Satellites cannot be negative.',
 
             'recorded_at.date' => 'Recorded time must be a valid date.',
+
+            // Messages for GET filters
+            'from.date' => 'The "from" field must be a valid date.',
+            'to.date'   => 'The "to" field must be a valid date.',
+            'to.after_or_equal' => 'The "to" date must be after or equal to the "from" date.',
         ];
     }
 }

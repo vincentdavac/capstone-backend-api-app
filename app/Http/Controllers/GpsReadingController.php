@@ -7,6 +7,13 @@ use App\Models\Buoy;
 use App\Http\Requests\GpsReadingRequest;
 use App\Http\Resources\GpsReadingResource;
 use App\Traits\HttpResponses;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+
+
 
 class GpsReadingController extends Controller
 {
@@ -65,5 +72,102 @@ class GpsReadingController extends Controller
             'GPS reading stored successfully',
             201
         );
+    }
+
+
+    public function generateReport(Request $request)
+    {
+        $from = Carbon::parse($request->from);
+        $to   = Carbon::parse($request->to);
+
+        $readings = GpsReading::with('buoy')
+            ->whereBetween('recorded_at', [$from, $to])
+            ->orderBy('recorded_at', 'asc')
+            ->get();
+
+        //  Summary Statistics
+        $totalReadings = $readings->count();
+        $uniqueBuoys   = $readings->pluck('buoy_id')->unique()->count();
+        $firstRecord   = $readings->first()?->recorded_at;
+        $lastRecord    = $readings->last()?->recorded_at;
+
+        //  Prepare chart data (per day count)
+        $chartData = $readings
+            ->groupBy(fn($item) => Carbon::parse($item->recorded_at)->format('Y-m-d'))
+            ->map(fn($group) => $group->count());
+
+        $pdf = Pdf::loadView('reports.gps-report', [
+            'readings' => $readings,
+            'from' => $from,
+            'to' => $to,
+            'totalReadings' => $totalReadings,
+            'uniqueBuoys' => $uniqueBuoys,
+            'firstRecord' => $firstRecord,
+            'lastRecord' => $lastRecord,
+            'chartData' => $chartData
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('gps-historical-report.pdf');
+    }
+
+    public function fetchAllReadings(GpsReadingRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+
+            Log::info('fetchAllReadings request validated data', $validated);
+
+            $query = GpsReading::with('buoy')
+                ->orderBy('recorded_at', 'asc');
+
+            if (!empty($validated['buoy_id'])) {
+                $query->where('buoy_id', $validated['buoy_id']);
+            }
+
+            if (!empty($validated['from'])) {
+                $from = Carbon::parse($validated['from']);
+                $query->where('recorded_at', '>=', $from);
+            }
+
+            if (!empty($validated['to'])) {
+                $to = Carbon::parse($validated['to']);
+                $query->where('recorded_at', '<=', $to);
+            }
+
+            Log::info('fetchAllReadings SQL query', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            $readings = $query->get();
+
+            foreach ($readings as $reading) {
+                if (!$reading->buoy) {
+                    Log::warning("GPS reading has missing buoy relation", [
+                        'reading_id'  => $reading->id,
+                        'latitude'    => $reading->latitude,
+                        'longitude'   => $reading->longitude,
+                        'recorded_at' => $reading->recorded_at,
+                    ]);
+                }
+            }
+            return $this->success(
+                GpsReadingResource::collection($readings),
+                'GPS readings fetched successfully'
+            );
+        } catch (\Exception $e) {
+
+            Log::error('fetchAllReadings failed', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            return $this->error(
+                null,
+                'Failed to fetch GPS readings: ' . $e->getMessage(),
+                500
+            );
+        }
     }
 }
