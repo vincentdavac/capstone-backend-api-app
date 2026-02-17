@@ -138,4 +138,59 @@ class MS5837DataController extends Controller
             );
         }
     }
+
+    public function fetchDepthFtLast24Hours(MS5837DataRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+
+            Log::info('fetchDepthFtLast24Hours request validated data', $validated);
+
+            if (empty($validated['buoy_id'])) {
+                return $this->error(
+                    null,
+                    'buoy_id is required',
+                    422
+                );
+            }
+
+            $since = Carbon::now()->subHours(24);
+
+            $readings = MS5837Data::where('buoy_id', $validated['buoy_id'])
+                ->where('recorded_at', '>=', $since)
+                ->orderBy('recorded_at', 'asc')
+                ->get(['id', 'buoy_id', 'depth_ft', 'recorded_at'])
+                ->map(function ($reading) {
+                    return [
+                        'id'         => $reading->id,
+                        'buoy_id'    => $reading->buoy_id,
+                        'depth_ft'   => (int) round($reading->depth_ft), // remove decimals
+                        'recorded_at' => Carbon::parse($reading->recorded_at)
+                            ->format('F d, Y h:i A') // readable format
+                    ];
+                });
+
+            Log::info('fetchDepthFtLast24Hours result count', [
+                'count' => $readings->count()
+            ]);
+
+            return $this->success(
+                $readings,
+                'Depth (ft) readings for last 24 hours fetched successfully'
+            );
+        } catch (\Exception $e) {
+
+            Log::error('fetchDepthFtLast24Hours failed', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            return $this->error(
+                null,
+                'Failed to fetch depth (ft) readings: ' . $e->getMessage(),
+                500
+            );
+        }
+    }
 }
