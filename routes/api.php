@@ -327,6 +327,7 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
     Route::get('unread/user', [SystemNotificationsController::class, 'unreadByRole']);
     Route::patch('read/user/{id}', [SystemNotificationsController::class, 'markAsRead']);
     Route::patch('read-all/user', [SystemNotificationsController::class, 'markAllAsRead']);
+
     Route::get('unread-user', [SystemNotificationsController::class, 'notifUser']);
     // Admin Dashboard Routes
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'dashboardStats']);
