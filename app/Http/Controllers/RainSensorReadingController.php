@@ -9,6 +9,9 @@ use App\Traits\HttpResponses;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Models\Buoy;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class RainSensorReadingController extends Controller
 {
@@ -125,6 +128,95 @@ class RainSensorReadingController extends Controller
                 'Failed to fetch rain sensor readings: ' . $e->getMessage(),
                 500
             );
+        }
+    }
+
+    public function generateReportRainMonitoring(Request $request)
+    {
+        try {
+            // ----------------- Validate Request -----------------
+            $request->validate([
+                'buoy_id' => 'required|exists:buoys,id',
+                'from'    => 'required|date',
+                'to'      => 'required|date',
+            ]);
+
+            $from = Carbon::parse($request->from);
+            $to   = Carbon::parse($request->to);
+
+            if ($from->greaterThan($to)) {
+                return $this->error(null, "'From' date must not be greater than 'To' date", 422);
+            }
+
+            // ----------------- Fetch Buoy -----------------
+            $buoy = Buoy::find($request->buoy_id);
+            $buoyCode = $buoy->buoy_code;
+
+            // ----------------- Fetch Rain Data -----------------
+            $readings = RainSensorReading::where('buoy_id', $buoy->id)
+                ->whereBetween('recorded_at', [$from, $to])
+                ->orderBy('recorded_at', 'asc')
+                ->get();
+
+            if ($readings->isEmpty()) {
+                return $this->error(null, "No rain monitoring data found for selected date range.", 404);
+            }
+
+            $user = Auth::user();
+            $formattedFrom = $from->format('F d Y - h:i A');
+            $formattedTo   = $to->format('F d Y - h:i A');
+            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+
+            // ----------------- Prepare Chart -----------------
+            $labels = $readings->pluck('recorded_at')
+                ->map(fn($d) => Carbon::parse($d)->format('m/d H:i'))
+                ->toArray();
+
+            $rainData = $readings->pluck('percentage')->toArray();
+
+            $chartConfig = [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => [
+                        [
+                            'label' => 'Rain Level (%)',
+                            'data' => $rainData,
+                            'borderColor' => 'rgba(54, 162, 235, 1)',
+                            'fill' => false,
+                        ],
+                    ],
+                ],
+                'options' => [
+                    'plugins' => ['legend' => ['position' => 'top']],
+                    'scales' => [
+                        'x' => ['title' => ['display' => true, 'text' => 'Time']],
+                        'y' => ['title' => ['display' => true, 'text' => 'Rain Percentage (%)']]
+                    ]
+                ]
+            ];
+
+            $chartUrl = "https://quickchart.io/chart?c=" . urlencode(json_encode($chartConfig));
+            $chartImageData = @file_get_contents($chartUrl);
+            $chartBase64 = $chartImageData
+                ? 'data:image/png;base64,' . base64_encode($chartImageData)
+                : null;
+
+            // ----------------- Generate PDF -----------------
+            $pdf = Pdf::loadView('reports.rain-monitoring-report', [
+                'buoy'          => $buoy,
+                'buoyCode'      => $buoyCode,
+                'readings'      => $readings,
+                'chartBase64'   => $chartBase64,
+                'fromFormatted' => $formattedFrom,
+                'toFormatted'   => $formattedTo,
+                'generatedBy'   => $user ? $user->first_name . ' ' . $user->last_name : 'System',
+                'generatedDate' => $generatedDate,
+            ])->setPaper('a4', 'portrait');
+
+            return $pdf->download("Rain_Monitoring_Report_{$buoyCode}.pdf");
+        } catch (\Exception $e) {
+            return $this->error(null, $e->getMessage(), 500);
         }
     }
 }

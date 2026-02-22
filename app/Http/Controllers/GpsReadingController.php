@@ -11,6 +11,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
 
 
 
@@ -74,40 +76,99 @@ class GpsReadingController extends Controller
         );
     }
 
-
     public function generateReport(Request $request)
     {
-        $from = Carbon::parse($request->from);
-        $to   = Carbon::parse($request->to);
+        try {
 
-        $readings = GpsReading::with('buoy')
-            ->whereBetween('recorded_at', [$from, $to])
-            ->orderBy('recorded_at', 'asc')
-            ->get();
+            $request->validate([
+                'buoy_id' => 'required|exists:buoys,id',
+                'from'    => 'required|date',
+                'to'      => 'sometimes|date',
+            ]);
 
-        //  Summary Statistics
-        $totalReadings = $readings->count();
-        $uniqueBuoys   = $readings->pluck('buoy_id')->unique()->count();
-        $firstRecord   = $readings->first()?->recorded_at;
-        $lastRecord    = $readings->last()?->recorded_at;
+            $from = Carbon::parse($request->from);
+            $to   = Carbon::parse($request->to);
 
-        //  Prepare chart data (per day count)
-        $chartData = $readings
-            ->groupBy(fn($item) => Carbon::parse($item->recorded_at)->format('Y-m-d'))
-            ->map(fn($group) => $group->count());
+            if ($from->greaterThan($to)) {
+                return $this->error(null, "'From' date must not be greater than 'To' date", 422);
+            }
 
-        $pdf = Pdf::loadView('reports.gps-report', [
-            'readings' => $readings,
-            'from' => $from,
-            'to' => $to,
-            'totalReadings' => $totalReadings,
-            'uniqueBuoys' => $uniqueBuoys,
-            'firstRecord' => $firstRecord,
-            'lastRecord' => $lastRecord,
-            'chartData' => $chartData
-        ])->setPaper('a4', 'portrait');
+            $buoy = Buoy::find($request->buoy_id);
+            $buoyCode = $buoy->buoy_code;
 
-        return $pdf->download('gps-historical-report.pdf');
+            /*
+        ======================================================
+        INITIAL LOCATION (BUOY TABLE)
+        ======================================================
+        */
+            $initialLat  = $buoy->latitude;
+            $initialLng  = $buoy->longitude;
+            $initialDate = Carbon::parse($buoy->created_at)
+                ->format('F d Y - h:i A');
+
+            /*
+        ======================================================
+        GPS READINGS WITHIN DATE RANGE
+        ======================================================
+        */
+            $readings = GpsReading::where('buoy_id', $buoy->id)
+                ->whereBetween('recorded_at', [$from, $to])
+                ->orderBy('recorded_at', 'asc')
+                ->get();
+
+            if ($readings->isEmpty()) {
+                return $this->error(null, "No GPS data found for selected date range.", 404);
+            }
+
+            /*
+        ======================================================
+        CURRENT LOCATION (LATEST READING IN RANGE)
+        ======================================================
+        */
+            $latest = $readings->last();
+
+            $currentLat  = $latest->latitude;
+            $currentLng  = $latest->longitude;
+            $currentDate = Carbon::parse($latest->recorded_at)
+                ->format('F d Y - h:i A');
+
+            /*
+        ======================================================
+        OTHER REPORT DATA
+        ======================================================
+        */
+            $user = Auth::user();
+
+            $formattedFrom = $from->format('F d Y - h:i A');
+            $formattedTo   = $to->format('F d Y - h:i A');
+            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+
+            /*
+        ======================================================
+        GENERATE PDF (NO MAP INCLUDED)
+        ======================================================
+        */
+            $pdf = Pdf::loadView('reports.gps-historical-report', [
+                'buoy'          => $buoy,
+                'buoyCode'      => $buoyCode,
+                'readings'      => $readings,
+                'initialLat'    => $initialLat,
+                'initialLng'    => $initialLng,
+                'initialDate'   => $initialDate,
+                'currentLat'    => $currentLat,
+                'currentLng'    => $currentLng,
+                'currentDate'   => $currentDate,
+                'fromFormatted' => $formattedFrom,
+                'toFormatted'   => $formattedTo,
+                'generatedBy'   => $user ? $user->first_name . ' ' . $user->last_name : 'System',
+                'generatedDate' => $generatedDate,
+            ])
+                ->setPaper('a4', 'portrait');
+
+            return $pdf->download('GPS_Historical_Report.pdf');
+        } catch (\Exception $e) {
+            return $this->error(null, $e->getMessage(), 500);
+        }
     }
 
     public function fetchAllReadings(GpsReadingRequest $request)

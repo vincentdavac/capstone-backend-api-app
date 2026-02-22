@@ -308,26 +308,32 @@ Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () 
 
     // Battery Health Routes
     Route::get('/battery-health', [BatteryHealthController::class, 'fetchAllBatteryHealth']);
+    Route::get('/battery-report', [BatteryHealthController::class, 'generateReportBatteryHealth']);
 
     // BME280 Data Routes
     Route::get('/bme280-data', [BME280DataController::class, 'fetchAllBME280Data']);
+    Route::get('/bme280-report', [BME280DataController::class, 'generateReportBME280']);
 
     // Rain Sensor Reading Routes
     Route::get('/rain-sensor-data', [RainSensorReadingController::class, 'fetchAllRainSensorData']);
+    Route::get('/rain-sensor-report', [RainSensorReadingController::class, 'generateReportRainMonitoring']);
 
     // MS5837 Data Routes
     Route::get('/ms5837-data', [MS5837DataController::class, 'fetchAllMS5837Data']);
+    Route::get('/ms5837-report', [MS5837DataController::class, 'generateReportMS5837']);
     Route::get('/ms5837-data/depth-ft-last-24-hours', [MS5837DataController::class, 'fetchDepthFtLast24Hours']);
-
 
     // Wind Reading Routes
     Route::get('/wind-readings', [WindReadingController::class, 'fetchAllWindReading']);
+    Route::get('/wind-report', [WindReadingController::class, 'generateReportWindSpeed']);
 
     // Rain Gauge Reading Routes
     Route::get('/rain-gauge-readings', [RainGaugeReadingController::class, 'fetchAllRainGaugeReading']);
+    Route::get('/rain-gauge-report', [RainGaugeReadingController::class, 'generateReportRainGauge']);
 
     // Relay Status Routes
     Route::get('/relay-statuses', [RelayStatusController::class, 'fetchAllRelayStatus']);
+    Route::get('/relay-status-report', [RelayStatusController::class, 'generateReportRelayStatus']);
 });
 
 
