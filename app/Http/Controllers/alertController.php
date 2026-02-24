@@ -7,6 +7,7 @@ use App\Services\FirebaseServices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Models\User;
 
 class alertController extends Controller
 {
@@ -16,8 +17,7 @@ class alertController extends Controller
     {
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function setTemperatureAlert(Request $request)
-    {
+    public function setTemperatureAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
@@ -526,9 +526,9 @@ class alertController extends Controller
             }
         }
     }
-    public function setWaterLevel(Request $request)
-    {
+    public function setWaterLevel(Request $request){
         $user = $request->user();
+        $usersId = User::where('user_type','user')->get();
         $firebaseData = $this->firebase->getReference()->getValue();
         if (empty($firebaseData)) {
             return response()->json(['status' => 'error', 'message' => 'No data found in Firebase', 'data' => []], 404);
@@ -537,6 +537,7 @@ class alertController extends Controller
             ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.buoy_code');
+        $resetTime= null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['MS5837']['WATER_LEVEL_FEET'])) {
                 continue;
@@ -597,6 +598,7 @@ class alertController extends Controller
                     $insert = true;
                 }
             }
+            
             if ($insert) {
                 $uuid = Str::uuid();
                 $alertId = 'ALERT' . $uuid;
@@ -608,6 +610,21 @@ class alertController extends Controller
                     'sensor_type' => $sensorType,
                     'recorded_at' => $recorded
                 ]);
+                if($alert === 'Blue'){
+                    $resetTime = 5;
+                }elseif($alert === 'Red'){
+                    $resetTime = 10;                                              
+                }
+                $getAlertId= DB::table('recent_alert')->orderBy('recorded_at', 'desc')->first();
+                if($alert =='Blue' || $alert == 'Red'){
+                    foreach($usersId as $usergetId ){
+                        DB::table('alerts')->insert(['alert_id'=> $getAlertId,
+                        'broadcast_by'=>$user->last_name.', '.$user->first_name,
+                        'user_id'=>$usergetId->id,
+                        'is_read'=> false,
+                        'recorded_at'=>$recorded]);
+                    }
+                }
             }
         }
     }

@@ -38,7 +38,7 @@ class broadCastController extends Controller
         $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
         $numbers = [];
         try {
-            foreach ($firebaseData as $prototypeName => $buoyData) {
+            foreach ($firebaseData as $prototypeName => $buoyData){
                 if (!isset($buoyData['RELAY_STATE'])) {
                     continue;
                 }
