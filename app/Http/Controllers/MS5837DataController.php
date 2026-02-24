@@ -9,7 +9,9 @@ use App\Traits\HttpResponses;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\Buoy;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class MS5837DataController extends Controller
 {
@@ -136,6 +138,157 @@ class MS5837DataController extends Controller
                 'Failed to fetch MS5837 sensor readings: ' . $e->getMessage(),
                 500
             );
+        }
+    }
+
+    public function fetchDepthFtLast24Hours(MS5837DataRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+
+            Log::info('fetchDepthFtLast24Hours request validated data', $validated);
+
+            if (empty($validated['buoy_id'])) {
+                return $this->error(
+                    null,
+                    'buoy_id is required',
+                    422
+                );
+            }
+
+            $since = Carbon::now()->subHours(24);
+
+            $readings = MS5837Data::where('buoy_id', $validated['buoy_id'])
+                ->where('recorded_at', '>=', $since)
+                ->orderBy('recorded_at', 'asc')
+                ->get(['id', 'buoy_id', 'depth_ft', 'recorded_at'])
+                ->map(function ($reading) {
+                    return [
+                        'id'         => $reading->id,
+                        'buoy_id'    => $reading->buoy_id,
+                        'depth_ft'   => (int) round($reading->depth_ft), // remove decimals
+                        'recorded_at' => Carbon::parse($reading->recorded_at)
+                            ->format('F d, Y h:i A') // readable format
+                    ];
+                });
+
+            Log::info('fetchDepthFtLast24Hours result count', [
+                'count' => $readings->count()
+            ]);
+
+            return $this->success(
+                $readings,
+                'Depth (ft) readings for last 24 hours fetched successfully'
+            );
+        } catch (\Exception $e) {
+
+            Log::error('fetchDepthFtLast24Hours failed', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            return $this->error(
+                null,
+                'Failed to fetch depth (ft) readings: ' . $e->getMessage(),
+                500
+            );
+        }
+    }
+
+    public function generateReportMS5837(Request $request)
+    {
+        try {
+            // ----------------- Validate Request -----------------
+            $request->validate([
+                'buoy_id' => 'required|exists:buoys,id',
+                'from'    => 'required|date',
+                'to'      => 'required|date',
+            ]);
+
+            $from = Carbon::parse($request->from);
+            $to   = Carbon::parse($request->to);
+
+            if ($from->greaterThan($to)) {
+                return $this->error(null, "'From' date must not be greater than 'To' date", 422);
+            }
+
+            // ----------------- Fetch Buoy -----------------
+            $buoy = Buoy::find($request->buoy_id);
+            $buoyCode = $buoy->buoy_code;
+
+            // ----------------- Fetch MS5837 Data -----------------
+            $readings = MS5837Data::where('buoy_id', $buoy->id)
+                ->whereBetween('recorded_at', [$from, $to])
+                ->orderBy('recorded_at', 'asc')
+                ->get();
+
+            if ($readings->isEmpty()) {
+                return $this->error(null, "No MS5837 data found for selected date range.", 404);
+            }
+
+            $user = Auth::user();
+            $formattedFrom = $from->format('F d Y - h:i A');
+            $formattedTo   = $to->format('F d Y - h:i A');
+            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+
+            // ----------------- Prepare Chart -----------------
+            $labels = $readings->pluck('recorded_at')
+                ->map(fn($d) => Carbon::parse($d)->format('m/d H:i'))
+                ->toArray();
+
+            $depthFtData = $readings->pluck('depth_ft')->toArray();
+            $pressureData = $readings->pluck('water_pressure')->toArray();
+
+            $chartConfig = [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => [
+                        [
+                            'label' => 'Depth (ft)',
+                            'data' => $depthFtData,
+                            'borderColor' => 'rgba(75, 192, 192, 1)',
+                            'fill' => false,
+                        ],
+                        [
+                            'label' => 'Water Pressure',
+                            'data' => $pressureData,
+                            'borderColor' => 'rgba(255, 99, 132, 1)',
+                            'fill' => false,
+                        ],
+                    ],
+                ],
+                'options' => [
+                    'plugins' => ['legend' => ['position' => 'top']],
+                    'scales' => [
+                        'x' => ['title' => ['display' => true, 'text' => 'Time']],
+                        'y' => ['title' => ['display' => true, 'text' => 'Value']]
+                    ]
+                ]
+            ];
+
+            $chartUrl = "https://quickchart.io/chart?c=" . urlencode(json_encode($chartConfig));
+            $chartImageData = @file_get_contents($chartUrl);
+            $chartBase64 = $chartImageData
+                ? 'data:image/png;base64,' . base64_encode($chartImageData)
+                : null;
+
+            // ----------------- Generate PDF -----------------
+            $pdf = Pdf::loadView('reports.ms5837-report', [
+                'buoy'          => $buoy,
+                'buoyCode'      => $buoyCode,
+                'readings'      => $readings,
+                'chartBase64'   => $chartBase64,
+                'fromFormatted' => $formattedFrom,
+                'toFormatted'   => $formattedTo,
+                'generatedBy'   => $user ? $user->first_name . ' ' . $user->last_name : 'System',
+                'generatedDate' => $generatedDate,
+            ])->setPaper('a4', 'portrait');
+
+            return $pdf->download("MS5837_Report_{$buoyCode}.pdf");
+        } catch (\Exception $e) {
+            return $this->error(null, $e->getMessage(), 500);
         }
     }
 }

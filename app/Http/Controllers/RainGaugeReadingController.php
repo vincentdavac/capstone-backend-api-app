@@ -9,6 +9,9 @@ use App\Traits\HttpResponses;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Models\Buoy;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 
 class RainGaugeReadingController extends Controller
@@ -122,6 +125,102 @@ class RainGaugeReadingController extends Controller
                 'Failed to fetch rain gauge readings: ' . $e->getMessage(),
                 500
             );
+        }
+    }
+
+    public function generateReportRainGauge(Request $request)
+    {
+        try {
+            // ----------------- Validate Request -----------------
+            $request->validate([
+                'buoy_id' => 'required|exists:buoys,id',
+                'from'    => 'required|date',
+                'to'      => 'required|date',
+            ]);
+
+            $from = Carbon::parse($request->from);
+            $to   = Carbon::parse($request->to);
+
+            if ($from->greaterThan($to)) {
+                return $this->error(null, "'From' date must not be greater than 'To' date", 422);
+            }
+
+            // ----------------- Fetch Buoy -----------------
+            $buoy = Buoy::find($request->buoy_id);
+            $buoyCode = $buoy->buoy_code;
+
+            // ----------------- Fetch Rain Gauge Data -----------------
+            $readings = RainGaugeReading::where('buoy_id', $buoy->id)
+                ->whereBetween('recorded_at', [$from, $to])
+                ->orderBy('recorded_at', 'asc')
+                ->get();
+
+            if ($readings->isEmpty()) {
+                return $this->error(null, "No rain gauge data found for selected date range.", 404);
+            }
+
+            $user = Auth::user();
+            $formattedFrom = $from->format('F d Y - h:i A');
+            $formattedTo   = $to->format('F d Y - h:i A');
+            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+
+            // ----------------- Prepare Chart -----------------
+            $labels = $readings->pluck('recorded_at')
+                ->map(fn($d) => Carbon::parse($d)->format('m/d H:i'))
+                ->toArray();
+
+            $rainfallData = $readings->pluck('rainfall_mm')->toArray();
+            $tipCountData = $readings->pluck('tip_count')->toArray();
+
+            $chartConfig = [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => [
+                        [
+                            'label' => 'Rainfall (mm)',
+                            'data' => $rainfallData,
+                            'borderColor' => 'rgba(54, 162, 235, 1)',
+                            'fill' => false,
+                        ],
+                        [
+                            'label' => 'Tip Count',
+                            'data' => $tipCountData,
+                            'borderColor' => 'rgba(75, 192, 192, 1)',
+                            'fill' => false,
+                        ],
+                    ],
+                ],
+                'options' => [
+                    'plugins' => ['legend' => ['position' => 'top']],
+                    'scales' => [
+                        'x' => ['title' => ['display' => true, 'text' => 'Time']],
+                        'y' => ['title' => ['display' => true, 'text' => 'Value']]
+                    ]
+                ]
+            ];
+
+            $chartUrl = "https://quickchart.io/chart?c=" . urlencode(json_encode($chartConfig));
+            $chartImageData = @file_get_contents($chartUrl);
+            $chartBase64 = $chartImageData
+                ? 'data:image/png;base64,' . base64_encode($chartImageData)
+                : null;
+
+            // ----------------- Generate PDF -----------------
+            $pdf = Pdf::loadView('reports.raingauge-report', [
+                'buoy'          => $buoy,
+                'buoyCode'      => $buoyCode,
+                'readings'      => $readings,
+                'chartBase64'   => $chartBase64,
+                'fromFormatted' => $formattedFrom,
+                'toFormatted'   => $formattedTo,
+                'generatedBy'   => $user ? $user->first_name . ' ' . $user->last_name : 'System',
+                'generatedDate' => $generatedDate,
+            ])->setPaper('a4', 'portrait');
+
+            return $pdf->download("RainGauge_Report_{$buoyCode}.pdf");
+        } catch (\Exception $e) {
+            return $this->error(null, $e->getMessage(), 500);
         }
     }
 }
