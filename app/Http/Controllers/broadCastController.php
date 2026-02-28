@@ -58,8 +58,8 @@ class broadCastController extends Controller
                         $message = DB::table('recent_alerts')->where('id', $request->alert_id)->value('description');
                         $counts  = DB::table('alerts')->where('user_id', $user->id)->where('is_read', 0)->get()->count();
                         $buoyID = DB::table('recent_alerts')->where('id', $request->alert_id)->value('buoy_id');
-                        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
                         $relayState = 'on';
+                        $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
                         broadcast(new AlertBroadcast([
                             'description' => $alertInfo->description,
                             'alert_level' => $alertInfo->alert_level,

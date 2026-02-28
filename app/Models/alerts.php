@@ -18,7 +18,7 @@ class alerts extends Model
     ];
 
     public function recentAlert(){
-        return $this->belongsTo(recent_alerts::class, 'alert_id');
+        return $this->belongsTo(recent_alerts::class, 'alertId');
     }
     public function prototypes(){
         return $this->hasManyThrough( Buoy::class,recent_alerts::class,'alert_id','id', 'id', 'barangay_id');

@@ -59,9 +59,10 @@ use App\Http\Controllers\getNotifCount;
 use App\Http\Controllers\BuoyMonitoringController;
 use App\Http\Controllers\BME280DataController;
 use App\Http\Controllers\MS5837DataController;
+use App\Http\Controllers\alertControllerV2;
 
 
-//  Route::get('/user/hotlines', [HotlinesController::class, 'userHotlines']);
+
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
 Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
 Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class, 'getUserInfo']);
@@ -138,6 +139,7 @@ Route::get('/barangays', [BarangayController::class, 'index']);
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
+    Route::post('/testV2', [alertControllerV2::class, 'checkAllSensors']);
     Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
     Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
     Route::get('/get-all-count', [getNotifCount::class, 'allCount']);

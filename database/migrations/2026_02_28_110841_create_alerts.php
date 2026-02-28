@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('recent_alerts', function (Blueprint $table) {
+        Schema::create('alerts', function (Blueprint $table) {
             $table->id();
-            $table->string('alertId');
-            $table->string('buoy_id');
-            $table->string('description');
-            $table->string('alert_level');
-            $table->string('sensor_type');
+            $table->string('alert_id');
+            $table->string('broadcast_by')->nullable();
+            $table->string('user_id')->nullable();
+            $table->boolean('is_read')->default(false);
+            $table->foreign('alert_id')->references('alertId')->on('recent_alerts')->onDelete('cascade');
             $table->timestamp('recorded_at')->nullable();
             $table->timestamps();
         });
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('recent_alerts');
+        Schema::dropIfExists('alerts');
     }
 };

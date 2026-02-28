@@ -40,8 +40,7 @@ class AlertBroadcast implements ShouldBroadcastNow
             'alert_level' => $this->alert['alert_level'],
             'broadcast_by' => $this->alert['broadcast_by'],
             'sensor_type' => $this->alert['sensor_type'] ?? '',
-            'recorded_at' => $this->alert['recorded_at'],
-            'counts'=>$this->alert['counts'],
+            'recorded_at' => $this->alert['recorded_at']
         ];
     }
 }
