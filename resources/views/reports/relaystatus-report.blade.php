@@ -74,7 +74,7 @@
 
     <hr>
 
-    <h4>Relay Status Trend</h4>
+    <!-- <h4>Relay Status Trend</h4>
 
     @if($chartBase64)
     <div style="width: 693px; margin-bottom: 5px; border: 1px solid #000; padding: 5px;">
@@ -82,7 +82,7 @@
     </div>
     @else
     <p style="color:red;">Chart could not be generated.</p>
-    @endif
+    @endif -->
 
     <h4>Relay Status Data Table</h4>
 

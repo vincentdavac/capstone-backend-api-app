@@ -131,47 +131,90 @@ class RainGaugeReadingController extends Controller
     public function generateReportRainGauge(Request $request)
     {
         try {
-            // ----------------- Validate Request -----------------
+
+            // ============================================
+            // VALIDATE REQUEST
+            // ============================================
             $request->validate([
                 'buoy_id' => 'required|exists:buoys,id',
                 'from'    => 'required|date',
                 'to'      => 'required|date',
             ]);
 
-            $from = Carbon::parse($request->from);
-            $to   = Carbon::parse($request->to);
+            $from = Carbon::parse($request->from)->startOfMinute();
+            $to   = Carbon::parse($request->to)->endOfMinute();
 
             if ($from->greaterThan($to)) {
                 return $this->error(null, "'From' date must not be greater than 'To' date", 422);
             }
 
-            // ----------------- Fetch Buoy -----------------
-            $buoy = Buoy::find($request->buoy_id);
+            // ============================================
+            // FETCH BUOY
+            // ============================================
+            $buoy = Buoy::findOrFail($request->buoy_id);
             $buoyCode = $buoy->buoy_code;
 
-            // ----------------- Fetch Rain Gauge Data -----------------
-            $readings = RainGaugeReading::where('buoy_id', $buoy->id)
+            // ============================================
+            // DETECT RANGE TYPE
+            // ============================================
+            $diffInDays  = $from->diffInDays($to);
+            $diffInHours = $from->diffInHours($to);
+
+            if ($diffInHours <= 24) {
+                $groupFormat = '%Y-%m-%d %H';   // Hourly
+                $labelFormat = 'm/d H:i';
+            } elseif ($diffInDays <= 7) {
+                $groupFormat = '%Y-%m-%d %H';   // Hourly for up to a week
+                $labelFormat = 'm/d H:00';
+            } elseif ($diffInDays <= 31) {
+                $groupFormat = '%Y-%m-%d';      // Daily
+                $labelFormat = 'm/d/Y';
+            } else {
+                $groupFormat = '%Y-%m-%d';      // Monthly
+                $labelFormat = 'm/d/Y';
+            }
+
+            // ============================================
+            // AGGREGATED QUERY USING SUM
+            // ============================================
+            $readings = RainGaugeReading::selectRaw("
+            DATE_FORMAT(recorded_at, '{$groupFormat}') as grouped_time,
+            COALESCE(SUM(rainfall_mm), 0) as total_rainfall,
+            COALESCE(SUM(tip_count), 0) as total_tip_count
+        ")
+                ->where('buoy_id', $buoy->id)
                 ->whereBetween('recorded_at', [$from, $to])
-                ->orderBy('recorded_at', 'asc')
+                ->groupBy('grouped_time')
+                ->orderBy('grouped_time', 'asc')
                 ->get();
 
             if ($readings->isEmpty()) {
                 return $this->error(null, "No rain gauge data found for selected date range.", 404);
             }
 
-            $user = Auth::user();
-            $formattedFrom = $from->format('F d Y - h:i A');
-            $formattedTo   = $to->format('F d Y - h:i A');
-            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+            // ============================================
+            // LIMIT MAX POINTS (Safety Protection)
+            // ============================================
+            if ($readings->count() > 200) {
+                $readings = $readings->take(200);
+            }
 
-            // ----------------- Prepare Chart -----------------
-            $labels = $readings->pluck('recorded_at')
-                ->map(fn($d) => Carbon::parse($d)->format('m/d H:i'))
+            // ============================================
+            // PREPARE CHART DATA
+            // ============================================
+            $labels = $readings->pluck('grouped_time')
+                ->map(fn($d) => Carbon::createFromFormat(
+                    strlen($d) === 13 ? 'Y-m-d H' : 'Y-m-d',
+                    $d
+                )->format($labelFormat))
                 ->toArray();
 
-            $rainfallData = $readings->pluck('rainfall_mm')->toArray();
-            $tipCountData = $readings->pluck('tip_count')->toArray();
+            $rainfallData = $readings->pluck('total_rainfall')->map(fn($v) => round($v, 2))->toArray();
+            $tipCountData = $readings->pluck('total_tip_count')->map(fn($v) => round($v, 0))->toArray();
 
+            // ============================================
+            // QUICKCHART CONFIG (POST via Guzzle)
+            // ============================================
             $chartConfig = [
                 'type' => 'line',
                 'data' => [
@@ -182,31 +225,53 @@ class RainGaugeReadingController extends Controller
                             'data' => $rainfallData,
                             'borderColor' => 'rgba(54, 162, 235, 1)',
                             'fill' => false,
+                            'tension' => 0.3,
                         ],
                         [
                             'label' => 'Tip Count',
                             'data' => $tipCountData,
                             'borderColor' => 'rgba(75, 192, 192, 1)',
                             'fill' => false,
+                            'tension' => 0.3,
                         ],
                     ],
                 ],
                 'options' => [
+                    'responsive' => true,
                     'plugins' => ['legend' => ['position' => 'top']],
                     'scales' => [
-                        'x' => ['title' => ['display' => true, 'text' => 'Time']],
-                        'y' => ['title' => ['display' => true, 'text' => 'Value']]
+                        'x' => [
+                            'title' => ['display' => true, 'text' => 'Time Range'],
+                            'ticks' => ['maxRotation' => 45, 'minRotation' => 45]
+                        ],
+                        'y' => ['title' => ['display' => true, 'text' => 'Value'], 'beginAtZero' => true]
                     ]
                 ]
             ];
 
-            $chartUrl = "https://quickchart.io/chart?c=" . urlencode(json_encode($chartConfig));
-            $chartImageData = @file_get_contents($chartUrl);
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post('https://quickchart.io/chart', [
+                'json' => [
+                    'chart' => $chartConfig,
+                    'width' => 1000,
+                    'height' => 400,
+                    'format' => 'png'
+                ]
+            ]);
+
+            $chartImageData = $response->getBody()->getContents();
             $chartBase64 = $chartImageData
                 ? 'data:image/png;base64,' . base64_encode($chartImageData)
                 : null;
 
-            // ----------------- Generate PDF -----------------
+            // ============================================
+            // PDF GENERATION
+            // ============================================
+            $user = Auth::user();
+            $formattedFrom = $from->format('F d Y - h:i A');
+            $formattedTo   = $to->format('F d Y - h:i A');
+            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+
             $pdf = Pdf::loadView('reports.raingauge-report', [
                 'buoy'          => $buoy,
                 'buoyCode'      => $buoyCode,

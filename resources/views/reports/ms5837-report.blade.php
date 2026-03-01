@@ -103,13 +103,13 @@
             @foreach($readings as $index => $reading)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $reading->temperature_celsius }}</td>
-                <td>{{ $reading->temperature_fahrenheit }}</td>
-                <td>{{ $reading->depth_m }}</td>
-                <td>{{ $reading->depth_ft }}</td>
-                <td>{{ $reading->water_altitude }}</td>
-                <td>{{ $reading->water_pressure }}</td>
-                <td>{{ \Carbon\Carbon::parse($reading->recorded_at)->format('F d Y - h:i A') }}</td>
+                <td>{{ number_format($reading->avg_temp_c, 2) }}</td>
+                <td>{{ number_format($reading->avg_temp_f, 2) }}</td>
+                <td>{{ number_format($reading->avg_depth_m, 2) }}</td>
+                <td>{{ number_format($reading->avg_depth_ft, 2) }}</td>
+                <td>{{ number_format($reading->avg_water_altitude, 2) }}</td>
+                <td>{{ number_format($reading->avg_water_pressure, 2) }}</td>
+                <td>{{ \Carbon\Carbon::parse($reading->grouped_time)->format('F d Y - h:i A') }}</td>
             </tr>
             @endforeach
         </tbody>

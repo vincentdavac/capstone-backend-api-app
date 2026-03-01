@@ -92,7 +92,6 @@
                 <th>No.</th>
                 <th>Wind Speed (m/s)</th>
                 <th>Wind Speed (km/h)</th>
-                <th>Status</th>
                 <th>Recorded At</th>
             </tr>
         </thead>
@@ -100,10 +99,9 @@
             @foreach($readings as $index => $reading)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $reading->wind_speed_m_s }}</td>
-                <td>{{ $reading->wind_speed_k_h }}</td>
-                <td>{{ $reading->report_status }}</td>
-                <td>{{ \Carbon\Carbon::parse($reading->recorded_at)->format('F d Y - h:i A') }}</td>
+                <td>{{ number_format($reading->avg_wind_ms, 2) }}</td>
+                <td>{{ number_format($reading->avg_wind_kh, 2) }}</td>
+                <td>{{ \Carbon\Carbon::parse($reading->grouped_time)->format('F d Y - h:i A') }}</td>
             </tr>
             @endforeach
         </tbody>

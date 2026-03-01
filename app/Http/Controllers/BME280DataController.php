@@ -173,45 +173,88 @@ class BME280DataController extends Controller
     public function generateReportBME280(Request $request)
     {
         try {
-            // ----------------- Validate Request -----------------
+            // ============================================
+            // VALIDATE REQUEST
+            // ============================================
             $request->validate([
                 'buoy_id' => 'required|exists:buoys,id',
                 'from'    => 'required|date',
                 'to'      => 'required|date',
             ]);
 
-            $from = Carbon::parse($request->from);
-            $to   = Carbon::parse($request->to);
+            $from = Carbon::parse($request->from)->startOfMinute();
+            $to   = Carbon::parse($request->to)->endOfMinute();
 
             if ($from->greaterThan($to)) {
                 return $this->error(null, "'From' date must not be greater than 'To' date", 422);
             }
 
-            // ----------------- Fetch Buoy -----------------
-            $buoy = Buoy::find($request->buoy_id);
+            // ============================================
+            // FETCH BUOY
+            // ============================================
+            $buoy = Buoy::findOrFail($request->buoy_id);
             $buoyCode = $buoy->buoy_code;
 
-            // ----------------- Fetch BME280 Data -----------------
-            $readings = BME280Data::where('buoy_id', $buoy->id)
+            // ============================================
+            // DETECT RANGE TYPE (Same Logic as Battery)
+            // ============================================
+            $diffInDays = $from->diffInDays($to);
+            $diffInHours = $from->diffInHours($to);
+
+            if ($diffInHours <= 24) {
+                $groupFormat = '%Y-%m-%d %H:00:00';
+                $labelFormat = 'm/d H:i';
+            } elseif ($diffInDays <= 7) {
+                $groupFormat = '%Y-%m-%d %H:00:00';
+                $labelFormat = 'm/d H:00';
+            } elseif ($diffInDays <= 31) {
+                $groupFormat = '%Y-%m-%d';
+                $labelFormat = 'm/d/Y';
+            } else {
+                $groupFormat = '%Y-%m-%d';
+                $labelFormat = 'm/d/Y';
+            }
+
+            // ============================================
+            // AGGREGATED QUERY (Prevents Crash)
+            // ============================================
+            $readings = BME280Data::selectRaw("
+            DATE_FORMAT(recorded_at, '{$groupFormat}') as grouped_time,
+            AVG(temperature_celsius) as avg_temperature,
+            AVG(humidity) as avg_humidity,
+            AVG(pressure_hpa) as avg_pressure
+        ")
+                ->where('buoy_id', $buoy->id)
                 ->whereBetween('recorded_at', [$from, $to])
-                ->orderBy('recorded_at', 'asc')
+                ->groupBy('grouped_time')
+                ->orderBy('grouped_time', 'asc')
                 ->get();
 
             if ($readings->isEmpty()) {
                 return $this->error(null, "No BME280 data found for selected date range.", 404);
             }
 
-            $user = Auth::user();
-            $formattedFrom = $from->format('F d Y - h:i A');
-            $formattedTo   = $to->format('F d Y - h:i A');
-            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+            // ============================================
+            // LIMIT MAX POINTS (Safety Protection)
+            // ============================================
+            if ($readings->count() > 200) {
+                $readings = $readings->take(200);
+            }
 
-            // ----------------- Prepare Chart -----------------
-            $labels = $readings->pluck('recorded_at')->map(fn($d) => Carbon::parse($d)->format('m/d H:i'))->toArray();
-            $temperatureData = $readings->pluck('temperature_celsius')->toArray();
-            $humidityData    = $readings->pluck('humidity')->toArray();
-            $pressureData    = $readings->pluck('pressure_hpa')->toArray();
+            // ============================================
+            // PREPARE CHART DATA
+            // ============================================
+            $labels = $readings->pluck('grouped_time')
+                ->map(fn($d) => Carbon::parse($d)->format($labelFormat))
+                ->toArray();
 
+            $temperatureData = $readings->pluck('avg_temperature')->map(fn($v) => round($v, 2))->toArray();
+            $humidityData    = $readings->pluck('avg_humidity')->map(fn($v) => round($v, 2))->toArray();
+            $pressureData    = $readings->pluck('avg_pressure')->map(fn($v) => round($v, 2))->toArray();
+
+            // ============================================
+            // QUICKCHART CONFIG (POST like Battery)
+            // ============================================
             $chartConfig = [
                 'type' => 'line',
                 'data' => [
@@ -222,35 +265,65 @@ class BME280DataController extends Controller
                             'data' => $temperatureData,
                             'borderColor' => 'rgba(255, 99, 132, 1)',
                             'fill' => false,
+                            'tension' => 0.3,
                         ],
                         [
                             'label' => 'Humidity (%)',
                             'data' => $humidityData,
                             'borderColor' => 'rgba(54, 162, 235, 1)',
                             'fill' => false,
+                            'tension' => 0.3,
                         ],
                         [
                             'label' => 'Pressure (hPa)',
                             'data' => $pressureData,
                             'borderColor' => 'rgba(75, 192, 192, 1)',
                             'fill' => false,
+                            'tension' => 0.3,
                         ],
                     ],
                 ],
                 'options' => [
-                    'plugins' => ['legend' => ['position' => 'top']],
+                    'responsive' => true,
+                    'plugins' => [
+                        'legend' => ['position' => 'top'],
+                    ],
                     'scales' => [
-                        'x' => ['title' => ['display' => true, 'text' => 'Time']],
-                        'y' => ['title' => ['display' => true, 'text' => 'Value']]
+                        'x' => [
+                            'title' => ['display' => true, 'text' => 'Time Range'],
+                            'ticks' => ['maxRotation' => 45, 'minRotation' => 45]
+                        ],
+                        'y' => [
+                            'title' => ['display' => true, 'text' => 'Sensor Value'],
+                            'beginAtZero' => false
+                        ]
                     ]
                 ]
             ];
 
-            $chartUrl = "https://quickchart.io/chart?c=" . urlencode(json_encode($chartConfig));
-            $chartImageData = @file_get_contents($chartUrl);
-            $chartBase64 = $chartImageData ? 'data:image/png;base64,' . base64_encode($chartImageData) : null;
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post('https://quickchart.io/chart', [
+                'json' => [
+                    'chart' => $chartConfig,
+                    'width' => 1000,
+                    'height' => 400,
+                    'format' => 'png'
+                ]
+            ]);
 
-            // ----------------- Generate PDF -----------------
+            $chartImageData = $response->getBody()->getContents();
+            $chartBase64 = $chartImageData
+                ? 'data:image/png;base64,' . base64_encode($chartImageData)
+                : null;
+
+            // ============================================
+            // PDF GENERATION
+            // ============================================
+            $user = Auth::user();
+            $formattedFrom = $from->format('F d Y - h:i A');
+            $formattedTo   = $to->format('F d Y - h:i A');
+            $generatedDate = Carbon::now()->format('F d Y - h:i A');
+
             $pdf = Pdf::loadView('reports.bme280-report', [
                 'buoy'          => $buoy,
                 'buoyCode'      => $buoyCode,
