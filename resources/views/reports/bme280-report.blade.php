@@ -97,10 +97,10 @@
             @foreach($readings as $index => $reading)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $reading->temperature_celsius }}</td>
-                <td>{{ $reading->humidity }}</td>
-                <td>{{ $reading->pressure_hpa }}</td>
-                <td>{{ \Carbon\Carbon::parse($reading->recorded_at)->format('F d Y - h:i A') }}</td>
+                <td>{{ number_format($reading->avg_temperature, 2) }}</td>
+                <td>{{ number_format($reading->avg_humidity, 2) }}</td>
+                <td>{{ number_format($reading->avg_pressure, 2) }}</td>
+                <td>{{ \Carbon\Carbon::parse($reading->grouped_time)->format('F d Y - h:i A') }}</td>
             </tr>
             @endforeach
         </tbody>

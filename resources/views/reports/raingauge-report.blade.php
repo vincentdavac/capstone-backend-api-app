@@ -99,9 +99,9 @@
             @foreach($readings as $index => $reading)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $reading->rainfall_mm }}</td>
-                <td>{{ $reading->tip_count }}</td>
-                <td>{{ \Carbon\Carbon::parse($reading->recorded_at)->format('F d Y - h:i A') }}</td>
+                <td>{{ number_format($reading->total_rainfall, 2) }}</td>
+                <td>{{ number_format($reading->total_tip_count, 0) }}</td>
+                <td>{{ \Carbon\Carbon::parse($reading->grouped_time)->format('F d Y - h:i A') }}</td>
             </tr>
             @endforeach
         </tbody>

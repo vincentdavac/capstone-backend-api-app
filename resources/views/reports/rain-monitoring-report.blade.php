@@ -99,8 +99,8 @@
             @foreach($readings as $index => $reading)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $reading->percentage }}</td>
-                <td>{{ \Carbon\Carbon::parse($reading->recorded_at)->format('F d Y - h:i A') }}</td>
+                <td>{{ number_format($reading->avg_percentage, 2) }}</td>
+                <td>{{ \Carbon\Carbon::parse($reading->grouped_time)->format('F d Y - h:i A') }}</td>
             </tr>
             @endforeach
         </tbody>
