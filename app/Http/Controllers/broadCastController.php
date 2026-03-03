@@ -110,8 +110,7 @@ class broadCastController extends Controller
         $this->firebase->getReference($request->buoy_code . '/RELAY_STATE')->set(false);
         return response()->json(['message' => 'reset success'], 200);
     }
-    public function normalizePHNumber($number)
-    {
+    public function normalizePHNumber($number){
         $number = preg_replace('/[^0-9]/', '', $number);
         if (preg_match('/^09\d{9}$/', $number)) {
             return '63' . substr($number, 1);

@@ -103,7 +103,6 @@ class alertController extends Controller
                 } elseif ($alert === 'Red') {
                     $resetTime = 10;
                 }
-                $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
@@ -222,7 +221,6 @@ class alertController extends Controller
                 } elseif ($alert === 'Red') {
                     $resetTime = 10;
                 }
-                // $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
@@ -343,8 +341,6 @@ class alertController extends Controller
                 } elseif ($alertLevel === 'Red') {
                     $resetTime = 10;
                 }
-                $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
-                $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
@@ -461,7 +457,6 @@ class alertController extends Controller
                 } elseif ($alert === 'Red') {
                     $resetTime = 10;
                 }
-                $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
                 if ($alert == 'Blue' || $alert == 'Red') {
                     foreach ($usersId as $usergetId) {
                         DB::table('alerts')->insert([
@@ -598,14 +593,11 @@ class alertController extends Controller
                     'sensor_type' => $sensorType,
                     'recorded_at' => $recorded
                 ]);
-                $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
                 if ($alert === 'Blue') {
                     $resetTime = 5;
                 } elseif ($alert === 'Red') {
                     $resetTime = 10;
                 }
-                $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
-                $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
@@ -721,8 +713,6 @@ class alertController extends Controller
                 } elseif ($alert === 'Red') {
                     $resetTime = 10;
                 }
-                $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
-                $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
@@ -842,13 +832,13 @@ class alertController extends Controller
                 } elseif ($alert === 'Red') {
                     $resetTime = 10;
                 }
-                $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
-                $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
+                $numbers = [];
                 if ($alert == 'Blue' || $alert == 'Red') {
                     foreach ($usersId as $usergetId) {
+                        $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                         alerts::create([
                             'alert_id' =>  $alertId,
                             'broadcast_by' => $user->last_name . ", " . $user->first_name,
@@ -869,6 +859,9 @@ class alertController extends Controller
                             'triggered_by' => $user->id,
                             'recorded_at' => $recorded
                         ]);
+                        if($numberNormalized){
+                            $numbers []= $numberNormalized;
+                        }
                     }
                 }
             }
@@ -895,5 +888,15 @@ class alertController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'processing failed', 'error'=> $e->getMessage(), 'line' => $e->getLine(),], 500);
         }
+    }
+    public function normalizePHNumber($number){
+        $number = preg_replace('/[^0-9]/', '', $number);
+        if (preg_match('/^09\d{9}$/', $number)) {
+            return '63' . substr($number, 1);
+        }
+        if (preg_match('/^639\d{9}$/', $number)) {
+            return $number;
+        }
+        return null;
     }
 }
