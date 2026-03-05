@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Events\AlertBroadcast;
 use App\Models\alerts;
+use App\Events\SystemNotificationSent;
+use App\Models\SystemNotifications;
 
 class alertController extends Controller
 {
@@ -19,7 +21,8 @@ class alertController extends Controller
     {
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function setTemperatureAlert(Request $request){
+    public function setTemperatureAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -51,6 +54,7 @@ class alertController extends Controller
             $sensorType = 'SURROUNDING TEMPERATURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
             $resetTime = null;
+            $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($surroundingTemp >= 27 && $surroundingTemp <= 32) {
                 $description = "WHITE Alert: Mag-ingat sa init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mag-ingat dahil maaaring magdulot ng pagkapagod ang matagal na pananatili sa labas.";
                 $alert = 'White';
@@ -109,7 +113,9 @@ class alertController extends Controller
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
                 if ($alert == 'Blue' || $alert == 'Red') {
+                    $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                     foreach ($usersId as $usergetId) {
+                        $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                         alerts::create([
                             'alert_id' =>  $alertId,
                             'broadcast_by' => $user->last_name . ", " . $user->first_name,
@@ -131,12 +137,43 @@ class alertController extends Controller
                             'recorded_at' => $recorded
                         ]);
                     }
+                    if ($numberNormalized) {
+                        $numbers[] = $numberNormalized;
+                    }
                 }
+                $phoneNumbers = implode(',', array_unique($numbers));
+                $data = [
+                    'api_token' => '',
+                    'message' => $description,
+                    'phone_number' => $phoneNumbers
+                ];
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/x-www-form-urlencoded'
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+                DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
+                $notification = SystemNotifications::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $user->id,
+                    'barangay_id' => $user->barangay_id,
+                    'receiver_role' => $user->user_type,
+                    'title' => 'Relay Status',
+                    'body' => 'The relay has been set to ON.',
+                    'status' => 'unread',
+                    'created_at' => $recorded,
+                ]);
+                broadcast(new SystemNotificationSent($notification))->toOthers();
             }
         }
         return $resetTime;
     }
-    public function setWaterTemperatureAlert(Request $request){
+    public function setWaterTemperatureAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -168,6 +205,7 @@ class alertController extends Controller
             $sensorType = 'WATER TEMPERATURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
             $resetTime = null;
+            $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($waterTemp >= 26 && $waterTemp <= 30) {
                 $description = "WHITE Alert: Katamtamang temperatura ng tubig! Naitala ang $waterTemp °C sa $barangay ($currentTime). Ligtas ang tubig para sa aktibidad at mababa ang panganib na dala nito.";
                 $alert = "White";
@@ -225,7 +263,9 @@ class alertController extends Controller
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
                 if ($alert == 'Blue' || $alert == 'Red') {
+                    $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                     foreach ($usersId as $usergetId) {
+                        $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                         alerts::create([
                             'alert_id' =>  $alertId,
                             'broadcast_by' => $user->last_name . ", " . $user->first_name,
@@ -247,7 +287,37 @@ class alertController extends Controller
                             'recorded_at' => $recorded
                         ]);
                     }
+                    if ($numberNormalized) {
+                        $numbers[] = $numberNormalized;
+                    }
                 }
+                $phoneNumbers = implode(',', array_unique($numbers));
+                $data = [
+                    'api_token' => '',
+                    'message' => $description,
+                    'phone_number' => $phoneNumbers
+                ];
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/x-www-form-urlencoded'
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+                DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
+                $notification = SystemNotifications::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $user->id,
+                    'barangay_id' => $user->barangay_id,
+                    'receiver_role' => $user->user_type,
+                    'title' => 'Relay Status',
+                    'body' => 'The relay has been set to ON.',
+                    'status' => 'unread',
+                    'created_at' => $recorded,
+                ]);
+                broadcast(new SystemNotificationSent($notification))->toOthers();
             }
         }
         return $resetTime;
@@ -284,6 +354,7 @@ class alertController extends Controller
             $sensorType = 'HUMIDITY';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
             $resetTime = null;
+            $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($humidityData >= 30 && $humidityData <= 59) {
                 $description = "WHITE Alert: Normal na antas ng alinsangan! Naitala ang $humidityData% sa $barangay ($currentTime), na itinuturing na ligtas at komportable sa karamihan ng residente. ";
                 $alertLevel = "White";
@@ -345,7 +416,9 @@ class alertController extends Controller
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
                 if ($alertLevel == 'Blue' || $alertLevel == 'Red') {
+                    $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                     foreach ($usersId as $usergetId) {
+                        $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                         alerts::create([
                             'alert_id' =>  $alertId,
                             'broadcast_by' => $user->last_name . ", " . $user->first_name,
@@ -367,7 +440,37 @@ class alertController extends Controller
                             'recorded_at' => $recorded
                         ]);
                     }
+                    if ($numberNormalized) {
+                        $numbers[] = $numberNormalized;
+                    }
                 }
+                $phoneNumbers = implode(',', array_unique($numbers));
+                $data = [
+                    'api_token' => '',
+                    'message' => $description,
+                    'phone_number' => $phoneNumbers
+                ];
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/x-www-form-urlencoded'
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+                DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
+                $notification = SystemNotifications::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => $user->id,
+                    'barangay_id' => $user->barangay_id,
+                    'receiver_role' => $user->user_type,
+                    'title' => 'Relay Status',
+                    'body' => 'The relay has been set to ON.',
+                    'status' => 'unread',
+                    'created_at' => $recorded,
+                ]);
+                broadcast(new SystemNotificationSent($notification))->toOthers();
             }
         }
         return $resetTime;
@@ -458,6 +561,7 @@ class alertController extends Controller
                     $resetTime = 10;
                 }
                 if ($alert == 'Blue' || $alert == 'Red') {
+                    $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                     foreach ($usersId as $usergetId) {
                         DB::table('alerts')->insert([
                             'alert_id' => $alertId,
@@ -471,13 +575,14 @@ class alertController extends Controller
                         } elseif ($alert === 'Red') {
                             $resetTime = 10;
                         }
-                        $getAlertId = DB::table('recent_alerts')->orderBy('recorded_at', 'desc')->first();
-                        $alertInfo = DB::table('recent_alerts')->where('id', $request->alert_id)->first();
                         $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                             ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                         $relayState = 'on';
+                        $numbers = [];
+                        $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
                         if ($alert == 'Blue' || $alert == 'Red') {
                             foreach ($usersId as $usergetId) {
+                                $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                                 alerts::create([
                                     'alert_id' =>  $alertId,
                                     'broadcast_by' => $user->last_name . ", " . $user->first_name,
@@ -498,7 +603,37 @@ class alertController extends Controller
                                     'triggered_by' => $user->id,
                                     'recorded_at' => $recorded
                                 ]);
+                                if ($numberNormalized) {
+                                    $numbers[] = $numberNormalized;
+                                }
                             }
+                            $phoneNumbers = implode(',', array_unique($numbers));
+                            $data = [
+                                'api_token' => '',
+                                'message' => $description,
+                                'phone_number' => $phoneNumbers
+                            ];
+                            $ch = curl_init($url);
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                                'Content-Type: application/x-www-form-urlencoded'
+                            ]);
+                            curl_exec($ch);
+                            curl_close($ch);
+                            DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
+                            $notification = SystemNotifications::create([
+                                'sender_id' => $user->id,
+                                'receiver_id' => $user->id,
+                                'barangay_id' => $user->barangay_id,
+                                'receiver_role' => $user->user_type,
+                                'title' => 'Relay Status',
+                                'body' => 'The relay has been set to ON.',
+                                'status' => 'unread',
+                                'created_at' => $recorded,
+                            ]);
+                            broadcast(new SystemNotificationSent($notification))->toOthers();
                         }
                     }
                 }
@@ -538,6 +673,7 @@ class alertController extends Controller
             $sensorType = 'WIND SPEED';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
             $resetTime = null;
+            $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($windSpeedData < 39) {
                 $description = "WHITE Alert: $windSpeedData km/h Normal operation, monitoring, coordination & reporting. Walang agarang banta, patuloy ang pagbabantay at paghahanda.";
                 $alert = "White";
@@ -601,8 +737,11 @@ class alertController extends Controller
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
+                $numbers = [];
                 if ($alert == 'Blue' || $alert == 'Red') {
+                    $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                     foreach ($usersId as $usergetId) {
+                        $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                         alerts::create([
                             'alert_id' =>  $alertId,
                             'broadcast_by' => $user->last_name . ", " . $user->first_name,
@@ -623,7 +762,37 @@ class alertController extends Controller
                             'triggered_by' => $user->id,
                             'recorded_at' => $recorded
                         ]);
+                        if ($numberNormalized) {
+                            $numbers[] = $numberNormalized;
+                        }
                     }
+                    $phoneNumbers = implode(',', array_unique($numbers));
+                    $data = [
+                        'api_token' => '',
+                        'message' => $description,
+                        'phone_number' => $phoneNumbers
+                    ];
+                    $ch = curl_init($url);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
+                    curl_exec($ch);
+                    curl_close($ch);
+                    DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
+                    $notification = SystemNotifications::create([
+                        'sender_id' => $user->id,
+                        'receiver_id' => $user->id,
+                        'barangay_id' => $user->barangay_id,
+                        'receiver_role' => $user->user_type,
+                        'title' => 'Relay Status',
+                        'body' => 'The relay has been set to ON.',
+                        'status' => 'unread',
+                        'created_at' => $recorded,
+                    ]);
+                    broadcast(new SystemNotificationSent($notification))->toOthers();
                 }
             }
         }
@@ -661,6 +830,7 @@ class alertController extends Controller
             $sensorType = 'RAIN GAUGE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
             $resetTime = null;
+            $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($rainData < 1) {
                 $description = "WHITE Alert: Napakahinang pag-ulan! Naitala ang < $rainData mm/hr sa $barangay ($currentTime). May Pabugso-bugsong patak ng ulan pero hindi pa nababasa ang karamihan ng lugar.";
                 $alert = "White";
@@ -716,8 +886,12 @@ class alertController extends Controller
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
                     ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
                 $relayState = 'on';
+                $numbers = [];
+                $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
                 if ($alert == 'Blue' || $alert == 'Red') {
+                    $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                     foreach ($usersId as $usergetId) {
+                        $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                         alerts::create([
                             'alert_id' =>  $alertId,
                             'broadcast_by' => $user->last_name . ", " . $user->first_name,
@@ -738,7 +912,37 @@ class alertController extends Controller
                             'triggered_by' => $user->id,
                             'recorded_at' => $recorded
                         ]);
+                        if ($numberNormalized) {
+                            $numbers[] = $numberNormalized;
+                        }
                     }
+                    $phoneNumbers = implode(',', array_unique($numbers));
+                    $data = [
+                        'api_token' => '',
+                        'message' => $description,
+                        'phone_number' => $phoneNumbers
+                    ];
+                    $ch = curl_init($url);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
+                    curl_exec($ch);
+                    curl_close($ch);
+                    DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
+                    $notification = SystemNotifications::create([
+                        'sender_id' => $user->id,
+                        'receiver_id' => $user->id,
+                        'barangay_id' => $user->barangay_id,
+                        'receiver_role' => $user->user_type,
+                        'title' => 'Relay Status',
+                        'body' => 'The relay has been set to ON.',
+                        'status' => 'unread',
+                        'created_at' => $recorded,
+                    ]);
+                    broadcast(new SystemNotificationSent($notification))->toOthers();
                 }
             }
         }
@@ -756,6 +960,8 @@ class alertController extends Controller
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.buoy_code');
         $resetTime = null;
+        $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
+        $receiverId = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['MS5837']['WATER_LEVEL_FEET'])) {
                 continue;
@@ -837,6 +1043,7 @@ class alertController extends Controller
                 $relayState = 'on';
                 $numbers = [];
                 if ($alert == 'Blue' || $alert == 'Red') {
+                    $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
                     foreach ($usersId as $usergetId) {
                         $numberNormalized = $this->normalizePHNumber($usergetId->contact_number);
                         alerts::create([
@@ -859,37 +1066,73 @@ class alertController extends Controller
                             'triggered_by' => $user->id,
                             'recorded_at' => $recorded
                         ]);
-                        if($numberNormalized){
-                            $numbers []= $numberNormalized;
+                        if ($numberNormalized) {
+                            $numbers[] = $numberNormalized;
                         }
                     }
+                    $phoneNumbers = implode(',', array_unique($numbers));
+                    $data = [
+                        'api_token' => '',
+                        'message' => $description,
+                        'phone_number' => $phoneNumbers
+                    ];
+                    $ch = curl_init($url);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
+                    curl_exec($ch);
+                    curl_close($ch);
+                    DB::table('recent_alerts')->where('sensor_type', $request->sensorTypes)->update(['alert_shown' => true]);
+                    $notification = SystemNotifications::create([
+                        'sender_id' => $user->id,
+                        'receiver_id' => $user->id,
+                        'barangay_id' => $user->barangay_id,
+                        'receiver_role' => $user->user_type,
+                        'title' => 'Relay Status',
+                        'body' => 'The relay has been set to ON.',
+                        'status' => 'unread',
+                        'created_at' => $recorded,
+                    ]);
+                    broadcast(new SystemNotificationSent($notification))->toOthers();
                 }
             }
         }
         return $resetTime;
     }
 
-    public function allAlerts() {
+    public function allAlerts()
+    {
         try {
             $resetTime = 0;
             DB::transaction(function () use (&$resetTime) {
                 $request = request();
-                $this->setTemperatureAlert($request);
-                $this->setWaterTemperatureAlert($request);
-                $this->setHumidityAlert($request);
-                $this->setAtmosphericAlert($request); // missing yan siya
-                $this->setRainPercentageAlert($request);
-                $this->setWaterLevel($request);
-                $this->setWindAlert($request);
-                // $resetTime = max( $tempResetTime ?? 0, $waterResetTime ?? 0,$setWindAlert ?? 0, $setTemperatureAlert ?? 0,
-                // $setWaterTemperatureAlert ?? 0,$setHumidityAlert ?? 0,$setAtmosphericAlert ?? 0);
+                $TempReset = $this->setTemperatureAlert($request);
+                $waterTempReset = $this->setWaterTemperatureAlert($request);
+                $humidityReset = $this->setHumidityAlert($request);
+                $atmReset = $this->setAtmosphericAlert($request);
+                $rainReset = $this->setRainPercentageAlert($request);
+                $waterResetTime = $this->setWaterLevel($request);
+                $windReset = $this->setWindAlert($request);
+                $resetTime = max(
+                    is_numeric($waterResetTime)  ? (int)$waterResetTime  : 0,
+                    is_numeric($rainReset)       ? (int)$rainReset       : 0,
+                    is_numeric($TempReset)       ? (int)$TempReset       : 0,
+                    is_numeric($waterTempReset)  ? (int)$waterTempReset  : 0,
+                    is_numeric($humidityReset)   ? (int)$humidityReset   : 0,
+                    is_numeric($atmReset)        ? (int)$atmReset        : 0,
+                    is_numeric($windReset)       ? (int)$windReset       : 0,
+                );
             });
             return response()->json(['success' => true, 'message' => 'all alerts processed successfully', 'reset' => $resetTime], 200);
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'processing failed', 'error'=> $e->getMessage(), 'line' => $e->getLine(),], 500);
+            return response()->json(['success' => false, 'message' => 'processing failed', 'error' => $e->getMessage(), 'line' => $e->getLine(),], 500);
         }
     }
-    public function normalizePHNumber($number){
+    public function normalizePHNumber($number)
+    {
         $number = preg_replace('/[^0-9]/', '', $number);
         if (preg_match('/^09\d{9}$/', $number)) {
             return '63' . substr($number, 1);

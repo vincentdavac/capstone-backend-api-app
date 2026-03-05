@@ -17,12 +17,10 @@ class alertControllerV2 extends Controller
     {
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function checkAllSensors(Request $request)
-    {
+    public function checkAllSensors(Request $request){
         try {
             $user = $request->user();
             $firebaseData = $this->firebase->getReference()->getValue();
-
             $thresholds = DB::table('users')
                 ->join('barangays', 'users.barangay_id', '=', 'barangays.id')
                 ->where('users.barangay_id', $user->barangay_id)

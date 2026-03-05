@@ -61,8 +61,6 @@ use App\Http\Controllers\BME280DataController;
 use App\Http\Controllers\MS5837DataController;
 use App\Http\Controllers\alertControllerV2;
 
-
-
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
 Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
 Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class, 'getUserInfo']);
