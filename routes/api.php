@@ -104,6 +104,7 @@ Route::get('/rain-gauge', [raingaugeController::class, 'getRainGauge']);
 Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
 
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
+Route::get('/alert-report', [fetchAlerts::class, 'generateReport']);
 // USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
 
@@ -128,7 +129,7 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name
 
 // Email Verification
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
-    ->middleware(['auth:sanctum', 'signed'])
+    ->middleware(['signed'])
     ->name('verification.verify');
 
 // Don't Include in the Protected routes -> It was used in the Register route
