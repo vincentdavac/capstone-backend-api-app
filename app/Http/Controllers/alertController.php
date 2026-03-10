@@ -55,9 +55,13 @@ class alertController extends Controller
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
             $resetTime = null;
             $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
+            if($surroundingTemp < 26){
+                $description ="WHITE Alert: Normal na temperatura! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Normal ang kondisyon ng kapaligiran kaya ligtas ang karaniwang gawain sa labas.";
+                $alert= 'White';
+            }
             if ($surroundingTemp >= 27 && $surroundingTemp <= 32) {
-                $description = "WHITE Alert: Mag-ingat sa init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mag-ingat dahil maaaring magdulot ng pagkapagod ang matagal na pananatili sa labas.";
-                $alert = 'White';
+                $description = "BLUE Alert: Labis na mag-ingat sa init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mag-ingat dahil posibleng makaramdam ng muscle cramps.";
+                $alert = 'Blue';
             } else if ($surroundingTemp >= 33 && $surroundingTemp <= 41) {
                 $description = "BLUE Alert: Labis na mag-ingat sa init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mag-ingat dahil posibleng makaramdam ng muscle cramps.";
                 $alert = 'Blue';
