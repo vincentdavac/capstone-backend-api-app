@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('description');
             $table->string('alert_level');
             $table->string('sensor_type');
+            $table->boolean('alert_shown')->default(false);
             $table->timestamp('recorded_at')->nullable();
             $table->timestamps();
         });

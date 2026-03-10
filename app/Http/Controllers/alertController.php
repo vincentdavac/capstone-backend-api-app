@@ -322,7 +322,8 @@ class alertController extends Controller
         }
         return $resetTime;
     }
-    public function setHumidityAlert(Request $request){
+    public function setHumidityAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -383,7 +384,7 @@ class alertController extends Controller
                 continue;
             }
             $insert = false;
-
+             $numbers = [];
             if (!$lastAlert) {
                 $insert = true;
             } else {
@@ -439,9 +440,9 @@ class alertController extends Controller
                             'triggered_by' => $user->id,
                             'recorded_at' => $recorded
                         ]);
-                    }
-                    if ($numberNormalized) {
-                        $numbers[] = $numberNormalized;
+                        if ($numberNormalized) {
+                            $numbers[] = $numberNormalized;
+                        }
                     }
                 }
                 $phoneNumbers = implode(',', array_unique($numbers));
@@ -475,7 +476,8 @@ class alertController extends Controller
         }
         return $resetTime;
     }
-    public function setAtmosphericAlert(Request $request){
+    public function setAtmosphericAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -641,7 +643,8 @@ class alertController extends Controller
         }
         return $resetTime;
     }
-    public function setWindAlert(Request $request){
+    public function setWindAlert(Request $request)
+    {
         $user = $request->user();
         $usersId = User::where('user_type', 'user')->get();
         $firebaseData = $this->firebase->getReference()->getValue();
@@ -798,7 +801,8 @@ class alertController extends Controller
         }
         return $resetTime;
     }
-    public function setRainPercentageAlert(Request $request){
+    public function setRainPercentageAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -948,7 +952,8 @@ class alertController extends Controller
         }
         return $resetTime;
     }
-    public function setWaterLevel(Request $request){
+    public function setWaterLevel(Request $request)
+    {
         $user = $request->user();
         $usersId = User::where('user_type', 'user')->get();
         $firebaseData = $this->firebase->getReference()->getValue();
