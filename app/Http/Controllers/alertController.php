@@ -21,8 +21,7 @@ class alertController extends Controller
     {
         $this->firebase = $firebaseService->getDatabase();
     }
-    public function setTemperatureAlert(Request $request)
-    {
+    public function setTemperatureAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
