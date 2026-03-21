@@ -32,6 +32,7 @@ class alertController extends Controller
             ->where('users.barangay_id', $user->barangay_id ?? 5)->value('barangays.name');
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.buoy_code');
+        $resetTime = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['BME280']['SURROUNDING_TEMPERATURE'])) {
                 continue;
@@ -52,11 +53,10 @@ class alertController extends Controller
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'SURROUNDING TEMPERATURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-            $resetTime = null;
             $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
-            if($surroundingTemp < 26){
-                $description ="WHITE Alert: Normal na temperatura! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Normal ang kondisyon ng kapaligiran kaya ligtas ang karaniwang gawain sa labas.";
-                $alert= 'White';
+            if ($surroundingTemp < 26) {
+                $description = "WHITE Alert: Normal na temperatura! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Normal ang kondisyon ng kapaligiran kaya ligtas ang karaniwang gawain sa labas.";
+                $alert = 'White';
             }
             if ($surroundingTemp >= 27 && $surroundingTemp <= 32) {
                 $description = "BLUE Alert: Labis na mag-ingat sa init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mag-ingat dahil posibleng makaramdam ng muscle cramps.";
@@ -83,6 +83,7 @@ class alertController extends Controller
                 return;
             }
             $insert = false;
+            $numbers = [];
             if (!$lastAlert) {
                 $insert = true;
             } else {
@@ -111,9 +112,7 @@ class alertController extends Controller
                     $resetTime = 10;
                 }
                 $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
-                    ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
-                $buoyID = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
-                    ->where('buoys.barangay_id', $user->barangay_id ?? 5)->value('buoys.id');
+                    ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.id');
                 $relayState = 'on';
                 if ($alert == 'Blue' || $alert == 'Red') {
                     $this->firebase->getReference($prototypeName . '/RELAY_STATE')->set(true);
@@ -139,9 +138,9 @@ class alertController extends Controller
                             'triggered_by' => $user->id,
                             'recorded_at' => $recorded
                         ]);
-                    }
-                    if ($numberNormalized) {
-                        $numbers[] = $numberNormalized;
+                        if ($numberNormalized) {
+                            $numbers[] = $numberNormalized;
+                        }
                     }
                 }
                 $phoneNumbers = implode(',', array_unique($numbers));
@@ -175,8 +174,7 @@ class alertController extends Controller
         }
         return $resetTime;
     }
-    public function setWaterTemperatureAlert(Request $request)
-    {
+    public function setWaterTemperatureAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -187,6 +185,7 @@ class alertController extends Controller
             ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.buoy_code');
+         $resetTime = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['MS5837']['WATER_TEMPERATURE'])) {
                 continue;
@@ -207,7 +206,6 @@ class alertController extends Controller
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'WATER TEMPERATURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-            $resetTime = null;
             $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($waterTemp >= 26 && $waterTemp <= 30) {
                 $description = "WHITE Alert: Katamtamang temperatura ng tubig! Naitala ang $waterTemp °C sa $barangay ($currentTime). Ligtas ang tubig para sa aktibidad at mababa ang panganib na dala nito.";
@@ -337,6 +335,7 @@ class alertController extends Controller
             ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.buoy_code');
+         $resetTime = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['BME280']['HUMIDITY'])) {
                 continue;
@@ -357,7 +356,7 @@ class alertController extends Controller
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'HUMIDITY';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-            $resetTime = null;
+           
             $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($humidityData >= 30 && $humidityData <= 59) {
                 $description = "WHITE Alert: Normal na antas ng alinsangan! Naitala ang $humidityData% sa $barangay ($currentTime), na itinuturing na ligtas at komportable sa karamihan ng residente. ";
@@ -387,7 +386,7 @@ class alertController extends Controller
                 continue;
             }
             $insert = false;
-             $numbers = [];
+            $numbers = [];
             if (!$lastAlert) {
                 $insert = true;
             } else {
@@ -491,6 +490,7 @@ class alertController extends Controller
             ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.buoy_code');
+         $resetTime = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['BME280']['ATMOSPHERIC_PRESSURE'])) {
                 continue;
@@ -511,7 +511,6 @@ class alertController extends Controller
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'ATMOSPHERIC PRESSURE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-            $resetTime = null;
             if ($atmosphericData > 1013.2) {
                 $description = "WHITE Alert: Mataas na lakas ng hangin! Naitala ang $atmosphericData hPa sa $barangay ($currentTime). Inaasahan ang malinaw na kalangitan at mahinahong panahon.";
                 $alert = "White";
@@ -658,6 +657,7 @@ class alertController extends Controller
             ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.buoy_code');
+         $resetTime = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['ANEMOMETER']['WIND_SPEED_km_h'])) {
                 continue;
@@ -678,7 +678,7 @@ class alertController extends Controller
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'WIND SPEED';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-            $resetTime = null;
+            
             $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($windSpeedData < 39) {
                 $description = "WHITE Alert: $windSpeedData km/h Normal operation, monitoring, coordination & reporting. Walang agarang banta, patuloy ang pagbabantay at paghahanda.";
@@ -816,6 +816,7 @@ class alertController extends Controller
             ->where('users.barangay_id', $user->barangay_id)->value('barangays.name');
         $buoyCode = DB::table('buoys')->join('barangays', 'buoys.barangay_id', '=', 'barangays.id')
             ->where('buoys.barangay_id', $user->barangay_id)->value('buoys.buoy_code');
+             $resetTime = null;
         foreach ($firebaseData as $prototypeName => $buoyData) {
             if (!isset($buoyData['RAIN_GAUGE']['FALL_COUNT_MILIMETERS'])) {
                 continue;
@@ -836,7 +837,6 @@ class alertController extends Controller
             $currentTime = Carbon::now('Asia/Manila')->format('h:i A');
             $sensorType = 'RAIN GAUGE';
             $recorded = Carbon::now('Asia/Manila')->format('Y-m-d H:i:s');
-            $resetTime = null;
             $url = 'https://www.iprogsms.com/api/v1/sms_messages/send_bulk';
             if ($rainData < 1) {
                 $description = "WHITE Alert: Napakahinang pag-ulan! Naitala ang < $rainData mm/hr sa $barangay ($currentTime). May Pabugso-bugsong patak ng ulan pero hindi pa nababasa ang karamihan ng lugar.";

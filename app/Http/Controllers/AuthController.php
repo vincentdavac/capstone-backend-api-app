@@ -263,25 +263,25 @@ class AuthController extends Controller
             );
         }
 
-// 🔹 Step 1: Handle image upload
-$imageName = null;
-if ($request->hasFile('image')) {
-    $imageFile = $request->file('image');
-    $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
-    $imageFile->move(public_path('profile_images'), $imageName);
-    // ✅ ADD THIS LINE:
-    //$imageName = 'profile_images/' . $imageName;
-}
+        // 🔹 Step 1: Handle image upload
+        $imageName = null;
+        if ($request->hasFile('image')) {
+            $imageFile = $request->file('image');
+            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+            $imageFile->move(public_path('profile_images'), $imageName);
+            // ✅ ADD THIS LINE:
+            //$imageName = 'profile_images/' . $imageName;
+        }
 
-// 🔹 Step 2: Handle ID document upload
-$idDocumentName = null;
-if ($request->hasFile('id_document')) {
-    $idDocumentFile = $request->file('id_document');
-    $idDocumentName = Str::random(32) . '.' . $idDocumentFile->getClientOriginalExtension();
-    $idDocumentFile->move(public_path('id_documents'), $idDocumentName);
-    // ✅ ADD THIS LINE:
-    //$idDocumentName = 'id_documents/' . $idDocumentName;
-}
+        // 🔹 Step 2: Handle ID document upload
+        $idDocumentName = null;
+        if ($request->hasFile('id_document')) {
+            $idDocumentFile = $request->file('id_document');
+            $idDocumentName = Str::random(32) . '.' . $idDocumentFile->getClientOriginalExtension();
+            $idDocumentFile->move(public_path('id_documents'), $idDocumentName);
+            // ✅ ADD THIS LINE:
+            //$idDocumentName = 'id_documents/' . $idDocumentName;
+        }
 
         // 🔹 Step 3: Verify Google reCAPTCHA (skip for local/testing)
         // if (!app()->environment(['local', 'testing'])) {
@@ -354,7 +354,6 @@ if ($request->hasFile('id_document')) {
             ]);
 
             broadcast(new SystemNotificationSent($notification))->toOthers();
-
         }
 
         // 🔹 Step 7: Return success response using HttpResponses
@@ -909,29 +908,22 @@ if ($request->hasFile('id_document')) {
         );
     }
 
-    // GET ACTIVE USERS BASED ON AUTHENTICATED USER TYPE
-    public function activeUsers()
-    {
+    public function activeUsers(){
         $authUser = Auth::user();
-
         if ($authUser->user_type === 'admin') {
-            // Admin sees all active barangay accounts
             $users = User::whereIn('user_type', ['admin', 'barangay'])
                 ->where('is_active', true)
                 ->orderBy('created_at', 'desc') // newest first
                 ->get();
         } elseif ($authUser->user_type === 'barangay') {
-            // Barangay sees all active regular users in their barangay
-            $users = User::whereIn('user_type', ['user', 'barangay'])
+            $users = User::where('user_type', 'user')
                 ->where('is_active', true)
                 ->where('barangay_id', $authUser->barangay_id)
-                ->orderBy('created_at', 'desc') // newest first
+                ->orderBy('created_at', 'desc')
                 ->get();
         } else {
             return $this->error(null, 'Unauthorized', 403);
         }
-
-        // Eager load barangay and its buoys
         $users->load(['barangay.buoys', 'verifier']);
 
         return $this->success(
@@ -941,39 +933,30 @@ if ($request->hasFile('id_document')) {
         );
     }
 
-    // GET ARCHIVED USERS BASED ON AUTHENTICATED USER TYPE
-    public function archivedUsers()
-    {
+    public function archivedUsers(){
         $authUser = Auth::user();
 
         if ($authUser->user_type === 'admin') {
-            // Admin sees all archived barangay accounts
             $users = User::whereIn('user_type', ['admin', 'barangay'])
                 ->where('is_active', false)
                 ->orderBy('created_at', 'desc') // newest first
                 ->get();
         } elseif ($authUser->user_type === 'barangay') {
-            // Barangay sees all archived regular users in their barangay
             $users = User::whereIn('user_type', ['user', 'barangay'])
                 ->where('is_active', false)
                 ->where('barangay_id', $authUser->barangay_id)
-                ->orderBy('created_at', 'desc') // newest first
+                ->orderBy('created_at', 'desc') 
                 ->get();
         } else {
             return $this->error(null, 'Unauthorized', 403);
         }
-
-        // Eager load barangay and its buoys
         $users->load(['barangay.buoys', 'verifier']);
-
         return $this->success(
             UserInformationResource::collection($users),
             'Archived users retrieved successfully',
             200
         );
     }
-
-    // LOGOUT
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

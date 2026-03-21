@@ -134,9 +134,7 @@ class alertMonitoring extends Controller
         DB::table('recent_alerts')->where('sensor_type', $validated['sensor_stype'])->update(['alert_shown' => true]);
         return response()->json(['message' => 'Alert broadcasted successfully.', 'reset' => $resetTime,], 201);
     }
-    public function resetRelayModal(Request $request)
-    {
-        $user = $request->user();
+    public function resetRelayModal(Request $request){
         $request->validate(['buoy_code' => 'required|string',]);
         $this->firebase->getReference($request->buoy_code . '/RELAY_STATE')->set(false);
         return response()->json(['message' => 'RELAY reset successfully'], 200);
