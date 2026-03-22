@@ -1111,8 +1111,7 @@ class alertController extends Controller
         return $resetTime;
     }
 
-    public function allAlerts()
-    {
+    public function allAlerts(){
         try {
             $resetTime = 0;
             DB::transaction(function () use (&$resetTime) {
@@ -1139,8 +1138,7 @@ class alertController extends Controller
             return response()->json(['success' => false, 'message' => 'processing failed', 'error' => $e->getMessage(), 'line' => $e->getLine(),], 500);
         }
     }
-    public function normalizePHNumber($number)
-    {
+    public function normalizePHNumber($number){
         $number = preg_replace('/[^0-9]/', '', $number);
         if (preg_match('/^09\d{9}$/', $number)) {
             return '63' . substr($number, 1);

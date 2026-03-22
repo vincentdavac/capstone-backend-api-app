@@ -68,8 +68,6 @@ Route::middleware('auth:sanctum')->get('/get-information', [fetchUserInfo::class
 Route::get('/get-current-conditionV2', [currentConditionv2::class, 'getCurrentCondition']);
 
 
-// Route::get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
-// Route::middleware('auth:sanctum')->get('/alert-count', [alertNotif::class, 'getCount']);
 Route::middleware('auth:sanctum')->get('/alert-notif', [alertNotif::class, 'getAlertNotif']);
 Route::middleware('auth:sanctum')->post('/all-set-alerts', [alertController::class, 'allAlerts']);
 Route::middleware('auth:sanctum')->post('/alert-read', [alertNotif::class, 'isShown']);
@@ -138,7 +136,7 @@ Route::get('/barangays', [BarangayController::class, 'index']);
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
-    Route::post('/testV2', [alertControllerV2::class, 'checkAllSensors']);
+    Route::post('/v2/all-set-alerts', [alertControllerV2::class, 'allAlerts']);
     Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
     Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
     Route::get('/get-all-count', [getNotifCount::class, 'allCount']);

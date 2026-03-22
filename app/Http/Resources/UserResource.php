@@ -26,6 +26,7 @@ class UserResource extends JsonResource
                     'buoys' => $this->barangay->buoys->map(function ($buoy) {
                         return [
                             'buoyCode' => $buoy->buoy_code,
+                            'buoyId' => $buoy->id,
                         ];
                     }),
                 ];
