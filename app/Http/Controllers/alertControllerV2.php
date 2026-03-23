@@ -33,8 +33,7 @@ class alertControllerV2 extends Controller
         return null;
     }
 
-    public function setTemperatureAlert(Request $request)
-    {
+    public function setTemperatureAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -201,8 +200,7 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setWaterTemperatureAlert(Request $request)
-    {
+    public function setWaterTemperatureAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -530,8 +528,7 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setAtmosphericAlert(Request $request)
-    {
+    public function setAtmosphericAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -691,8 +688,7 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setWindAlert(Request $request)
-    {
+    public function setWindAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -859,8 +855,7 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setRainPercentageAlert(Request $request)
-    {
+    public function setRainPercentageAlert(Request $request){
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();

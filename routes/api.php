@@ -60,6 +60,7 @@ use App\Http\Controllers\BuoyMonitoringController;
 use App\Http\Controllers\BME280DataController;
 use App\Http\Controllers\MS5837DataController;
 use App\Http\Controllers\alertControllerV2;
+use App\Http\Controllers\fetchWaterLevel;
 
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
 Route::middleware('auth:sanctum')->post('/update-information', [updateProfile::class, 'updateProfile']);
@@ -100,49 +101,30 @@ Route::get('/battery', [batteryController::class, 'getBatteryData']);
 Route::get('/gps-data', [gpsController::class, 'getGpsData']);
 Route::get('/rain-gauge', [raingaugeController::class, 'getRainGauge']);
 Route::get('/rain-sensor', [rainSensorController::class, 'getRainSensor']);
-
 Route::get('/get-all-alerts', [fetchAlerts::class, 'getAlerts']);
 Route::get('/alert-report', [fetchAlerts::class, 'generateReport']);
-// USER INFORMATION
 Route::middleware('auth:sanctum')->get('/information/user', [AuthController::class, 'me']);
-
-// USER AUTHENTICATION ROUTES
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,1');
 Route::post('/register', [AuthController::class, 'register']);
-
-// ADMIN AUTHENTICATION ROUTES
 Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
 Route::post('/admin/register', [AuthController::class, 'registerAdmin']);
-
-// BARANGAY AUTHENTICATION ROUTES
 Route::post('/barangay/login', [AuthController::class, 'loginBarangay']);
 Route::post('/barangay/register', [AuthController::class, 'registerBarangay']);
-
-
 Route::post('/email/resend', [VerificationController::class, 'resend']);
-
-// Forgot / Reset password routes
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
-
-// Email Verification
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
     ->middleware(['signed'])
     ->name('verification.verify');
-
-// Don't Include in the Protected routes -> It was used in the Register route
 Route::get('/barangays', [BarangayController::class, 'index']);
-
-
-// Protected routes
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
+    Route::get('/get-water-alert', [fetchWaterLevel::class, 'getAlertsLevel']);
     Route::post('/v2/all-set-alerts', [alertControllerV2::class, 'allAlerts']);
     Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
     Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
     Route::get('/get-all-count', [getNotifCount::class, 'allCount']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::patch('/update-user/{user}', [AuthController::class, 'updateUser']);
-
     Route::get('/active-users', [AuthController::class, 'activeUsers']);
     Route::get('/archived-users', [AuthController::class, 'archivedUsers']);
 
