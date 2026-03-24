@@ -60,6 +60,7 @@ use App\Http\Controllers\BuoyMonitoringController;
 use App\Http\Controllers\BME280DataController;
 use App\Http\Controllers\MS5837DataController;
 use App\Http\Controllers\alertControllerV2;
+
 use App\Http\Controllers\fetchWaterLevel;
 
 Route::middleware('auth:sanctum')->post('/update-img', [updateProfilePic::class, 'updateProfileImage']);
@@ -119,7 +120,7 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
 Route::get('/barangays', [BarangayController::class, 'index']);
 Route::group(['middleware' => ['auth:sanctum', 'throttle:5|60,1']], function () {
     Route::get('/get-water-alert', [fetchWaterLevel::class, 'getAlertsLevel']);
-    Route::post('/v2/all-set-alerts', [alertControllerV2::class, 'allAlerts']);
+    // Route::post('/v2/all-set-alerts', [alertControllerV2::class, 'allAlerts']);
     Route::get('/{buoyId}/status', [alertMonitoring::class, 'checkAlertStatus']);
     Route::get('/{buoyCode}/active', [alertMonitoring::class, 'getActiveAlerts']);
     Route::get('/get-all-count', [getNotifCount::class, 'allCount']);
