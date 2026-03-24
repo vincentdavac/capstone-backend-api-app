@@ -33,7 +33,8 @@ class alertControllerV2 extends Controller
         return null;
     }
 
-    public function setTemperatureAlert(Request $request){
+    public function setTemperatureAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -90,6 +91,7 @@ class alertControllerV2 extends Controller
                 $description = "RED Alert: Matinding init! Naitala ang $surroundingTemp °C sa $barangay ($currentTime). Mataas ang posibilidad ng heat stroke kaya manatili sa lilim at uminom ng tubig.";
             }
             $uuid = Str::uuid();
+
             $alertId = 'ALERT' . $uuid;
             $lastAlert = DB::table('recent_alerts')
                 ->where('buoy_id', $buoy->id)
@@ -98,16 +100,13 @@ class alertControllerV2 extends Controller
                 ->first();
 
             $insert = false;
-
             if (!$lastAlert) {
                 $insert = true;
             } else {
-                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
-                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true;
-                } elseif ($alert !== 'White' && $minutesDiff >= 15) {
-                    $insert = true;
+                } else {
+                    $insert = false;
                 }
             }
             if ($insert) {
@@ -167,7 +166,7 @@ class alertControllerV2 extends Controller
                     $phoneNumbers = implode(',', array_unique($numbers));
 
                     $data = [
-                        'api_token' => '',
+                        'api_token' => '4e07eee9fca6d25f58f066453b1f258db25a2e5e',
                         'message' => $description,
                         'phone_number' => $phoneNumbers,
                     ];
@@ -200,7 +199,8 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setWaterTemperatureAlert(Request $request){
+    public function setWaterTemperatureAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -265,12 +265,10 @@ class alertControllerV2 extends Controller
             if (!$lastAlert) {
                 $insert = true;
             } else {
-                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
-                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true;
-                } elseif ($alert !== 'White' && $minutesDiff >= 15) {
-                    $insert = true;
+                } else {
+                    $insert = false;
                 }
             }
 
@@ -331,7 +329,7 @@ class alertControllerV2 extends Controller
                     $phoneNumbers = implode(',', array_unique($numbers));
 
                     $data = [
-                        'api_token' => '',
+                        'api_token' => '4e07eee9fca6d25f58f066453b1f258db25a2e5e',
                         'message' => $description,
                         'phone_number' => $phoneNumbers,
                     ];
@@ -430,13 +428,11 @@ class alertControllerV2 extends Controller
             $insert = false;
             if (!$lastAlert) {
                 $insert = true;
-            }else {
-                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
-                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+            } else {
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true;
-                }elseif ($alert !== 'White' && $minutesDiff >= 15) {
-                    $insert = true;
+                } else {
+                    $insert = false;
                 }
             }
             if ($insert) {
@@ -495,7 +491,7 @@ class alertControllerV2 extends Controller
                     $phoneNumbers = implode(',', array_unique($numbers));
 
                     $data = [
-                        'api_token' => '',
+                        'api_token' => '4e07eee9fca6d25f58f066453b1f258db25a2e5e',
                         'message' => $description,
                         'phone_number' => $phoneNumbers,
                     ];
@@ -528,7 +524,8 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setAtmosphericAlert(Request $request){
+    public function setAtmosphericAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -590,13 +587,11 @@ class alertControllerV2 extends Controller
             $insert = false;
             if (!$lastAlert) {
                 $insert = true;
-            }else {
-                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
-                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+            } else {
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true;
-                }elseif ($alert !== 'White' && $minutesDiff >= 15) {
-                    $insert = true;
+                } else {
+                    $insert = false;
                 }
             }
             if ($insert) {
@@ -655,7 +650,7 @@ class alertControllerV2 extends Controller
                     $phoneNumbers = implode(',', array_unique($numbers));
 
                     $data = [
-                        'api_token' => '',
+                        'api_token' => '4e07eee9fca6d25f58f066453b1f258db25a2e5e',
                         'message'  => $description,
                         'phone_number' => $phoneNumbers,
                     ];
@@ -688,7 +683,8 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setWindAlert(Request $request){
+    public function setWindAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -757,13 +753,11 @@ class alertControllerV2 extends Controller
             $insert = false;
             if (!$lastAlert) {
                 $insert = true;
-            }else {
-                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
-                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+            } else {
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true;
-                }elseif ($alert !== 'White' && $minutesDiff >= 15) {
-                    $insert = true;
+                } else {
+                    $insert = false;
                 }
             }
             if ($insert) {
@@ -822,7 +816,7 @@ class alertControllerV2 extends Controller
                     $phoneNumbers = implode(',', array_unique($numbers));
 
                     $data = [
-                        'api_token' => '',
+                        'api_token' => '4e07eee9fca6d25f58f066453b1f258db25a2e5e',
                         'message' => $description,
                         'phone_number' => $phoneNumbers,
                     ];
@@ -855,7 +849,8 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setRainPercentageAlert(Request $request){
+    public function setRainPercentageAlert(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -917,13 +912,11 @@ class alertControllerV2 extends Controller
             $insert = false;
             if (!$lastAlert) {
                 $insert = true;
-            }else {
-                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
-                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+            } else {
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true;
-                }elseif ($alert !== 'White' && $minutesDiff >= 15) {
-                    $insert = true;
+                } else {
+                    $insert = false;
                 }
             }
             if ($insert) {
@@ -982,7 +975,7 @@ class alertControllerV2 extends Controller
                     $phoneNumbers = implode(',', array_unique($numbers));
 
                     $data = [
-                        'api_token' => '',
+                        'api_token' => '4e07eee9fca6d25f58f066453b1f258db25a2e5e',
                         'message' => $description,
                         'phone_number' => $phoneNumbers,
                     ];
@@ -1015,7 +1008,8 @@ class alertControllerV2 extends Controller
 
         return $resetTime;
     }
-    public function setWaterLevel(Request $request){
+    public function setWaterLevel(Request $request)
+    {
         $user = $request->user();
         $firebaseData = $this->firebase->getReference()->getValue();
         $usersId = User::where('user_type', 'user')->get();
@@ -1080,13 +1074,11 @@ class alertControllerV2 extends Controller
             $insert = false;
             if (!$lastAlert) {
                 $insert = true;
-            }else {
-                $lastAlertTime = Carbon::parse($lastAlert->recorded_at);
-                $minutesDiff = $lastAlertTime->diffInMinutes($recorded);
+            } else {
                 if ($lastAlert->alert_level !== $alert) {
                     $insert = true;
-                }elseif ($alert !== 'White' && $minutesDiff >= 15) {
-                    $insert = true;
+                } else {
+                    $insert = false;
                 }
             }
             if ($insert) {
@@ -1145,7 +1137,7 @@ class alertControllerV2 extends Controller
                     $phoneNumbers = implode(',', array_unique($numbers));
 
                     $data = [
-                        'api_token' => '',
+                        'api_token' => '4e07eee9fca6d25f58f066453b1f258db25a2e5e',
                         'message' => $description,
                         'phone_number' => $phoneNumbers,
                     ];
